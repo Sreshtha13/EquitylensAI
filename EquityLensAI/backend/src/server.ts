@@ -4,8 +4,12 @@ import { dbClient } from './db/index.js';
 import { logger } from './utils/logger.js';
 import { registerShutdownTask, runShutdownTasks } from './utils/lifecycle.js';
 
+import { initializeInstruments } from './market/instruments/ingestion.js';
+
 const env = loadEnv();
 const app = createApp();
+
+void initializeInstruments();
 
 const server = app.listen(env.PORT, () => {
   logger.info(

@@ -317,26 +317,6 @@ export const openApiSpec = {
               },
             },
           },
-          '404': {
-            description: 'Instrument not found',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/ApiError',
-                },
-              },
-            },
-          },
-          '501': {
-            description: 'Not yet implemented in Phase 1 (foundation boundary active)',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/ApiError',
-                },
-              },
-            },
-          },
         },
       },
     },
@@ -370,8 +350,52 @@ export const openApiSpec = {
               },
             },
           },
-          '501': {
-            description: 'Not yet implemented in Phase 1 (foundation boundary active)',
+        },
+      },
+    },
+    '/api/v1/stocks/{symbol}/quote': {
+      get: {
+        tags: ['Instruments'],
+        summary: 'Get live or delayed stock quote',
+        description: 'Retrieves genuine, normalized price quotation from supported market data providers (Angel One SmartAPI primary for NSE, Yahoo Finance fallback). Includes explicit data provenance (source, observed timestamp, retrieved timestamp, freshness level, staleness flag).',
+        parameters: [
+          {
+            $ref: '#/components/parameters/RequestIdHeader',
+          },
+          {
+            name: 'symbol',
+            in: 'path',
+            required: true,
+            description: 'Ticker symbol (e.g. RELIANCE, TCS, AAPL, MSFT)',
+            schema: {
+              type: 'string',
+            },
+            example: 'RELIANCE',
+          },
+          {
+            name: 'exchange',
+            in: 'query',
+            required: false,
+            description: 'Exchange code (NSE, BSE, NASDAQ, NYSE)',
+            schema: {
+              type: 'string',
+            },
+            example: 'NSE',
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Normalized quote with data provenance',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/NormalizedQuoteResponse',
+                },
+              },
+            },
+          },
+          '404': {
+            description: 'Quote not found for the requested symbol',
             content: {
               'application/json': {
                 schema: {
@@ -379,6 +403,148 @@ export const openApiSpec = {
                 },
               },
             },
+          },
+        },
+      },
+    },
+    '/api/v1/stocks/{symbol}/history': {
+      get: {
+        tags: ['Instruments'],
+        summary: 'Get historical price candles',
+        description: 'Retrieves genuine OHLCV candlestick historical data with specified candle interval.',
+        parameters: [
+          {
+            $ref: '#/components/parameters/RequestIdHeader',
+          },
+          {
+            name: 'symbol',
+            in: 'path',
+            required: true,
+            description: 'Ticker symbol (e.g. RELIANCE, AAPL)',
+            schema: {
+              type: 'string',
+            },
+            example: 'RELIANCE',
+          },
+          {
+            name: 'exchange',
+            in: 'query',
+            required: false,
+            description: 'Exchange code (NSE, BSE, NASDAQ)',
+            schema: {
+              type: 'string',
+            },
+            example: 'NSE',
+          },
+          {
+            name: 'interval',
+            in: 'query',
+            required: false,
+            description: 'Candle interval',
+            schema: {
+              type: 'string',
+              enum: ['ONE_MINUTE', 'THREE_MINUTE', 'FIVE_MINUTE', 'TEN_MINUTE', 'FIFTEEN_MINUTE', 'THIRTY_MINUTE', 'ONE_HOUR', 'ONE_DAY'],
+              default: 'ONE_DAY',
+            },
+          },
+          {
+            name: 'from',
+            in: 'query',
+            required: false,
+            description: 'Start date / timestamp',
+            schema: {
+              type: 'string',
+            },
+          },
+          {
+            name: 'to',
+            in: 'query',
+            required: false,
+            description: 'End date / timestamp',
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Historical OHLCV prices',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/HistoricalPricesResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/v1/stocks/ingest': {
+      post: {
+        tags: ['Instruments'],
+        summary: 'Trigger instrument master ingestion',
+        description: 'Downloads latest Angel One scrip master, normalizes active equities and indices, and updates local cache.',
+        responses: {
+          '200': {
+            description: 'Ingestion result',
+          },
+        },
+      },
+    },
+    '/api/v1/stocks/ingest/status': {
+      get: {
+        tags: ['Instruments'],
+        summary: 'Get instrument ingestion status',
+        description: 'Returns progress, last ingested timestamp, total instruments count, and errors.',
+        responses: {
+          '200': {
+            description: 'Ingestion status',
+          },
+        },
+      },
+    },
+    '/api/v1/market/overview': {
+      get: {
+        tags: ['Market Intelligence'],
+        summary: 'Get market overview and indices',
+        description: 'Fetch snapshot of benchmark index levels with verified market data provenance.',
+        parameters: [
+          {
+            $ref: '#/components/parameters/RequestIdHeader',
+          },
+          {
+            name: 'market',
+            in: 'query',
+            required: false,
+            description: 'Target market jurisdiction',
+            schema: {
+              $ref: '#/components/schemas/Market',
+            },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Market overview snapshot',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/MarketOverviewResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/v1/market/providers': {
+      get: {
+        tags: ['Market Intelligence'],
+        summary: 'List market data providers',
+        description: 'Returns configured market data providers and availability status.',
+        responses: {
+          '200': {
+            description: 'Provider list',
           },
         },
       },
@@ -825,6 +991,80 @@ export const openApiSpec = {
               },
             },
             required: ['symbol', 'name', 'price', 'change', 'changePercent', 'currency'],
+          },
+        },
+        required: ['success', 'data'],
+      },
+      NormalizedQuoteResponse: {
+        type: 'object',
+        properties: {
+          success: {
+            type: 'boolean',
+            enum: [true],
+          },
+          data: {
+            type: 'object',
+            properties: {
+              symbol: { type: 'string', example: 'RELIANCE' },
+              name: { type: 'string', example: 'Reliance Industries Ltd' },
+              exchange: { type: 'string', example: 'NSE' },
+              market: { type: 'string', example: 'nse' },
+              assetType: { type: 'string', example: 'equity' },
+              currency: { type: 'string', example: 'INR' },
+              price: { type: 'number', nullable: true, example: 1174.6 },
+              change: { type: 'number', nullable: true, example: 7.9 },
+              changePercent: { type: 'number', nullable: true, example: 0.68 },
+              open: { type: 'number', nullable: true, example: 1167.0 },
+              high: { type: 'number', nullable: true, example: 1188.0 },
+              low: { type: 'number', nullable: true, example: 1162.7 },
+              previousClose: { type: 'number', nullable: true, example: 1166.7 },
+              volume: { type: 'number', nullable: true, example: 10938195 },
+              source: { type: 'string', example: 'angel' },
+              observedAt: { type: 'string', format: 'date-time' },
+              retrievedAt: { type: 'string', format: 'date-time' },
+              freshness: { type: 'string', enum: ['live', 'delayed', 'eod', 'historical', 'stale', 'unavailable'] },
+              isStale: { type: 'boolean', example: false },
+            },
+            required: ['symbol', 'name', 'exchange', 'market', 'currency', 'source', 'observedAt', 'retrievedAt', 'freshness', 'isStale'],
+          },
+        },
+        required: ['success', 'data'],
+      },
+      HistoricalPricesResponse: {
+        type: 'object',
+        properties: {
+          success: {
+            type: 'boolean',
+            enum: [true],
+          },
+          data: {
+            type: 'object',
+            properties: {
+              symbol: { type: 'string', example: 'RELIANCE' },
+              exchange: { type: 'string', example: 'NSE' },
+              interval: { type: 'string', example: 'ONE_DAY' },
+              fromDate: { type: 'string' },
+              toDate: { type: 'string' },
+              source: { type: 'string', example: 'angel' },
+              retrievedAt: { type: 'string', format: 'date-time' },
+              candles: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    timestamp: { type: 'string', format: 'date-time' },
+                    open: { type: 'number' },
+                    high: { type: 'number' },
+                    low: { type: 'number' },
+                    close: { type: 'number' },
+                    volume: { type: 'number', nullable: true },
+                    adjustedClose: { type: 'number', nullable: true },
+                  },
+                  required: ['timestamp', 'open', 'high', 'low', 'close'],
+                },
+              },
+            },
+            required: ['symbol', 'exchange', 'interval', 'fromDate', 'toDate', 'candles', 'source', 'retrievedAt'],
           },
         },
         required: ['success', 'data'],

@@ -76,17 +76,26 @@ If the client sends that header, the value is echoed. Otherwise the API generate
 
 The API allows the origin in `FRONTEND_URL`. It does not use `Access-Control-Allow-Origin: *` in this configuration.
 
-## Planned endpoint families (not implemented in Phase 1)
+## Market Data Endpoints (Implemented in Phase 2)
 
 ```text
-GET  /api/v1/stocks/search
-GET  /api/v1/stocks/:ticker
-POST /api/v1/ai/research
-GET  /api/v1/market
-GET  /api/v1/watchlists
+GET  /api/v1/stocks/search?q={query}&market={market}&limit={limit}
+GET  /api/v1/stocks/:symbol/quote?exchange={exchange}
+GET  /api/v1/stocks/:symbol/history?exchange={exchange}&interval={interval}&from={from}&to={to}
+POST /api/v1/stocks/ingest
+GET  /api/v1/stocks/ingest/status
+GET  /api/v1/market/overview?market={market}
+GET  /api/v1/market/providers
 ```
 
-Those routes will follow the same envelope, validation middleware, and controller/service split.
+Every market quote and overview response adheres to the strict data provenance contract (`source`, `observedAt`, `retrievedAt`, `freshness`, `isStale`). See [docs/market-data.md](market-data.md) for complete details.
+
+## Future Endpoint Families (Phase 3+)
+
+```text
+POST /api/v1/ai/research
+GET  /api/v1/watchlists
+```
 
 ## Client usage
 
