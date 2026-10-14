@@ -1,0 +1,30 @@
+{
+  "name": "equitylensai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered market intelligence and equity research platform",
+  "workspaces": [
+    "packages/*",
+    "backend",
+    "frontend"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "concurrently -n frontend,backend -c cyan,magenta \"npm run dev -w @equitylensai/frontend\" \"npm run dev -w @equitylensai/backend\"",
+    "dev:frontend": "npm run dev -w @equitylensai/frontend",
+    "dev:backend": "npm run dev -w @equitylensai/backend",
+    "build": "npm run build --workspaces --if-present",
+    "start": "npm run start -w @equitylensai/backend",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "prettier": "^3.6.2"
+  }
+}
