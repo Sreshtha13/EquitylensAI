@@ -8,6 +8,16 @@ All application endpoints are versioned:
 
 Unversioned business endpoints are not used.
 
+## Interactive API Documentation (Scalar)
+
+EquityLensAI serves modern, interactive API documentation powered by [Scalar](https://scalar.com) with OpenAPI 3.1:
+
+- **Interactive UI:** [http://localhost:4000/docs](http://localhost:4000/docs) (also mirrored at `/api/v1/docs` and `/reference`)
+- **OpenAPI 3.1 Spec (JSON):** [http://localhost:4000/openapi.json](http://localhost:4000/openapi.json) (and `/api/v1/openapi.json`)
+- **Static OpenAPI Spec:** [`docs/openapi.json`](openapi.json)
+
+The Scalar reference provides an interactive sandbox for testing endpoints, viewing payload schemas, checking parameter validations, and generating client snippets in multiple languages.
+
 ## Health
 
 ```http

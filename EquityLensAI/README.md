@@ -71,11 +71,13 @@ npm run build
 
 ## Servers
 
-| Process  | URL                                 |
-| -------- | ----------------------------------- |
-| Frontend | http://localhost:3000               |
-| API      | http://localhost:4000               |
-| Health   | http://localhost:4000/api/v1/health |
+| Process     | URL                                 |
+| ----------- | ----------------------------------- |
+| Frontend    | http://localhost:3000               |
+| API         | http://localhost:4000               |
+| Health      | http://localhost:4000/api/v1/health |
+| Scalar Docs | http://localhost:4000/docs          |
+| OpenAPI     | http://localhost:4000/openapi.json  |
 
 The home page verifies frontend/backend connectivity by calling the health endpoint. It does not display sample prices or securities.
 
@@ -84,3 +86,4 @@ The home page verifies frontend/backend connectivity by calling the health endpo
 - [Architecture](docs/architecture.md)
 - [Development](docs/development.md)
 - [API conventions](docs/api.md)
+- [OpenAPI Specification](docs/openapi.json)

@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@equitylensai/shared": "0.1.0",
+    "@scalar/express-api-reference": "^0.10.29",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
