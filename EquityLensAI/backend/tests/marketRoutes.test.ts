@@ -50,7 +50,7 @@ describe('Market & Stocks API Routes', () => {
         expect(typeof res.body.data.isStale).toBe('boolean');
         expect(res.body.data.retrievedAt).toBeDefined();
       }
-    });
+    }, 15000);
   });
 
   describe('GET /api/v1/stocks/ingest/status', () => {

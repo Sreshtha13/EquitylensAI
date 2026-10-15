@@ -97,6 +97,7 @@ export function createApp() {
   app.use(['/docs', '/api/v1/docs', '/reference'], docsRouter);
 
   app.use('/api/v1', v1Router);
+  app.use(v1Router);
 
   app.use(asyncHandler(notFoundHandler));
   app.use(errorHandler);

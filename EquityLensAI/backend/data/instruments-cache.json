@@ -30540,5 +30540,38 @@
     "providerToken": "9756",
     "tickSize": 0.05,
     "lotSize": 1
+  },
+  {
+    "symbol": "GSPLTRANS",
+    "name": "GSPLTRANS",
+    "exchange": "NSE",
+    "market": "nse",
+    "assetType": "equity",
+    "currency": "INR",
+    "providerToken": "766268",
+    "tickSize": 0.01,
+    "lotSize": 1
+  },
+  {
+    "symbol": "ADROITIND",
+    "name": "ADROITIND",
+    "exchange": "NSE",
+    "market": "nse",
+    "assetType": "equity",
+    "currency": "INR",
+    "providerToken": "766273",
+    "tickSize": 0.01,
+    "lotSize": 1
+  },
+  {
+    "symbol": "SWASTIKAIN",
+    "name": "SWASTIKAIN",
+    "exchange": "NSE",
+    "market": "nse",
+    "assetType": "equity",
+    "currency": "INR",
+    "providerToken": "766300",
+    "tickSize": 0.01,
+    "lotSize": 1
   }
 ]

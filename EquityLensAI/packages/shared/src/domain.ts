@@ -141,3 +141,214 @@ export type MarketOverview = {
   freshness: DataFreshness;
   isStale: boolean;
 };
+
+// ─── Phase 3: Financial Data & Deterministic Financial Intelligence ──────────
+
+/** Fiscal period type */
+export type FiscalPeriodType = 'annual' | 'quarterly' | 'ttm';
+
+/** Income Statement for one fiscal period */
+export type IncomeStatement = {
+  symbol: string;
+  periodType: FiscalPeriodType;
+  /** Fiscal year end date YYYY-MM-DD */
+  periodEndDate: string;
+  currency: string;
+  totalRevenue: number | null;
+  costOfRevenue: number | null;
+  grossProfit: number | null;
+  researchAndDevelopment: number | null;
+  sellingGeneralAdministrative: number | null;
+  totalOperatingExpenses: number | null;
+  operatingIncome: number | null;
+  interestExpense: number | null;
+  totalOtherIncomeExpense: number | null;
+  incomeBeforeTax: number | null;
+  incomeTaxExpense: number | null;
+  netIncome: number | null;
+  basicEPS: number | null;
+  dilutedEPS: number | null;
+  basicSharesOutstanding: number | null;
+  dilutedSharesOutstanding: number | null;
+  ebitda: number | null;
+  source: string;
+  retrievedAt: string;
+};
+
+/** Balance Sheet for one fiscal period */
+export type BalanceSheet = {
+  symbol: string;
+  periodType: FiscalPeriodType;
+  periodEndDate: string;
+  currency: string;
+  cash: number | null;
+  shortTermInvestments: number | null;
+  netReceivables: number | null;
+  inventory: number | null;
+  totalCurrentAssets: number | null;
+  longTermInvestments: number | null;
+  propertyPlantEquipment: number | null;
+  goodwill: number | null;
+  intangibleAssets: number | null;
+  totalAssets: number | null;
+  shortTermDebt: number | null;
+  accountsPayable: number | null;
+  totalCurrentLiabilities: number | null;
+  longTermDebt: number | null;
+  totalLiabilities: number | null;
+  retainedEarnings: number | null;
+  totalStockholderEquity: number | null;
+  source: string;
+  retrievedAt: string;
+};
+
+/** Cash Flow Statement for one fiscal period */
+export type CashFlowStatement = {
+  symbol: string;
+  periodType: FiscalPeriodType;
+  periodEndDate: string;
+  currency: string;
+  netIncome: number | null;
+  deprecationAndAmortization: number | null;
+  changesInWorkingCapital: number | null;
+  operatingCashFlow: number | null;
+  capitalExpenditures: number | null;
+  investingCashFlow: number | null;
+  dividendsPaid: number | null;
+  financingCashFlow: number | null;
+  freeCashFlow: number | null;
+  source: string;
+  retrievedAt: string;
+};
+
+/** All financial statements for one period */
+export type FinancialStatements = {
+  symbol: string;
+  periodType: FiscalPeriodType;
+  periodEndDate: string;
+  income: IncomeStatement;
+  balanceSheet: BalanceSheet;
+  cashFlow: CashFlowStatement;
+  source: string;
+  retrievedAt: string;
+  isStale: boolean;
+};
+
+/** Multi-period financial history */
+export type FinancialHistory = {
+  symbol: string;
+  periodType: FiscalPeriodType;
+  periods: FinancialStatements[];
+  source: string;
+  retrievedAt: string;
+};
+
+/** A calculated metric with full provenance. value is null if inputs were insufficient. */
+export type FinancialMetric = {
+  value: number | null;
+  /** Human-readable formula used e.g. "NetIncome / Revenue * 100" */
+  formula: string;
+  /** Unit of the result */
+  unit: 'ratio' | 'percent' | 'currency' | 'x' | 'days';
+  periodEndDate: string;
+  isBlended: boolean | undefined;
+};
+
+export type ProfitabilityMetrics = {
+  grossMargin: FinancialMetric;
+  operatingMargin: FinancialMetric;
+  netMargin: FinancialMetric;
+  returnOnAssets: FinancialMetric;
+  returnOnEquity: FinancialMetric;
+  returnOnCapitalEmployed: FinancialMetric;
+  ebitdaMargin: FinancialMetric;
+};
+
+export type LiquidityMetrics = {
+  currentRatio: FinancialMetric;
+  quickRatio: FinancialMetric;
+  cashRatio: FinancialMetric;
+  operatingCashFlowRatio: FinancialMetric;
+};
+
+export type LeverageMetrics = {
+  debtToEquity: FinancialMetric;
+  debtToAssets: FinancialMetric;
+  equityMultiplier: FinancialMetric;
+  interestCoverageRatio: FinancialMetric;
+  netDebtToEbitda: FinancialMetric;
+};
+
+export type CashFlowMetrics = {
+  freeCashFlowMargin: FinancialMetric;
+  freeCashFlowYield: FinancialMetric;
+  operatingCashFlowToNetIncome: FinancialMetric;
+  capexToRevenue: FinancialMetric;
+};
+
+export type GrowthMetrics = {
+  revenueGrowthYoY: FinancialMetric;
+  grossProfitGrowthYoY: FinancialMetric;
+  operatingIncomeGrowthYoY: FinancialMetric;
+  netIncomeGrowthYoY: FinancialMetric;
+  epsGrowthYoY: FinancialMetric;
+  freeCashFlowGrowthYoY: FinancialMetric;
+  revenueCAGR: FinancialMetric | null;
+};
+
+export type ValuationMetrics = {
+  peRatio: FinancialMetric;
+  forwardPE: FinancialMetric;
+  priceToSales: FinancialMetric;
+  priceToBook: FinancialMetric;
+  evToEbitda: FinancialMetric;
+  evToRevenue: FinancialMetric;
+  priceToFreeCashFlow: FinancialMetric;
+  marketCap: FinancialMetric;
+  enterpriseValue: FinancialMetric;
+};
+
+export type HealthScoreDimension = {
+  name: string;
+  score: number;
+  maxScore: number;
+  rationale: string;
+  keyMetrics: string[];
+};
+
+export type FinancialHealthScore = {
+  symbol: string;
+  overallScore: number;
+  grade: 'A+' | 'A' | 'B+' | 'B' | 'C+' | 'C' | 'D' | 'F';
+  summary: string;
+  dimensions: {
+    profitability: HealthScoreDimension;
+    liquidity: HealthScoreDimension;
+    leverage: HealthScoreDimension;
+    cashFlow: HealthScoreDimension;
+    growth: HealthScoreDimension;
+  };
+  dataQualityWarnings: string[];
+  asOfPeriod: string;
+  scoredAt: string;
+};
+
+/** Fully assembled financial analysis for one symbol */
+export type FinancialAnalysis = {
+  symbol: string;
+  name: string;
+  currency: string;
+  latestAnnual: FinancialStatements;
+  ttm: FinancialStatements | null;
+  annualHistory: FinancialStatements[];
+  profitability: ProfitabilityMetrics;
+  liquidity: LiquidityMetrics;
+  leverage: LeverageMetrics;
+  cashFlow: CashFlowMetrics;
+  growth: GrowthMetrics;
+  valuation: ValuationMetrics;
+  healthScore: FinancialHealthScore;
+  source: string;
+  retrievedAt: string;
+  isStale: boolean;
+};
