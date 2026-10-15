@@ -11,17 +11,22 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
+    "ingest:instruments": "tsx scripts/ingest-instruments.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "dependencies": {
     "@equitylensai/shared": "0.1.0",
+    "@scalar/express-api-reference": "^0.10.29",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "helmet": "^8.1.0",
     "hpp": "^0.2.3",
+    "node-fetch": "^3.3.2",
+    "otpauth": "^9.5.2",
     "pino": "^9.9.0",
+    "yahoo-finance2": "^4.0.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {

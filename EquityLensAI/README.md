@@ -2,7 +2,7 @@
 
 AI-powered market intelligence and equity research platform.
 
-Phase 1 delivers the production foundation: a Next.js frontend, an Express API, shared contracts, validated configuration, centralized errors and logging, and integration boundaries for the database, market-data providers, and AI. Product features such as search, quotes, research, and authentication are intentionally not implemented yet.
+Phase 1 delivers the production foundation. Phase 2 implements genuine market data infrastructure backed by Angel One SmartAPI and Yahoo Finance with strict data provenance, in-memory caching, instrument search, OHLCV historical candles, and zero simulated or hallucinated financial metrics.
 
 ## Architecture
 
@@ -71,16 +71,20 @@ npm run build
 
 ## Servers
 
-| Process  | URL                                 |
-| -------- | ----------------------------------- |
-| Frontend | http://localhost:3000               |
-| API      | http://localhost:4000               |
-| Health   | http://localhost:4000/api/v1/health |
+| Process     | URL                                 |
+| ----------- | ----------------------------------- |
+| Frontend    | http://localhost:3000               |
+| API         | http://localhost:4000               |
+| Health      | http://localhost:4000/api/v1/health |
+| Scalar Docs | http://localhost:4000/docs          |
+| OpenAPI     | http://localhost:4000/openapi.json  |
 
 The home page verifies frontend/backend connectivity by calling the health endpoint. It does not display sample prices or securities.
 
 ## Documentation
 
 - [Architecture](docs/architecture.md)
+- [Market Data Infrastructure](docs/market-data.md)
 - [Development](docs/development.md)
 - [API conventions](docs/api.md)
+- [OpenAPI Specification](docs/openapi.json)

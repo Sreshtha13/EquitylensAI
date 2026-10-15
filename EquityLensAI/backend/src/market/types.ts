@@ -1,44 +1,76 @@
-import type { AssetType, Market } from '@equitylensai/shared';
+import type {
+  AssetType,
+  CandleInterval,
+  DataFreshness,
+  HistoricalPrices,
+  IndexSnapshot,
+  InstrumentSummary,
+  Market,
+  MarketOverview,
+  NormalizedQuote,
+  PriceCandle,
+} from '@equitylensai/shared';
 
-export type InstrumentRef = {
+export type {
+  AssetType,
+  CandleInterval,
+  DataFreshness,
+  HistoricalPrices,
+  IndexSnapshot,
+  InstrumentSummary,
+  Market,
+  MarketOverview,
+  NormalizedQuote,
+  PriceCandle,
+};
+
+export type InstrumentRecord = {
   symbol: string;
   name: string;
+  exchange: string;
   market: Market;
   assetType: AssetType;
-  exchange?: string;
-};
-
-export type SearchQuery = {
-  query: string;
-  market?: Market;
-  assetType?: AssetType;
-};
-
-export type Quote = {
-  instrument: InstrumentRef;
-  asOf: string;
   currency: string;
-  last: number;
+  providerToken?: string | undefined;
+  isin?: string | undefined;
+  tickSize?: number | undefined;
+  lotSize?: number | undefined;
 };
 
-export type HistoricalRange = {
-  interval: '1d' | '1h' | '1m';
-  from: string;
-  to: string;
+export type SearchInstrumentsQuery = {
+  query: string;
+  market?: Market | undefined;
+  assetType?: AssetType | undefined;
+  limit?: number | undefined;
 };
 
-export type PricePoint = {
-  timestamp: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume?: number;
+export type QuoteRequest = {
+  symbol: string;
+  exchange?: string | undefined;
+  token?: string | undefined;
+};
+
+export type HistoricalRequest = {
+  symbol: string;
+  exchange?: string | undefined;
+  token?: string | undefined;
+  interval: CandleInterval;
+  from: string; // ISO 8601 or YYYY-MM-DD HH:mm
+  to: string;   // ISO 8601 or YYYY-MM-DD HH:mm
 };
 
 export interface MarketProvider {
   readonly id: string;
-  search(query: SearchQuery): Promise<InstrumentRef[]>;
-  getQuote(ref: InstrumentRef): Promise<Quote>;
-  getHistoricalPrices(ref: InstrumentRef, range: HistoricalRange): Promise<PricePoint[]>;
+  readonly name: string;
+  isConfigured(): boolean;
+  getQuote(request: QuoteRequest): Promise<NormalizedQuote>;
+  getHistoricalPrices(request: HistoricalRequest): Promise<HistoricalPrices>;
+  getIndices?(symbols?: string[]): Promise<IndexSnapshot[]>;
 }
+
+export type ProviderStatus = {
+  id: string;
+  name: string;
+  configured: boolean;
+  isPrimaryForNSE: boolean;
+};

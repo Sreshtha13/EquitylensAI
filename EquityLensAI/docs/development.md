@@ -57,6 +57,8 @@ npm run test -w @equitylensai/backend
 - Frontend: [http://localhost:3000](http://localhost:3000)
 - Backend: [http://localhost:4000](http://localhost:4000)
 - Health: [http://localhost:4000/api/v1/health](http://localhost:4000/api/v1/health)
+- Scalar API Reference: [http://localhost:4000/docs](http://localhost:4000/docs)
+- OpenAPI 3.1 Spec: [http://localhost:4000/openapi.json](http://localhost:4000/openapi.json)
 
 ## Code quality
 
@@ -69,6 +71,8 @@ npm run test -w @equitylensai/backend
 Backend Vitest coverage in Phase 1:
 
 - `GET /api/v1/health`
+- `GET /docs`, `/api/v1/docs`, `/reference` (Scalar API reference)
+- `GET /openapi.json`, `/api/v1/openapi.json` (OpenAPI specification)
 - environment schema validation
 - Zod `validate` middleware
 - centralized error mapping (including unknown errors)
