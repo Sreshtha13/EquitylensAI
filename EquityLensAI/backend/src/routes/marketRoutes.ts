@@ -5,5 +5,6 @@ import { getMarketOverview, listProviders } from '../controllers/marketControlle
 
 export const marketRouter = Router();
 
+marketRouter.get('/', validate({ query: marketOverviewQuerySchema }), getMarketOverview);
 marketRouter.get('/overview', validate({ query: marketOverviewQuerySchema }), getMarketOverview);
 marketRouter.get('/providers', listProviders);
