@@ -22,8 +22,8 @@ export const openApiSpec = {
       description: 'Local development server',
     },
     {
-      url: '/api/v1',
-      description: 'API version 1 base path',
+      url: '/',
+      description: 'Current host root',
     },
   ],
   tags: [
@@ -46,6 +46,10 @@ export const openApiSpec = {
     {
       name: 'Watchlists',
       description: 'User-managed instrument watchlists and tracking',
+    },
+    {
+      name: 'Financial Intelligence',
+      description: 'Deterministic fundamental analysis, financial statement ingestion, ratio computation, and automated health scores',
     },
   ],
   paths: {
@@ -655,6 +659,118 @@ export const openApiSpec = {
               },
             },
           },
+        },
+      },
+    },
+    '/api/v1/financial/{symbol}/analysis': {
+      get: {
+        tags: ['Financial Intelligence'],
+        summary: 'Full financial analysis and metrics',
+        description:
+          'Retrieves normalized annual and TTM financial statements, deterministic financial ratios (profitability, liquidity, leverage, cash flow, growth, valuation), and the composite Financial Health Score (0-100).',
+        parameters: [
+          {
+            name: 'symbol',
+            in: 'path',
+            required: true,
+            description: 'Ticker symbol (e.g., RELIANCE, AAPL, TCS, INFY)',
+            schema: { type: 'string', example: 'RELIANCE' },
+          },
+          {
+            name: 'exchange',
+            in: 'query',
+            required: false,
+            description: 'Optional exchange code (e.g., NSE, BSE, NASDAQ, NYSE)',
+            schema: { type: 'string', example: 'NSE' },
+          },
+          {
+            name: 'periods',
+            in: 'query',
+            required: false,
+            description: 'Number of annual historical periods to retrieve (1-8, default 4)',
+            schema: { type: 'integer', default: 4, example: 4 },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Comprehensive financial analysis payload with statement history and calculated metrics',
+          },
+          '400': {
+            description: 'Validation error: invalid symbol or period parameter',
+          },
+          '502': {
+            description: 'Financial provider upstream failure or no statements available',
+          },
+        },
+      },
+    },
+    '/api/v1/financial/{symbol}/statements': {
+      get: {
+        tags: ['Financial Intelligence'],
+        summary: 'Raw financial statements',
+        description: 'Retrieves multi-period income statements, balance sheets, and cash flow statements without calculated ratios.',
+        parameters: [
+          {
+            name: 'symbol',
+            in: 'path',
+            required: true,
+            description: 'Ticker symbol',
+            schema: { type: 'string', example: 'TCS' },
+          },
+          {
+            name: 'exchange',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', example: 'NSE' },
+          },
+          {
+            name: 'periods',
+            in: 'query',
+            required: false,
+            schema: { type: 'integer', default: 4 },
+          },
+        ],
+        responses: {
+          '200': { description: 'Statement history across reported periods' },
+          '400': { description: 'Validation error' },
+          '502': { description: 'Provider error' },
+        },
+      },
+    },
+    '/api/v1/financial/{symbol}/health-score': {
+      get: {
+        tags: ['Financial Intelligence'],
+        summary: 'Financial Health Score (0-100)',
+        description:
+          'Lightweight endpoint providing 0-100 composite financial health score, letter grade (A+ through F), dimension breakdown (profitability, liquidity, leverage, cash flow, growth), and transparent evaluation summary.',
+        parameters: [
+          {
+            name: 'symbol',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', example: 'INFY' },
+          },
+          {
+            name: 'exchange',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', example: 'NSE' },
+          },
+        ],
+        responses: {
+          '200': { description: 'Financial Health Score and dimension evaluations' },
+          '400': { description: 'Validation error' },
+          '502': { description: 'Data unavailable' },
+        },
+      },
+    },
+    '/api/v1/financial/cache-stats': {
+      get: {
+        tags: ['Financial Intelligence'],
+        summary: 'Financial cache statistics',
+        description: 'Returns in-memory cache operational telemetry (size, hits, misses, stale hits) for financial datasets.',
+        responses: {
+          '200': { description: 'Cache statistics' },
         },
       },
     },

@@ -26,6 +26,12 @@ stocksRouter.get(
 );
 
 stocksRouter.get(
+  '/:symbol',
+  validate({ params: quoteParamsSchema, query: quoteQuerySchema }),
+  getStockQuote
+);
+
+stocksRouter.get(
   '/:symbol/history',
   validate({ params: historicalParamsSchema, query: historicalQuerySchema }),
   getStockHistorical

@@ -13,6 +13,23 @@ export type {
   NormalizedQuote,
   Pagination,
   PriceCandle,
+  // Phase 3 Financial
+  FiscalPeriodType,
+  IncomeStatement,
+  BalanceSheet,
+  CashFlowStatement,
+  FinancialStatements,
+  FinancialHistory,
+  FinancialMetric,
+  ProfitabilityMetrics,
+  LiquidityMetrics,
+  LeverageMetrics,
+  CashFlowMetrics,
+  GrowthMetrics,
+  ValuationMetrics,
+  HealthScoreDimension,
+  FinancialHealthScore,
+  FinancialAnalysis,
 } from '@equitylensai/shared';
 
 export type HealthStatus = {

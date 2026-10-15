@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useStockQuote } from '@/hooks/useMarket';
 
 type QuoteCardProps = {
@@ -60,6 +61,16 @@ export function QuoteCard({ symbol, exchange }: QuoteCardProps) {
             )}
           </div>
           <p className="mt-1 text-sm font-medium text-slate-300">{quote.name}</p>
+
+          <Link
+            href={`/research?symbol=${encodeURIComponent(quote.symbol)}&exchange=${encodeURIComponent(quote.exchange)}`}
+            className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20"
+          >
+            <span>View Fundamentals & Health Score</span>
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </Link>
         </div>
 
         {/* Provenance Pill */}
