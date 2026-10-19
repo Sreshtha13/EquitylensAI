@@ -40,12 +40,7 @@ export function createApp() {
             'fonts.googleapis.com',
             'https://fonts.googleapis.com',
           ],
-          fontSrc: [
-            "'self'",
-            'fonts.gstatic.com',
-            'https://fonts.gstatic.com',
-            'data:',
-          ],
+          fontSrc: ["'self'", 'fonts.gstatic.com', 'https://fonts.gstatic.com', 'data:'],
           imgSrc: [
             "'self'",
             'data:',
@@ -54,11 +49,7 @@ export function createApp() {
             'validator.scalar.io',
             'https://validator.scalar.io',
           ],
-          connectSrc: [
-            "'self'",
-            'cdn.jsdelivr.net',
-            'https://cdn.jsdelivr.net',
-          ],
+          connectSrc: ["'self'", 'cdn.jsdelivr.net', 'https://cdn.jsdelivr.net'],
         },
       },
       crossOriginEmbedderPolicy: false,
@@ -71,10 +62,10 @@ export function createApp() {
       exposedHeaders: ['X-Request-ID'],
     }),
   );
+  app.use(requestId);
   app.use(express.json({ limit: '100kb' }));
   app.use(express.urlencoded({ extended: false, limit: '100kb' }));
   app.use(hpp());
-  app.use(requestId);
   app.use(sanitizeRequest);
   app.use(requestLogger);
 

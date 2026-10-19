@@ -36,7 +36,7 @@ v1Router.get('/', (_req, res) => {
         cacheStats: '/api/v1/financial/cache-stats',
       },
       ai: {
-        research: '/api/v1/ai/research (Phase 4)',
+        research: 'POST /api/v1/ai/research',
       },
       watchlists: '/api/v1/watchlists (Phase 5)',
     },

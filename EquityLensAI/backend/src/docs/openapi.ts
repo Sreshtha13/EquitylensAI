@@ -33,7 +33,8 @@ export const openApiSpec = {
     },
     {
       name: 'Instruments',
-      description: 'Global equity, ETF, index, crypto, and commodity security information and search',
+      description:
+        'Global equity, ETF, index, crypto, and commodity security information and search',
     },
     {
       name: 'Market Intelligence',
@@ -41,7 +42,8 @@ export const openApiSpec = {
     },
     {
       name: 'AI Research',
-      description: 'Automated equity research, fundamental synthesis, and earnings review powered by Gemini',
+      description:
+        'Automated equity research, fundamental synthesis, and earnings review powered by Gemini',
     },
     {
       name: 'Watchlists',
@@ -49,7 +51,8 @@ export const openApiSpec = {
     },
     {
       name: 'Financial Intelligence',
-      description: 'Deterministic fundamental analysis, financial statement ingestion, ratio computation, and automated health scores',
+      description:
+        'Deterministic fundamental analysis, financial statement ingestion, ratio computation, and automated health scores',
     },
   ],
   paths: {
@@ -57,7 +60,8 @@ export const openApiSpec = {
       get: {
         tags: ['System'],
         summary: 'Root service discovery',
-        description: 'Returns service identity, version, status, and navigation links to health and API documentation.',
+        description:
+          'Returns service identity, version, status, and navigation links to health and API documentation.',
         responses: {
           '200': {
             description: 'Service operational metadata',
@@ -187,7 +191,8 @@ export const openApiSpec = {
             name: 'q',
             in: 'query',
             required: true,
-            description: 'Search keyword, ticker symbol, or company name (e.g., "RELIANCE", "Apple", "TCS")',
+            description:
+              'Search keyword, ticker symbol, or company name (e.g., "RELIANCE", "Apple", "TCS")',
             schema: {
               type: 'string',
               minLength: 1,
@@ -294,7 +299,8 @@ export const openApiSpec = {
       get: {
         tags: ['Instruments'],
         summary: 'Get instrument quote and profile',
-        description: 'Retrieves comprehensive overview, price quotation, and fundamental profile for a specific instrument ticker symbol.',
+        description:
+          'Retrieves comprehensive overview, price quotation, and fundamental profile for a specific instrument ticker symbol.',
         parameters: [
           {
             $ref: '#/components/parameters/RequestIdHeader',
@@ -328,7 +334,8 @@ export const openApiSpec = {
       get: {
         tags: ['Market Intelligence'],
         summary: 'Get market overview and indices',
-        description: 'Fetch snapshot of benchmark index levels, market breadth (advances/declines), and sector performance.',
+        description:
+          'Fetch snapshot of benchmark index levels, market breadth (advances/declines), and sector performance.',
         parameters: [
           {
             $ref: '#/components/parameters/RequestIdHeader',
@@ -361,7 +368,8 @@ export const openApiSpec = {
       get: {
         tags: ['Instruments'],
         summary: 'Get live or delayed stock quote',
-        description: 'Retrieves genuine, normalized price quotation from supported market data providers (Angel One SmartAPI primary for NSE, Yahoo Finance fallback). Includes explicit data provenance (source, observed timestamp, retrieved timestamp, freshness level, staleness flag).',
+        description:
+          'Retrieves genuine, normalized price quotation from supported market data providers (Angel One SmartAPI primary for NSE, Yahoo Finance fallback). Includes explicit data provenance (source, observed timestamp, retrieved timestamp, freshness level, staleness flag).',
         parameters: [
           {
             $ref: '#/components/parameters/RequestIdHeader',
@@ -415,7 +423,8 @@ export const openApiSpec = {
       get: {
         tags: ['Instruments'],
         summary: 'Get historical price candles',
-        description: 'Retrieves genuine OHLCV candlestick historical data with specified candle interval.',
+        description:
+          'Retrieves genuine OHLCV candlestick historical data with specified candle interval.',
         parameters: [
           {
             $ref: '#/components/parameters/RequestIdHeader',
@@ -447,7 +456,16 @@ export const openApiSpec = {
             description: 'Candle interval',
             schema: {
               type: 'string',
-              enum: ['ONE_MINUTE', 'THREE_MINUTE', 'FIVE_MINUTE', 'TEN_MINUTE', 'FIFTEEN_MINUTE', 'THIRTY_MINUTE', 'ONE_HOUR', 'ONE_DAY'],
+              enum: [
+                'ONE_MINUTE',
+                'THREE_MINUTE',
+                'FIVE_MINUTE',
+                'TEN_MINUTE',
+                'FIFTEEN_MINUTE',
+                'THIRTY_MINUTE',
+                'ONE_HOUR',
+                'ONE_DAY',
+              ],
               default: 'ONE_DAY',
             },
           },
@@ -488,7 +506,8 @@ export const openApiSpec = {
       post: {
         tags: ['Instruments'],
         summary: 'Trigger instrument master ingestion',
-        description: 'Downloads latest Angel One scrip master, normalizes active equities and indices, and updates local cache.',
+        description:
+          'Downloads latest Angel One scrip master, normalizes active equities and indices, and updates local cache.',
         responses: {
           '200': {
             description: 'Ingestion result',
@@ -500,7 +519,8 @@ export const openApiSpec = {
       get: {
         tags: ['Instruments'],
         summary: 'Get instrument ingestion status',
-        description: 'Returns progress, last ingested timestamp, total instruments count, and errors.',
+        description:
+          'Returns progress, last ingested timestamp, total instruments count, and errors.',
         responses: {
           '200': {
             description: 'Ingestion status',
@@ -512,7 +532,8 @@ export const openApiSpec = {
       get: {
         tags: ['Market Intelligence'],
         summary: 'Get market overview and indices',
-        description: 'Fetch snapshot of benchmark index levels with verified market data provenance.',
+        description:
+          'Fetch snapshot of benchmark index levels with verified market data provenance.',
         parameters: [
           {
             $ref: '#/components/parameters/RequestIdHeader',
@@ -556,9 +577,9 @@ export const openApiSpec = {
     '/api/v1/ai/research': {
       post: {
         tags: ['AI Research'],
-        summary: 'Generate AI investment research',
+        summary: 'Generate evidence-grounded financial research',
         description:
-          'Submits an equity analysis request to the Gemini AI research pipeline. Returns synthesis of investment thesis, valuation analysis, key competitive risks, and recent earnings review.',
+          'Uses Gemini to interpret a bounded context assembled from verified market data and deterministic financial metrics. Model claims cite backend evidence IDs. Does not provide investment recommendations, news, or earnings-call analysis.',
         parameters: [
           {
             $ref: '#/components/parameters/RequestIdHeader',
@@ -572,16 +593,16 @@ export const openApiSpec = {
                 $ref: '#/components/schemas/AiResearchRequest',
               },
               example: {
-                ticker: 'NVDA',
-                query: 'Evaluate next quarter data center demand and margins in light of new architecture ramp',
-                depth: 'deep_dive',
+                symbol: 'RELIANCE',
+                exchange: 'NSE',
+                question: 'Explain the available profitability and financial risk evidence.',
               },
             },
           },
         },
         responses: {
           '200': {
-            description: 'Generated AI research dossier',
+            description: 'Validated research and backend-owned evidence registry',
             content: {
               'application/json': {
                 schema: {
@@ -600,8 +621,8 @@ export const openApiSpec = {
               },
             },
           },
-          '501': {
-            description: 'Not yet implemented in Phase 1 (foundation boundary active)',
+          '429': {
+            description: 'AI research request or provider rate limit reached',
             content: {
               'application/json': {
                 schema: {
@@ -610,6 +631,18 @@ export const openApiSpec = {
               },
             },
           },
+          '413': {
+            description: 'Research request body exceeds the AI endpoint size limit',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiError' },
+              },
+            },
+          },
+          '504': { description: 'Gemini request timed out' },
+          '404': { description: 'Instrument was not found in the supported instrument repository' },
+          '502': { description: 'Provider unavailable or invalid structured model output' },
+          '503': { description: 'AI disabled or verified financial context unavailable' },
         },
       },
     },
@@ -693,7 +726,8 @@ export const openApiSpec = {
         ],
         responses: {
           '200': {
-            description: 'Comprehensive financial analysis payload with statement history and calculated metrics',
+            description:
+              'Comprehensive financial analysis payload with statement history and calculated metrics',
           },
           '400': {
             description: 'Validation error: invalid symbol or period parameter',
@@ -708,7 +742,8 @@ export const openApiSpec = {
       get: {
         tags: ['Financial Intelligence'],
         summary: 'Raw financial statements',
-        description: 'Retrieves multi-period income statements, balance sheets, and cash flow statements without calculated ratios.',
+        description:
+          'Retrieves multi-period income statements, balance sheets, and cash flow statements without calculated ratios.',
         parameters: [
           {
             name: 'symbol',
@@ -768,7 +803,8 @@ export const openApiSpec = {
       get: {
         tags: ['Financial Intelligence'],
         summary: 'Financial cache statistics',
-        description: 'Returns in-memory cache operational telemetry (size, hits, misses, stale hits) for financial datasets.',
+        description:
+          'Returns in-memory cache operational telemetry (size, hits, misses, stale hits) for financial datasets.',
         responses: {
           '200': { description: 'Cache statistics' },
         },
@@ -799,7 +835,8 @@ export const openApiSpec = {
         name: 'X-Request-ID',
         in: 'header',
         required: false,
-        description: 'Optional caller-supplied request correlation ID. If omitted, the API generates a new UUID.',
+        description:
+          'Optional caller-supplied request correlation ID. If omitted, the API generates a new UUID.',
         schema: {
           type: 'string',
         },
@@ -1138,10 +1175,24 @@ export const openApiSpec = {
               source: { type: 'string', example: 'angel' },
               observedAt: { type: 'string', format: 'date-time' },
               retrievedAt: { type: 'string', format: 'date-time' },
-              freshness: { type: 'string', enum: ['live', 'delayed', 'eod', 'historical', 'stale', 'unavailable'] },
+              freshness: {
+                type: 'string',
+                enum: ['live', 'delayed', 'eod', 'historical', 'stale', 'unavailable'],
+              },
               isStale: { type: 'boolean', example: false },
             },
-            required: ['symbol', 'name', 'exchange', 'market', 'currency', 'source', 'observedAt', 'retrievedAt', 'freshness', 'isStale'],
+            required: [
+              'symbol',
+              'name',
+              'exchange',
+              'market',
+              'currency',
+              'source',
+              'observedAt',
+              'retrievedAt',
+              'freshness',
+              'isStale',
+            ],
           },
         },
         required: ['success', 'data'],
@@ -1180,7 +1231,16 @@ export const openApiSpec = {
                 },
               },
             },
-            required: ['symbol', 'exchange', 'interval', 'fromDate', 'toDate', 'candles', 'source', 'retrievedAt'],
+            required: [
+              'symbol',
+              'exchange',
+              'interval',
+              'fromDate',
+              'toDate',
+              'candles',
+              'source',
+              'retrievedAt',
+            ],
           },
         },
         required: ['success', 'data'],
@@ -1188,24 +1248,34 @@ export const openApiSpec = {
       AiResearchRequest: {
         type: 'object',
         properties: {
-          ticker: {
+          symbol: {
             type: 'string',
-            example: 'NVDA',
-            description: 'Instrument ticker symbol to research',
+            maxLength: 30,
+            example: 'RELIANCE',
+            description: 'Supported instrument ticker symbol',
           },
-          query: {
+          exchange: {
             type: 'string',
-            example: 'Analyze margin durability in data centers over next 12 months',
-            description: 'Optional natural language research question or theme',
+            maxLength: 10,
+            description: 'Exchange code; required if symbol resolves ambiguously',
           },
-          depth: {
+          question: {
             type: 'string',
-            enum: ['summary', 'deep_dive', 'earnings_review'],
-            default: 'summary',
-            description: 'Analysis thoroughness',
+            minLength: 10,
+            maxLength: 800,
+            example: 'Explain the available profitability and financial risk evidence.',
+          },
+          comparisonInstrument: {
+            type: 'object',
+            properties: {
+              symbol: { type: 'string', maxLength: 30 },
+              exchange: { type: 'string', maxLength: 10 },
+            },
+            required: ['symbol'],
           },
         },
-        required: ['ticker'],
+        required: ['symbol', 'question'],
+        additionalProperties: false,
       },
       AiResearchResponse: {
         type: 'object',
@@ -1217,45 +1287,154 @@ export const openApiSpec = {
           data: {
             type: 'object',
             properties: {
-              ticker: {
-                type: 'string',
-                example: 'NVDA',
+              schemaVersion: { type: 'string', enum: ['1.0'] },
+              instrument: { $ref: '#/components/schemas/AiResearchInstrument' },
+              comparisonInstrument: {
+                $ref: '#/components/schemas/AiResearchInstrument',
+                nullable: true,
               },
-              summary: {
+              question: { type: 'string' },
+              intent: {
                 type: 'string',
-                example: 'Strong demand trajectory driven by enterprise AI deployments...',
+                enum: [
+                  'GENERAL',
+                  'PROFITABILITY',
+                  'GROWTH',
+                  'VALUATION',
+                  'LIQUIDITY',
+                  'CASH_FLOW',
+                  'DEBT',
+                  'RISK',
+                  'HISTORICAL_PERFORMANCE',
+                  'COMPARISON',
+                ],
               },
-              bullCase: {
+              summary: { $ref: '#/components/schemas/AiResearchClaim' },
+              overallAssessment: { $ref: '#/components/schemas/AiResearchAssessment' },
+              sections: {
                 type: 'array',
-                items: {
-                  type: 'string',
-                },
+                items: { $ref: '#/components/schemas/AiResearchSection' },
               },
-              bearCase: {
+              strengths: { type: 'array', items: { $ref: '#/components/schemas/AiResearchClaim' } },
+              riskFactors: {
                 type: 'array',
-                items: {
-                  type: 'string',
-                },
+                items: { $ref: '#/components/schemas/AiResearchClaim' },
               },
-              keyRisks: {
+              growthSignals: {
                 type: 'array',
-                items: {
-                  type: 'string',
-                },
+                items: { $ref: '#/components/schemas/AiResearchClaim' },
               },
-              model: {
-                type: 'string',
-                example: 'gemini-1.5-pro',
+              valuationObservations: {
+                type: 'array',
+                items: { $ref: '#/components/schemas/AiResearchClaim' },
               },
-              generatedAt: {
-                type: 'string',
-                format: 'date-time',
+              financialObservations: {
+                type: 'array',
+                items: { $ref: '#/components/schemas/AiResearchClaim' },
               },
+              missingData: { type: 'array', items: { type: 'string' } },
+              evidence: {
+                type: 'array',
+                items: { $ref: '#/components/schemas/AiResearchEvidence' },
+              },
+              confidence: { $ref: '#/components/schemas/AiResearchConfidence' },
+              disclaimer: { type: 'string' },
             },
-            required: ['ticker', 'summary', 'bullCase', 'bearCase', 'keyRisks', 'generatedAt'],
+            required: [
+              'schemaVersion',
+              'instrument',
+              'comparisonInstrument',
+              'question',
+              'intent',
+              'summary',
+              'overallAssessment',
+              'sections',
+              'strengths',
+              'riskFactors',
+              'growthSignals',
+              'valuationObservations',
+              'financialObservations',
+              'missingData',
+              'evidence',
+              'confidence',
+              'disclaimer',
+            ],
           },
         },
         required: ['success', 'data'],
+      },
+      AiResearchInstrument: {
+        type: 'object',
+        properties: {
+          symbol: { type: 'string' },
+          exchange: { type: 'string' },
+          name: { type: 'string', nullable: true },
+        },
+        required: ['symbol', 'exchange', 'name'],
+      },
+      AiResearchClaim: {
+        type: 'object',
+        properties: {
+          text: { type: 'string' },
+          evidenceIds: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['text', 'evidenceIds'],
+      },
+      AiResearchAssessment: {
+        type: 'object',
+        properties: {
+          label: {
+            type: 'string',
+            enum: ['POSITIVE', 'NEGATIVE', 'MIXED', 'INSUFFICIENT_DATA'],
+          },
+          explanation: { type: 'string' },
+          evidenceIds: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['label', 'explanation', 'evidenceIds'],
+      },
+      AiResearchSection: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' },
+          analysis: { $ref: '#/components/schemas/AiResearchClaim' },
+          risks: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/AiResearchClaim' },
+          },
+          limitations: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['title', 'analysis', 'risks', 'limitations'],
+      },
+      AiResearchConfidence: {
+        type: 'object',
+        properties: {
+          level: { type: 'string', enum: ['HIGH', 'MEDIUM', 'LIMITED', 'LOW'] },
+          explanation: { type: 'string' },
+          availableEvidence: { type: 'integer', minimum: 0 },
+          totalEvidence: { type: 'integer', minimum: 1 },
+        },
+        required: ['level', 'explanation', 'availableEvidence', 'totalEvidence'],
+      },
+      AiResearchEvidence: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          type: {
+            type: 'string',
+            enum: ['statement', 'metric', 'health_score', 'market_quote', 'market_history'],
+          },
+          metric: { type: 'string' },
+          value: { nullable: true, oneOf: [{ type: 'number' }, { type: 'string' }] },
+          unit: { type: 'string', nullable: true },
+          period: { type: 'string', nullable: true },
+          periodType: { type: 'string', enum: ['annual', 'quarterly', 'ttm'] },
+          source: { type: 'string' },
+          timestamp: { type: 'string', format: 'date-time', nullable: true },
+          calculationVersion: { type: 'string' },
+          freshness: { type: 'string' },
+          stale: { type: 'boolean' },
+        },
+        required: ['id', 'type', 'metric', 'value', 'unit', 'period', 'source', 'timestamp'],
       },
       MarketOverviewResponse: {
         type: 'object',

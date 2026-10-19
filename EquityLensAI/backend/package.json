@@ -12,11 +12,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "ingest:instruments": "tsx scripts/ingest-instruments.ts",
+    "ai:smoke": "tsx scripts/gemini-smoke-test.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "dependencies": {
     "@equitylensai/shared": "0.1.0",
+    "@google/genai": "^2.30.0",
     "@scalar/express-api-reference": "^0.10.29",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",

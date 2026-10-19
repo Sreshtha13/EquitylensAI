@@ -18,8 +18,8 @@
       "description": "Local development server"
     },
     {
-      "url": "/api/v1",
-      "description": "API version 1 base path"
+      "url": "/",
+      "description": "Current host root"
     }
   ],
   "tags": [
@@ -42,14 +42,16 @@
     {
       "name": "Watchlists",
       "description": "User-managed instrument watchlists and tracking"
+    },
+    {
+      "name": "Financial Intelligence",
+      "description": "Deterministic fundamental analysis, financial statement ingestion, ratio computation, and automated health scores"
     }
   ],
   "paths": {
     "/": {
       "get": {
-        "tags": [
-          "System"
-        ],
+        "tags": ["System"],
         "summary": "Root service discovery",
         "description": "Returns service identity, version, status, and navigation links to health and API documentation.",
         "responses": {
@@ -84,9 +86,7 @@
     },
     "/api/v1": {
       "get": {
-        "tags": [
-          "System"
-        ],
+        "tags": ["System"],
         "summary": "API v1 index and discovery",
         "description": "Returns versioned router metadata and registered endpoint links.",
         "responses": {
@@ -123,9 +123,7 @@
     },
     "/api/v1/health": {
       "get": {
-        "tags": [
-          "System"
-        ],
+        "tags": ["System"],
         "summary": "Health check probe",
         "description": "Verifies backend process liveness. Does not call third-party market data providers, databases, or AI models, making it safe for container orchestrators and readiness probes.",
         "parameters": [
@@ -172,9 +170,7 @@
     },
     "/api/v1/stocks/search": {
       "get": {
-        "tags": [
-          "Instruments"
-        ],
+        "tags": ["Instruments"],
         "summary": "Search instruments and equities",
         "description": "Search for stocks, ETFs, indices, and financial instruments across supported exchanges with symbol or name autocomplete and pagination.",
         "parameters": [
@@ -290,9 +286,7 @@
     },
     "/api/v1/stocks/{ticker}": {
       "get": {
-        "tags": [
-          "Instruments"
-        ],
+        "tags": ["Instruments"],
         "summary": "Get instrument quote and profile",
         "description": "Retrieves comprehensive overview, price quotation, and fundamental profile for a specific instrument ticker symbol.",
         "parameters": [
@@ -320,35 +314,13 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "Instrument not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "501": {
-            "description": "Not yet implemented in Phase 1 (foundation boundary active)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
           }
         }
       }
     },
     "/api/v1/market": {
       "get": {
-        "tags": [
-          "Market Intelligence"
-        ],
+        "tags": ["Market Intelligence"],
         "summary": "Get market overview and indices",
         "description": "Fetch snapshot of benchmark index levels, market breadth (advances/declines), and sector performance.",
         "parameters": [
@@ -375,9 +347,53 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/stocks/{symbol}/quote": {
+      "get": {
+        "tags": ["Instruments"],
+        "summary": "Get live or delayed stock quote",
+        "description": "Retrieves genuine, normalized price quotation from supported market data providers (Angel One SmartAPI primary for NSE, Yahoo Finance fallback). Includes explicit data provenance (source, observed timestamp, retrieved timestamp, freshness level, staleness flag).",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestIdHeader"
           },
-          "501": {
-            "description": "Not yet implemented in Phase 1 (foundation boundary active)",
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "description": "Ticker symbol (e.g. RELIANCE, TCS, AAPL, MSFT)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "RELIANCE"
+          },
+          {
+            "name": "exchange",
+            "in": "query",
+            "required": false,
+            "description": "Exchange code (NSE, BSE, NASDAQ, NYSE)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "NSE"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normalized quote with data provenance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NormalizedQuoteResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quote not found for the requested symbol",
             "content": {
               "application/json": {
                 "schema": {
@@ -389,13 +405,162 @@
         }
       }
     },
+    "/api/v1/stocks/{symbol}/history": {
+      "get": {
+        "tags": ["Instruments"],
+        "summary": "Get historical price candles",
+        "description": "Retrieves genuine OHLCV candlestick historical data with specified candle interval.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestIdHeader"
+          },
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "description": "Ticker symbol (e.g. RELIANCE, AAPL)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "RELIANCE"
+          },
+          {
+            "name": "exchange",
+            "in": "query",
+            "required": false,
+            "description": "Exchange code (NSE, BSE, NASDAQ)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "NSE"
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "required": false,
+            "description": "Candle interval",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ONE_MINUTE",
+                "THREE_MINUTE",
+                "FIVE_MINUTE",
+                "TEN_MINUTE",
+                "FIFTEEN_MINUTE",
+                "THIRTY_MINUTE",
+                "ONE_HOUR",
+                "ONE_DAY"
+              ],
+              "default": "ONE_DAY"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "Start date / timestamp",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "End date / timestamp",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historical OHLCV prices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoricalPricesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stocks/ingest": {
+      "post": {
+        "tags": ["Instruments"],
+        "summary": "Trigger instrument master ingestion",
+        "description": "Downloads latest Angel One scrip master, normalizes active equities and indices, and updates local cache.",
+        "responses": {
+          "200": {
+            "description": "Ingestion result"
+          }
+        }
+      }
+    },
+    "/api/v1/stocks/ingest/status": {
+      "get": {
+        "tags": ["Instruments"],
+        "summary": "Get instrument ingestion status",
+        "description": "Returns progress, last ingested timestamp, total instruments count, and errors.",
+        "responses": {
+          "200": {
+            "description": "Ingestion status"
+          }
+        }
+      }
+    },
+    "/api/v1/market/overview": {
+      "get": {
+        "tags": ["Market Intelligence"],
+        "summary": "Get market overview and indices",
+        "description": "Fetch snapshot of benchmark index levels with verified market data provenance.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequestIdHeader"
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "Target market jurisdiction",
+            "schema": {
+              "$ref": "#/components/schemas/Market"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Market overview snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketOverviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/market/providers": {
+      "get": {
+        "tags": ["Market Intelligence"],
+        "summary": "List market data providers",
+        "description": "Returns configured market data providers and availability status.",
+        "responses": {
+          "200": {
+            "description": "Provider list"
+          }
+        }
+      }
+    },
     "/api/v1/ai/research": {
       "post": {
-        "tags": [
-          "AI Research"
-        ],
-        "summary": "Generate AI investment research",
-        "description": "Submits an equity analysis request to the Gemini AI research pipeline. Returns synthesis of investment thesis, valuation analysis, key competitive risks, and recent earnings review.",
+        "tags": ["AI Research"],
+        "summary": "Generate evidence-grounded financial research",
+        "description": "Uses Gemini to interpret a bounded context assembled from verified market data and deterministic financial metrics. Model claims cite backend evidence IDs. Does not provide investment recommendations, news, or earnings-call analysis.",
         "parameters": [
           {
             "$ref": "#/components/parameters/RequestIdHeader"
@@ -409,16 +574,16 @@
                 "$ref": "#/components/schemas/AiResearchRequest"
               },
               "example": {
-                "ticker": "NVDA",
-                "query": "Evaluate next quarter data center demand and margins in light of new architecture ramp",
-                "depth": "deep_dive"
+                "symbol": "RELIANCE",
+                "exchange": "NSE",
+                "question": "Explain the available profitability and financial risk evidence."
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Generated AI research dossier",
+            "description": "Validated research and backend-owned evidence registry",
             "content": {
               "application/json": {
                 "schema": {
@@ -437,8 +602,11 @@
               }
             }
           },
-          "501": {
-            "description": "Not yet implemented in Phase 1 (foundation boundary active)",
+          "404": {
+            "description": "Instrument was not found in the supported instrument repository"
+          },
+          "413": {
+            "description": "Research request body exceeds the AI endpoint size limit",
             "content": {
               "application/json": {
                 "schema": {
@@ -446,15 +614,32 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "AI research request or provider rate limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Provider unavailable or invalid structured model output"
+          },
+          "503": {
+            "description": "AI disabled or verified financial context unavailable"
+          },
+          "504": {
+            "description": "Gemini request timed out"
           }
         }
       }
     },
     "/api/v1/watchlists": {
       "get": {
-        "tags": [
-          "Watchlists"
-        ],
+        "tags": ["Watchlists"],
         "summary": "Get user watchlists",
         "description": "Retrieves watchlists created by the authenticated user.",
         "security": [
@@ -500,6 +685,155 @@
           }
         }
       }
+    },
+    "/api/v1/financial/{symbol}/analysis": {
+      "get": {
+        "tags": ["Financial Intelligence"],
+        "summary": "Full financial analysis and metrics",
+        "description": "Retrieves normalized annual and TTM financial statements, deterministic financial ratios (profitability, liquidity, leverage, cash flow, growth, valuation), and the composite Financial Health Score (0-100).",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "description": "Ticker symbol (e.g., RELIANCE, AAPL, TCS, INFY)",
+            "schema": {
+              "type": "string",
+              "example": "RELIANCE"
+            }
+          },
+          {
+            "name": "exchange",
+            "in": "query",
+            "required": false,
+            "description": "Optional exchange code (e.g., NSE, BSE, NASDAQ, NYSE)",
+            "schema": {
+              "type": "string",
+              "example": "NSE"
+            }
+          },
+          {
+            "name": "periods",
+            "in": "query",
+            "required": false,
+            "description": "Number of annual historical periods to retrieve (1-8, default 4)",
+            "schema": {
+              "type": "integer",
+              "default": 4,
+              "example": 4
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comprehensive financial analysis payload with statement history and calculated metrics"
+          },
+          "400": {
+            "description": "Validation error: invalid symbol or period parameter"
+          },
+          "502": {
+            "description": "Financial provider upstream failure or no statements available"
+          }
+        }
+      }
+    },
+    "/api/v1/financial/{symbol}/statements": {
+      "get": {
+        "tags": ["Financial Intelligence"],
+        "summary": "Raw financial statements",
+        "description": "Retrieves multi-period income statements, balance sheets, and cash flow statements without calculated ratios.",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "description": "Ticker symbol",
+            "schema": {
+              "type": "string",
+              "example": "TCS"
+            }
+          },
+          {
+            "name": "exchange",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "NSE"
+            }
+          },
+          {
+            "name": "periods",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 4
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statement history across reported periods"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "502": {
+            "description": "Provider error"
+          }
+        }
+      }
+    },
+    "/api/v1/financial/{symbol}/health-score": {
+      "get": {
+        "tags": ["Financial Intelligence"],
+        "summary": "Financial Health Score (0-100)",
+        "description": "Lightweight endpoint providing 0-100 composite financial health score, letter grade (A+ through F), dimension breakdown (profitability, liquidity, leverage, cash flow, growth), and transparent evaluation summary.",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "INFY"
+            }
+          },
+          {
+            "name": "exchange",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "NSE"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Financial Health Score and dimension evaluations"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "502": {
+            "description": "Data unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/financial/cache-stats": {
+      "get": {
+        "tags": ["Financial Intelligence"],
+        "summary": "Financial cache statistics",
+        "description": "Returns in-memory cache operational telemetry (size, hits, misses, stale hits) for financial datasets.",
+        "responses": {
+          "200": {
+            "description": "Cache statistics"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -535,30 +869,13 @@
     "schemas": {
       "AssetType": {
         "type": "string",
-        "enum": [
-          "equity",
-          "etf",
-          "index",
-          "crypto",
-          "commodity",
-          "forex"
-        ],
+        "enum": ["equity", "etf", "index", "crypto", "commodity", "forex"],
         "description": "Supported financial instrument asset classifications",
         "example": "equity"
       },
       "Market": {
         "type": "string",
-        "enum": [
-          "nse",
-          "bse",
-          "us",
-          "jp",
-          "uk",
-          "hk",
-          "crypto",
-          "commodity",
-          "forex"
-        ],
+        "enum": ["nse", "bse", "us", "jp", "uk", "hk", "crypto", "commodity", "forex"],
         "description": "Supported market jurisdictions and asset exchanges",
         "example": "nse"
       },
@@ -578,20 +895,14 @@
             "example": 154
           }
         },
-        "required": [
-          "page",
-          "pageSize",
-          "total"
-        ]
+        "required": ["page", "pageSize", "total"]
       },
       "ApiError": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              false
-            ],
+            "enum": [false],
             "example": false
           },
           "error": {
@@ -610,25 +921,17 @@
                 "description": "Optional error details or validation breakdowns"
               }
             },
-            "required": [
-              "code",
-              "message"
-            ]
+            "required": ["code", "message"]
           }
         },
-        "required": [
-          "success",
-          "error"
-        ]
+        "required": ["success", "error"]
       },
       "ValidationError": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              false
-            ],
+            "enum": [false],
             "example": false
           },
           "error": {
@@ -636,9 +939,7 @@
             "properties": {
               "code": {
                 "type": "string",
-                "enum": [
-                  "VALIDATION_ERROR"
-                ],
+                "enum": ["VALIDATION_ERROR"],
                 "example": "VALIDATION_ERROR"
               },
               "message": {
@@ -650,25 +951,17 @@
                 "description": "Zod validation issue breakdown grouped by target field"
               }
             },
-            "required": [
-              "code",
-              "message"
-            ]
+            "required": ["code", "message"]
           }
         },
-        "required": [
-          "success",
-          "error"
-        ]
+        "required": ["success", "error"]
       },
       "RootServiceResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -698,29 +991,17 @@
                 "example": "/openapi.json"
               }
             },
-            "required": [
-              "service",
-              "status",
-              "version",
-              "health",
-              "docs",
-              "openapi"
-            ]
+            "required": ["service", "status", "version", "health", "docs", "openapi"]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "V1IndexResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -753,34 +1034,20 @@
                     "example": "/api/v1/openapi.json"
                   }
                 },
-                "required": [
-                  "health",
-                  "docs",
-                  "openapi"
-                ]
+                "required": ["health", "docs", "openapi"]
               }
             },
-            "required": [
-              "service",
-              "status",
-              "version",
-              "endpoints"
-            ]
+            "required": ["service", "status", "version", "endpoints"]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "HealthResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -799,17 +1066,10 @@
                 "example": "2026-10-14T13:45:00.000Z"
               }
             },
-            "required": [
-              "status",
-              "service",
-              "timestamp"
-            ]
+            "required": ["status", "service", "timestamp"]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "Instrument": {
         "type": "object",
@@ -837,23 +1097,14 @@
             "example": "INR"
           }
         },
-        "required": [
-          "symbol",
-          "name",
-          "type",
-          "market",
-          "exchange",
-          "currency"
-        ]
+        "required": ["symbol", "name", "type", "market", "exchange", "currency"]
       },
       "InstrumentSearchResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -868,25 +1119,17 @@
                 "$ref": "#/components/schemas/Pagination"
               }
             },
-            "required": [
-              "items",
-              "pagination"
-            ]
+            "required": ["items", "pagination"]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "InstrumentDetailResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -924,119 +1167,524 @@
                 "example": 34.2
               }
             },
+            "required": ["symbol", "name", "price", "change", "changePercent", "currency"]
+          }
+        },
+        "required": ["success", "data"]
+      },
+      "NormalizedQuoteResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [true]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "type": "string",
+                "example": "RELIANCE"
+              },
+              "name": {
+                "type": "string",
+                "example": "Reliance Industries Ltd"
+              },
+              "exchange": {
+                "type": "string",
+                "example": "NSE"
+              },
+              "market": {
+                "type": "string",
+                "example": "nse"
+              },
+              "assetType": {
+                "type": "string",
+                "example": "equity"
+              },
+              "currency": {
+                "type": "string",
+                "example": "INR"
+              },
+              "price": {
+                "type": "number",
+                "nullable": true,
+                "example": 1174.6
+              },
+              "change": {
+                "type": "number",
+                "nullable": true,
+                "example": 7.9
+              },
+              "changePercent": {
+                "type": "number",
+                "nullable": true,
+                "example": 0.68
+              },
+              "open": {
+                "type": "number",
+                "nullable": true,
+                "example": 1167
+              },
+              "high": {
+                "type": "number",
+                "nullable": true,
+                "example": 1188
+              },
+              "low": {
+                "type": "number",
+                "nullable": true,
+                "example": 1162.7
+              },
+              "previousClose": {
+                "type": "number",
+                "nullable": true,
+                "example": 1166.7
+              },
+              "volume": {
+                "type": "number",
+                "nullable": true,
+                "example": 10938195
+              },
+              "source": {
+                "type": "string",
+                "example": "angel"
+              },
+              "observedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "retrievedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "freshness": {
+                "type": "string",
+                "enum": ["live", "delayed", "eod", "historical", "stale", "unavailable"]
+              },
+              "isStale": {
+                "type": "boolean",
+                "example": false
+              }
+            },
             "required": [
               "symbol",
               "name",
-              "price",
-              "change",
-              "changePercent",
-              "currency"
+              "exchange",
+              "market",
+              "currency",
+              "source",
+              "observedAt",
+              "retrievedAt",
+              "freshness",
+              "isStale"
             ]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
+      },
+      "HistoricalPricesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [true]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "type": "string",
+                "example": "RELIANCE"
+              },
+              "exchange": {
+                "type": "string",
+                "example": "NSE"
+              },
+              "interval": {
+                "type": "string",
+                "example": "ONE_DAY"
+              },
+              "fromDate": {
+                "type": "string"
+              },
+              "toDate": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string",
+                "example": "angel"
+              },
+              "retrievedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "candles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "open": {
+                      "type": "number"
+                    },
+                    "high": {
+                      "type": "number"
+                    },
+                    "low": {
+                      "type": "number"
+                    },
+                    "close": {
+                      "type": "number"
+                    },
+                    "volume": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "adjustedClose": {
+                      "type": "number",
+                      "nullable": true
+                    }
+                  },
+                  "required": ["timestamp", "open", "high", "low", "close"]
+                }
+              }
+            },
+            "required": [
+              "symbol",
+              "exchange",
+              "interval",
+              "fromDate",
+              "toDate",
+              "candles",
+              "source",
+              "retrievedAt"
+            ]
+          }
+        },
+        "required": ["success", "data"]
       },
       "AiResearchRequest": {
         "type": "object",
         "properties": {
-          "ticker": {
+          "symbol": {
             "type": "string",
-            "example": "NVDA",
-            "description": "Instrument ticker symbol to research"
+            "maxLength": 30,
+            "example": "RELIANCE",
+            "description": "Supported instrument ticker symbol"
           },
-          "query": {
+          "exchange": {
             "type": "string",
-            "example": "Analyze margin durability in data centers over next 12 months",
-            "description": "Optional natural language research question or theme"
+            "maxLength": 10,
+            "description": "Exchange code; required if symbol resolves ambiguously"
           },
-          "depth": {
+          "question": {
             "type": "string",
-            "enum": [
-              "summary",
-              "deep_dive",
-              "earnings_review"
-            ],
-            "default": "summary",
-            "description": "Analysis thoroughness"
+            "minLength": 10,
+            "maxLength": 800,
+            "example": "Explain the available profitability and financial risk evidence."
+          },
+          "comparisonInstrument": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "type": "string",
+                "maxLength": 30
+              },
+              "exchange": {
+                "type": "string",
+                "maxLength": 10
+              }
+            },
+            "required": ["symbol"]
           }
         },
-        "required": [
-          "ticker"
-        ]
+        "required": ["symbol", "question"],
+        "additionalProperties": false
       },
       "AiResearchResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
             "properties": {
-              "ticker": {
+              "schemaVersion": {
                 "type": "string",
-                "example": "NVDA"
+                "enum": ["1.0"]
+              },
+              "instrument": {
+                "$ref": "#/components/schemas/AiResearchInstrument"
+              },
+              "comparisonInstrument": {
+                "$ref": "#/components/schemas/AiResearchInstrument",
+                "nullable": true
+              },
+              "question": {
+                "type": "string"
+              },
+              "intent": {
+                "type": "string",
+                "enum": [
+                  "GENERAL",
+                  "PROFITABILITY",
+                  "GROWTH",
+                  "VALUATION",
+                  "LIQUIDITY",
+                  "CASH_FLOW",
+                  "DEBT",
+                  "RISK",
+                  "HISTORICAL_PERFORMANCE",
+                  "COMPARISON"
+                ]
               },
               "summary": {
-                "type": "string",
-                "example": "Strong demand trajectory driven by enterprise AI deployments..."
+                "$ref": "#/components/schemas/AiResearchClaim"
               },
-              "bullCase": {
+              "overallAssessment": {
+                "$ref": "#/components/schemas/AiResearchAssessment"
+              },
+              "sections": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AiResearchSection"
+                }
+              },
+              "strengths": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AiResearchClaim"
+                }
+              },
+              "riskFactors": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AiResearchClaim"
+                }
+              },
+              "growthSignals": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AiResearchClaim"
+                }
+              },
+              "valuationObservations": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AiResearchClaim"
+                }
+              },
+              "financialObservations": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AiResearchClaim"
+                }
+              },
+              "missingData": {
                 "type": "array",
                 "items": {
                   "type": "string"
                 }
               },
-              "bearCase": {
+              "evidence": {
                 "type": "array",
                 "items": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/AiResearchEvidence"
                 }
               },
-              "keyRisks": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
+              "confidence": {
+                "$ref": "#/components/schemas/AiResearchConfidence"
               },
-              "model": {
-                "type": "string",
-                "example": "gemini-1.5-pro"
-              },
-              "generatedAt": {
-                "type": "string",
-                "format": "date-time"
+              "disclaimer": {
+                "type": "string"
               }
             },
             "required": [
-              "ticker",
+              "schemaVersion",
+              "instrument",
+              "comparisonInstrument",
+              "question",
+              "intent",
               "summary",
-              "bullCase",
-              "bearCase",
-              "keyRisks",
-              "generatedAt"
+              "overallAssessment",
+              "sections",
+              "strengths",
+              "riskFactors",
+              "growthSignals",
+              "valuationObservations",
+              "financialObservations",
+              "missingData",
+              "evidence",
+              "confidence",
+              "disclaimer"
             ]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
+      },
+      "AiResearchInstrument": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string"
+          },
+          "exchange": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["symbol", "exchange", "name"]
+      },
+      "AiResearchClaim": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "evidenceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["text", "evidenceIds"]
+      },
+      "AiResearchAssessment": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "enum": ["POSITIVE", "NEGATIVE", "MIXED", "INSUFFICIENT_DATA"]
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "evidenceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["label", "explanation", "evidenceIds"]
+      },
+      "AiResearchSection": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "analysis": {
+            "$ref": "#/components/schemas/AiResearchClaim"
+          },
+          "risks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiResearchClaim"
+            }
+          },
+          "limitations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["title", "analysis", "risks", "limitations"]
+      },
+      "AiResearchConfidence": {
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": ["HIGH", "MEDIUM", "LIMITED", "LOW"]
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "availableEvidence": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalEvidence": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": ["level", "explanation", "availableEvidence", "totalEvidence"]
+      },
+      "AiResearchEvidence": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["statement", "metric", "health_score", "market_quote", "market_history"]
+          },
+          "metric": {
+            "type": "string"
+          },
+          "value": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "unit": {
+            "type": "string",
+            "nullable": true
+          },
+          "period": {
+            "type": "string",
+            "nullable": true
+          },
+          "periodType": {
+            "type": "string",
+            "enum": ["annual", "quarterly", "ttm"]
+          },
+          "source": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "calculationVersion": {
+            "type": "string"
+          },
+          "freshness": {
+            "type": "string"
+          },
+          "stale": {
+            "type": "boolean"
+          }
+        },
+        "required": ["id", "type", "metric", "value", "unit", "period", "source", "timestamp"]
       },
       "MarketOverviewResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -1066,12 +1714,7 @@
                       "example": 0.34
                     }
                   },
-                  "required": [
-                    "name",
-                    "value",
-                    "change",
-                    "changePercent"
-                  ]
+                  "required": ["name", "value", "change", "changePercent"]
                 }
               },
               "marketBreadth": {
@@ -1090,24 +1733,13 @@
                     "example": 110
                   }
                 },
-                "required": [
-                  "advances",
-                  "declines",
-                  "unchanged"
-                ]
+                "required": ["advances", "declines", "unchanged"]
               }
             },
-            "required": [
-              "market",
-              "indices",
-              "marketBreadth"
-            ]
+            "required": ["market", "indices", "marketBreadth"]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "Watchlist": {
         "type": "object",
@@ -1132,21 +1764,14 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "items",
-          "createdAt"
-        ]
+        "required": ["id", "name", "items", "createdAt"]
       },
       "WatchlistsResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -1158,15 +1783,10 @@
                 }
               }
             },
-            "required": [
-              "watchlists"
-            ]
+            "required": ["watchlists"]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       }
     }
   }

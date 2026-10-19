@@ -33,10 +33,10 @@ Controllers must remain thin: receive the request, rely on validation middleware
 - **Routes** register versioned endpoints under `/api/v1`.
 - **Validation** uses Zod via `validate()` middleware for body, query, and params.
 - **Controllers** map HTTP to services and `sendSuccess()`.
-- **Services** own orchestration. Phase 1 only implements health.
+- **Services** own orchestration. Financial services compute metrics deterministically. AI research only interprets bounded evidence assembled by backend domain services.
 - **DB** (`backend/src/db`) is the only place future Supabase access should live.
 - **Market** (`backend/src/market`) defines a `MarketProvider` interface with Angel and Yahoo slots. Providers do not call external APIs in Phase 1.
-- **AI** (`backend/src/ai`) reserves Gemini, research, screener, and earnings modules without invoking a model.
+- **AI** (`backend/src/ai`) centralizes the Gemini SDK client, response validation, prompt, and evidence-grounded research context. Screener and earnings analysis are not in scope for Phase 4.
 
 ## Frontend layers
 
@@ -52,6 +52,12 @@ Controllers must remain thin: receive the request, rely on validation middleware
 - Structured logging uses Pino with secret redaction.
 - Helmet, CORS (origin = `FRONTEND_URL`), body limits, HPP, and prototype-key sanitization are enabled.
 - Graceful shutdown handles `SIGTERM` / `SIGINT` and runs registered cleanup tasks (HTTP server, database disconnect, future sockets/subscriptions).
+
+## Phase 4 AI research
+
+`POST /api/v1/ai/research` validates a small request, resolves instruments from the supported instrument repository, and builds a bounded context from Phase 2 market data and Phase 3 deterministic financial services. The Gemini client has no database or tool access. Its structured output contains qualitative claims and evidence IDs; the backend rejects unknown references, unsupported numeric prose, invalid output, and recommendation language, then attaches the trusted evidence registry and coverage metadata. The frontend renders facts separately from model interpretation.
+
+AI research rate limiting is process-local and intended as an application-level guard. Deployments with multiple API instances should also enforce a shared gateway or distributed limit. Research results are not cached; this avoids reuse across questions or changing underlying evidence.
 
 ## Domain naming
 

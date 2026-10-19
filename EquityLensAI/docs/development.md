@@ -26,7 +26,7 @@ LOG_LEVEL=info
 NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
 
-Optional future variables (`SUPABASE_*`, `GEMINI_API_KEY`, `ANGEL_*`) may stay empty. Do not commit `.env` or `.env.local`.
+`SUPABASE_*` and `ANGEL_*` may remain empty when those integrations are not used. AI research is disabled by default. To enable Gemini, set a backend-only `GEMINI_API_KEY` and `AI_RESEARCH_ENABLED=true`; enabling the feature without a key fails environment validation. Do not commit `.env` or `.env.local`.
 
 Backend code must read configuration through `getEnv()` / `loadEnv()`, not `process.env`. Frontend public configuration must go through `getFrontendEnv()`.
 
@@ -50,6 +50,7 @@ Workspace-specific:
 npm run dev:frontend
 npm run dev:backend
 npm run test -w @equitylensai/backend
+npm run ai:smoke -w @equitylensai/backend  # optional real-provider smoke test; requires enabled Gemini config
 ```
 
 ## Servers
@@ -76,6 +77,8 @@ Backend Vitest coverage in Phase 1:
 - environment schema validation
 - Zod `validate` middleware
 - centralized error mapping (including unknown errors)
+
+Phase 4 AI research tests use deterministic fake clients and do not contact Gemini. Run the real-provider smoke test only when explicitly intended; it validates a minimal structured JSON response and prints only status/model metadata, never the key.
 
 ## Local connectivity check
 
