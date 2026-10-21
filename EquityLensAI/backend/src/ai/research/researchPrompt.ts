@@ -47,7 +47,10 @@ export function buildResearchPrompt(
 
   return JSON.stringify({
     promptVersion: RESEARCH_PROMPT_VERSION,
-    task: 'Provide evidence-grounded financial interpretation. Keep every narrative claim qualitative and cite evidence IDs.',
+    task:
+      intent === 'COMPARISON'
+        ? 'Compare the two instruments only on supplied metrics with matching reporting periods and units. Keep claims qualitative and cite the evidence for both instruments. Do not rank the companies.'
+        : 'Provide evidence-grounded financial interpretation. Keep every narrative claim qualitative and cite evidence IDs.',
     intent,
     instrument: context.instrument,
     comparisonInstrument: context.comparisonInstrument ?? null,

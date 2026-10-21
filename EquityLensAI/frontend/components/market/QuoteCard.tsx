@@ -1,7 +1,10 @@
-'use client';
-
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useStockQuote } from '@/hooks/useMarket';
+import { useAuth } from '@/hooks/useAuth';
+import { listFavorites, addFavorite, removeFavorite } from '@/services/api/favorites';
+import type { SupportedExchange } from '@equitylensai/shared';
 
 type QuoteCardProps = {
   symbol: string;
@@ -9,9 +12,38 @@ type QuoteCardProps = {
 };
 
 export function QuoteCard({ symbol, exchange }: QuoteCardProps) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
+
   const { data: quote, isLoading, error, isRefetching } = useStockQuote(symbol, exchange, {
     refetchInterval: 10_000,
   });
+
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['favorites'],
+    queryFn: listFavorites,
+    enabled: isAuthenticated,
+  });
+
+  const isFavorite = favorites.some(
+    (f) => f.symbol === symbol && (!exchange || f.exchange === exchange),
+  );
+
+  const handleFavoriteClick = async () => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    const targetExchange = (exchange || 'NSE') as SupportedExchange;
+    if (isFavorite) {
+      await removeFavorite(symbol, targetExchange);
+    } else {
+      await addFavorite(symbol, targetExchange);
+    }
+    queryClient.invalidateQueries({ queryKey: ['favorites'] });
+  };
+
 
   if (isLoading) {
     return (
@@ -50,9 +82,25 @@ export function QuoteCard({ symbol, exchange }: QuoteCardProps) {
             <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
               {quote.symbol}
             </h1>
+            <button
+              type="button"
+              onClick={handleFavoriteClick}
+              className="text-slate-400 hover:text-amber-400 transition"
+              title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              <svg
+                className={`h-5 w-5 ${isFavorite ? 'text-amber-400 fill-amber-400' : 'text-slate-500'}`}
+                viewBox="0 0 20 20"
+                fill={isFavorite ? 'currentColor' : 'none'}
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </button>
             <span className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-2.5 py-0.5 text-xs font-bold text-sky-400">
               {quote.exchange}
             </span>
+
             <span className="rounded-lg border border-white/10 bg-slate-800 px-2 py-0.5 text-xs font-medium uppercase text-slate-400">
               {quote.market}
             </span>

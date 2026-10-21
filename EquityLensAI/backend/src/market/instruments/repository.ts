@@ -36,7 +36,9 @@ export class InstrumentRepository {
 
     // Replace if existing or append
     const existingIndex = this.instruments.findIndex(
-      (i) => i.symbol.toUpperCase() === symKey && i.exchange.toUpperCase() === record.exchange.toUpperCase()
+      (i) =>
+        i.symbol.toUpperCase() === symKey &&
+        i.exchange.toUpperCase() === record.exchange.toUpperCase(),
     );
 
     if (existingIndex >= 0) {
@@ -87,7 +89,7 @@ export class InstrumentRepository {
       market?: Market | undefined;
       assetType?: AssetType | undefined;
       limit?: number | undefined;
-    }
+    },
   ): InstrumentSummary[] {
     const q = query.trim().toUpperCase();
     if (!q) return [];
@@ -142,11 +144,27 @@ export class InstrumentRepository {
     return this.instruments.length;
   }
 
+  list(options?: {
+    market?: Market;
+    assetType?: AssetType;
+    exchange?: string;
+  }): InstrumentRecord[] {
+    return this.instruments.filter(
+      (item) =>
+        (!options?.market || item.market === options.market) &&
+        (!options?.assetType || item.assetType === options.assetType) &&
+        (!options?.exchange || item.exchange.toUpperCase() === options.exchange.toUpperCase()),
+    );
+  }
+
   async saveToDisk(cacheFilePath: string): Promise<void> {
     try {
       await fs.mkdir(path.dirname(cacheFilePath), { recursive: true });
       await fs.writeFile(cacheFilePath, JSON.stringify(this.instruments, null, 2), 'utf-8');
-      logger.info({ count: this.instruments.length, path: cacheFilePath }, 'Saved instruments cache to disk');
+      logger.info(
+        { count: this.instruments.length, path: cacheFilePath },
+        'Saved instruments cache to disk',
+      );
     } catch (err) {
       logger.error({ err, path: cacheFilePath }, 'Failed to save instruments cache to disk');
     }
@@ -158,7 +176,10 @@ export class InstrumentRepository {
       const records = JSON.parse(data) as InstrumentRecord[];
       if (Array.isArray(records) && records.length > 0) {
         this.load(records);
-        logger.info({ count: records.length, path: cacheFilePath }, 'Loaded instruments cache from disk');
+        logger.info(
+          { count: records.length, path: cacheFilePath },
+          'Loaded instruments cache from disk',
+        );
         return true;
       }
     } catch {

@@ -7,7 +7,7 @@ The implementation follows Google's [JavaScript SDK documentation](https://googl
 
 ```env
 GEMINI_API_KEY=
-GEMINI_MODEL=gemini-3.8-flash
+GEMINI_MODEL=gemini-3.5-flash
 GEMINI_TIMEOUT_MS=30000
 GEMINI_MAX_OUTPUT_TOKENS=1024
 GEMINI_MAX_RETRIES=2
@@ -15,7 +15,9 @@ AI_RESEARCH_ENABLED=false
 AI_RESEARCH_RATE_LIMIT=5
 ```
 
-Set `AI_RESEARCH_ENABLED=true` and configure the key in `backend/.env` to enable requests. The key is never exposed to frontend configuration. The default model is `gemini-3.8-flash`; deployments can select another Gemini model that supports JSON structured output and is enabled for their API key. The SDK request sets JSON MIME type and a response JSON schema, uses a bounded timeout, and makes a bounded retry only for transient failures. Authentication, model-not-found, request, and rate-limit errors are not retried. A provider 404 is reported as `AI_MODEL_UNAVAILABLE`; verify the selected model is available to the configured API key.
+Set `AI_RESEARCH_ENABLED=true` and configure the key in `backend/.env` to enable requests. The key is never exposed to frontend configuration. The default model is `gemini-3.5-flash`, verified with the live structured-output smoke test on 2026-10-20. Deployments can select another Gemini model that supports JSON structured output and is enabled for their API key. The SDK request sets JSON MIME type and a response JSON schema, uses a bounded timeout, and makes a bounded retry only for transient failures. Authentication, model-not-found, request, and rate-limit errors are not retried. A provider 404 is reported as `AI_MODEL_UNAVAILABLE`; verify the selected model is available to the configured API key. If Gemini returns transient 5xx failures after retries, the API returns `AI_PROVIDER_UNAVAILABLE` with the provider HTTP status and a retry hint. The smoke test makes a deliberately small request and does not guarantee that longer research generations will succeed during provider overload.
+
+The backend loads the instrument cache before opening its HTTP port. Restart the backend after changing instrument data or configuration; requests should only be sent after the server reports that it is listening.
 
 ## API
 

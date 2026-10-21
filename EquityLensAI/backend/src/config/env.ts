@@ -51,7 +51,7 @@ const envSchema = z
     SUPABASE_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
     SUPABASE_SERVICE_ROLE_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
     GEMINI_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
-    GEMINI_MODEL: z.string().min(1).max(100).default('gemini-3.8-flash'),
+    GEMINI_MODEL: z.string().min(1).max(100).default('gemini-3.5-flash'),
     GEMINI_TIMEOUT_MS: z.coerce.number().int().positive().max(120000).default(30000),
     GEMINI_MAX_OUTPUT_TOKENS: z.coerce.number().int().positive().max(4096).default(1024),
     GEMINI_MAX_RETRIES: z.coerce.number().int().nonnegative().max(5).default(2),

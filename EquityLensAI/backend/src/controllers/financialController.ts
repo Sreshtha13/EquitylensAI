@@ -8,7 +8,6 @@ import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { financialService } from '../financial/index.js';
 import { sendSuccess } from '../utils/response.js';
-import { AppError } from '../utils/appError.js';
 
 // ─── Request schemas ────────────────────────────────────────────────────────
 

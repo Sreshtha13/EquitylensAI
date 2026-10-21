@@ -34,4 +34,28 @@ export type {
   HealthScoreDimension,
   FinancialHealthScore,
   FinancialAnalysis,
+  // Phase 6
+  AuthUser,
+  AuthSession,
+  UserProfile,
+  SupportedExchange,
+  SupportedCurrency,
+  SupportedPeriod,
+  SupportedLandingPage,
+  ThemeOption,
+  TableDensityOption,
+  UserPreferences,
+  WatchlistSummary,
+  WatchlistItemWithQuote,
+  WatchlistDetail,
+  FavoriteItemWithQuote,
 } from './domain.js';
+export {
+  SUPPORTED_EXCHANGES,
+  SUPPORTED_CURRENCIES,
+  SUPPORTED_PERIODS,
+  SUPPORTED_LANDING_PAGES,
+  THEME_OPTIONS,
+  TABLE_DENSITY_OPTIONS,
+} from './domain.js';
+
