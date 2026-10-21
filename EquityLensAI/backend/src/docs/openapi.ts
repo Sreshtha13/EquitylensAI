@@ -46,8 +46,20 @@ export const openApiSpec = {
         'Automated equity research, fundamental synthesis, and earnings review powered by Gemini',
     },
     {
+      name: 'Authentication',
+      description: 'User registration, sign-in, token refresh, password recovery, and account management',
+    },
+    {
+      name: 'User Profile & Preferences',
+      description: 'User profiles and personal application configurations (exchange, currency, period, theme)',
+    },
+    {
       name: 'Watchlists',
-      description: 'User-managed instrument watchlists and tracking',
+      description: 'User-managed instrument watchlists with coordinated real-time market data quotes',
+    },
+    {
+      name: 'Favorites',
+      description: 'Persistent user favorite equities on supported stock exchanges',
     },
     {
       name: 'Financial Intelligence',
@@ -792,55 +804,7 @@ export const openApiSpec = {
         },
       },
     },
-    '/api/v1/watchlists': {
-      get: {
-        tags: ['Watchlists'],
-        summary: 'Get user watchlists',
-        description: 'Retrieves watchlists created by the authenticated user.',
-        security: [
-          {
-            BearerAuth: [],
-          },
-        ],
-        parameters: [
-          {
-            $ref: '#/components/parameters/RequestIdHeader',
-          },
-        ],
-        responses: {
-          '200': {
-            description: 'List of user watchlists',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/WatchlistsResponse',
-                },
-              },
-            },
-          },
-          '401': {
-            description: 'Authentication required or invalid Bearer token',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/ApiError',
-                },
-              },
-            },
-          },
-          '501': {
-            description: 'Not yet implemented in Phase 1 (foundation boundary active)',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/ApiError',
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+
     '/api/v1/financial/{symbol}/analysis': {
       get: {
         tags: ['Financial Intelligence'],
@@ -953,6 +917,396 @@ export const openApiSpec = {
           'Returns in-memory cache operational telemetry (size, hits, misses, stale hits) for financial datasets.',
         responses: {
           '200': { description: 'Cache statistics' },
+        },
+      },
+    },
+    '/api/v1/auth/register': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'Register new user account',
+        description: 'Creates a new user profile with email and password via Supabase Auth.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  email: { type: 'string', format: 'email', example: 'investor@example.com' },
+                  password: { type: 'string', minLength: 8, example: 'SecurePassword123!' },
+                  fullName: { type: 'string', example: 'Aarav Sharma' },
+                },
+                required: ['email', 'password'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'User registered successfully' },
+          '400': { description: 'Validation error' },
+          '409': { description: 'Email already registered' },
+        },
+      },
+    },
+    '/api/v1/auth/login': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'User sign-in',
+        description: 'Authenticates user with email and password, returning Supabase JWT session tokens.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  email: { type: 'string', format: 'email', example: 'investor@example.com' },
+                  password: { type: 'string', example: 'SecurePassword123!' },
+                },
+                required: ['email', 'password'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Authenticated successfully' },
+          '400': { description: 'Validation error' },
+          '401': { description: 'Invalid credentials' },
+        },
+      },
+    },
+    '/api/v1/auth/logout': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'User sign-out',
+        description: 'Terminates the current user session and invalidates access tokens.',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          '200': { description: 'Logged out successfully' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/api/v1/auth/forgot-password': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'Request password reset email',
+        description: 'Sends a secure password reset link to the registered email address.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  email: { type: 'string', format: 'email', example: 'investor@example.com' },
+                },
+                required: ['email'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Reset instructions sent if account exists' },
+          '400': { description: 'Validation error' },
+        },
+      },
+    },
+    '/api/v1/auth/reset-password': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'Reset password with recovery token',
+        description: 'Updates user password using the token received in the reset email.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  password: { type: 'string', minLength: 8, example: 'NewSecurePassword123!' },
+                  accessToken: { type: 'string', example: 'recovery-token-jwt' },
+                },
+                required: ['password', 'accessToken'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Password reset successfully' },
+          '400': { description: 'Invalid or expired token' },
+        },
+      },
+    },
+    '/api/v1/auth/account': {
+      delete: {
+        tags: ['Authentication'],
+        summary: 'Delete user account',
+        description: 'Permanently deletes the authenticated user, cascading removal of profile, watchlists, favorites, and preferences.',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          '200': { description: 'Account deleted permanently' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/api/v1/users/me': {
+      get: {
+        tags: ['User Profile & Preferences'],
+        summary: 'Get current user profile and preferences',
+        description: 'Returns profile details and application preferences for the authenticated user.',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          '200': { description: 'User profile and preferences' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/api/v1/users/me/profile': {
+      put: {
+        tags: ['User Profile & Preferences'],
+        summary: 'Update user profile',
+        description: 'Updates full name, avatar URL, or bio for the authenticated user.',
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  fullName: { type: 'string', example: 'Aarav Sharma' },
+                  avatarUrl: { type: 'string', nullable: true, example: 'https://example.com/avatar.png' },
+                  bio: { type: 'string', nullable: true, example: 'Value investor focusing on Indian midcaps' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Profile updated successfully' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/api/v1/users/me/preferences': {
+      put: {
+        tags: ['User Profile & Preferences'],
+        summary: 'Update application preferences',
+        description: 'Updates user settings such as default exchange, currency, period, theme, and table density.',
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  defaultExchange: { type: 'string', enum: ['NSE', 'BSE'] },
+                  preferredCurrency: { type: 'string', enum: ['INR', 'USD'] },
+                  statementPeriod: { type: 'string', enum: ['annual', 'quarterly'] },
+                  landingPage: { type: 'string', enum: ['/dashboard', '/market', '/screener', '/research', '/watchlists'] },
+                  theme: { type: 'string', enum: ['dark', 'light', 'system'] },
+                  tableDensity: { type: 'string', enum: ['compact', 'normal', 'comfortable'] },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Preferences updated successfully' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/api/v1/watchlists': {
+      get: {
+        tags: ['Watchlists'],
+        summary: 'List user watchlists',
+        description: 'Returns all watchlists owned by the authenticated user with item counts and summary info.',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          '200': { description: 'List of watchlists' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+      post: {
+        tags: ['Watchlists'],
+        summary: 'Create a new watchlist',
+        description: 'Creates a named watchlist (up to 50 per user). Name must be unique per user.',
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', minLength: 1, maxLength: 80, example: 'Growth Tech' },
+                  description: { type: 'string', maxLength: 300, example: 'High ROE tech stocks' },
+                },
+                required: ['name'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Watchlist created' },
+          '400': { description: 'Validation error or limit exceeded' },
+          '409': { description: 'Watchlist name already exists' },
+        },
+      },
+    },
+    '/api/v1/watchlists/{watchlistId}': {
+      get: {
+        tags: ['Watchlists'],
+        summary: 'Get watchlist details with live quotes',
+        description: 'Retrieves a single watchlist by ID including items and real-time coordinated market quotes.',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Watchlist with items and quotes' },
+          '404': { description: 'Watchlist not found' },
+        },
+      },
+      put: {
+        tags: ['Watchlists'],
+        summary: 'Update watchlist name and description',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', minLength: 1, maxLength: 80 },
+                  description: { type: 'string', maxLength: 300 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Watchlist updated' },
+          '404': { description: 'Watchlist not found' },
+        },
+      },
+      delete: {
+        tags: ['Watchlists'],
+        summary: 'Delete watchlist',
+        description: 'Deletes a watchlist and all contained items.',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Watchlist deleted' },
+          '404': { description: 'Watchlist not found' },
+        },
+      },
+    },
+    '/api/v1/watchlists/{watchlistId}/items': {
+      post: {
+        tags: ['Watchlists'],
+        summary: 'Add stock to watchlist',
+        description: 'Adds an exchange-listed instrument to the watchlist (up to 100 items per watchlist).',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  symbol: { type: 'string', example: 'RELIANCE' },
+                  exchange: { type: 'string', enum: ['NSE', 'BSE'], example: 'NSE' },
+                  notes: { type: 'string', maxLength: 200, example: 'Core energy holding' },
+                },
+                required: ['symbol', 'exchange'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Item added to watchlist' },
+          '400': { description: 'Limit exceeded or invalid instrument' },
+          '409': { description: 'Item already exists in watchlist' },
+        },
+      },
+    },
+    '/api/v1/watchlists/{watchlistId}/items/{itemId}': {
+      delete: {
+        tags: ['Watchlists'],
+        summary: 'Remove item from watchlist',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+          { name: 'itemId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Item removed' },
+          '404': { description: 'Item not found' },
+        },
+      },
+    },
+    '/api/v1/favorites': {
+      get: {
+        tags: ['Favorites'],
+        summary: 'List user favorites with market quotes',
+        description: 'Retrieves all user favorite equities with coordinated market quotes.',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          '200': { description: 'Favorites with quotes' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+      post: {
+        tags: ['Favorites'],
+        summary: 'Add stock to favorites',
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  symbol: { type: 'string', example: 'TCS' },
+                  exchange: { type: 'string', enum: ['NSE', 'BSE'], example: 'NSE' },
+                },
+                required: ['symbol', 'exchange'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Added to favorites' },
+          '400': { description: 'Invalid stock symbol' },
+          '409': { description: 'Already in favorites' },
+        },
+      },
+    },
+    '/api/v1/favorites/{symbol}': {
+      delete: {
+        tags: ['Favorites'],
+        summary: 'Remove stock from favorites',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'symbol', in: 'path', required: true, schema: { type: 'string', example: 'TCS' } },
+          { name: 'exchange', in: 'query', required: false, schema: { type: 'string', enum: ['NSE', 'BSE'] } },
+        ],
+        responses: {
+          '200': { description: 'Removed from favorites' },
+          '404': { description: 'Favorite not found' },
         },
       },
     },
@@ -1690,6 +2044,64 @@ export const openApiSpec = {
           },
         },
         required: ['success', 'data'],
+      },
+      UserProfile: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          email: { type: 'string', format: 'email' },
+          fullName: { type: 'string', nullable: true },
+          avatarUrl: { type: 'string', nullable: true },
+          bio: { type: 'string', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+        required: ['id', 'email', 'createdAt', 'updatedAt'],
+      },
+      UserPreferences: {
+        type: 'object',
+        properties: {
+          userId: { type: 'string', format: 'uuid' },
+          defaultExchange: { type: 'string', enum: ['NSE', 'BSE'] },
+          preferredCurrency: { type: 'string', enum: ['INR', 'USD'] },
+          statementPeriod: { type: 'string', enum: ['annual', 'quarterly'] },
+          landingPage: { type: 'string' },
+          theme: { type: 'string', enum: ['dark', 'light', 'system'] },
+          tableDensity: { type: 'string', enum: ['compact', 'normal', 'comfortable'] },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+        required: [
+          'userId',
+          'defaultExchange',
+          'preferredCurrency',
+          'statementPeriod',
+          'landingPage',
+          'theme',
+          'tableDensity',
+        ],
+      },
+      UserFavorite: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          userId: { type: 'string', format: 'uuid' },
+          symbol: { type: 'string' },
+          exchange: { type: 'string', enum: ['NSE', 'BSE'] },
+          companyName: { type: 'string' },
+          createdAt: { type: 'string', format: 'date-time' },
+          quote: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              price: { type: 'number' },
+              change: { type: 'number' },
+              changePercent: { type: 'number' },
+              currency: { type: 'string' },
+              freshness: { type: 'string' },
+            },
+          },
+        },
+        required: ['id', 'userId', 'symbol', 'exchange', 'createdAt'],
       },
     },
   },
