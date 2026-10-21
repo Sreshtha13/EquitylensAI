@@ -2,9 +2,9 @@
 
 AI-powered market intelligence and equity research platform.
 
-Phase 1 delivers the production foundation. Phase 2 implements market-data infrastructure backed by Angel One SmartAPI and Yahoo Finance with data provenance, in-memory caching, instrument search, and OHLCV history. Phase 3 adds financial statements, deterministic metrics, and health scoring. Phase 4 adds an evidence-bounded Gemini research assistant that interprets platform evidence without replacing deterministic calculations.
+Phase 1 delivers the production foundation. Phase 2 implements market-data infrastructure backed by Angel One SmartAPI and Yahoo Finance with data provenance, in-memory caching, instrument search, and OHLCV history. Phase 3 adds financial statements, deterministic metrics, and health scoring. Phase 4 adds an evidence-bounded Gemini research assistant that interprets platform evidence without replacing deterministic calculations. Phase 5 adds the natural-language screener with catalog interpretation and execution.
 
-Natural-language screener interpretation is available as a limited Phase 5 foundation. Queryable company-wide financial metrics are not yet persisted, so screener execution is explicitly unavailable; see [Screener](docs/screener.md) for the supported metric catalog and prerequisite.
+Phase 6 implements the complete user system: Supabase-backed authentication, session management, user profile & application preferences, persistent favorites for NSE/BSE equities, and multiple named watchlists with coordinated live market quotes and strict cross-user data isolation.
 
 ## Architecture
 

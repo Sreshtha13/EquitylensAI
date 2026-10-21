@@ -17,6 +17,27 @@ export class ApiClientError extends Error {
   }
 }
 
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null): void {
+  authToken = token;
+  if (typeof window !== 'undefined') {
+    if (token) {
+      localStorage.setItem('equitylensai_token', token);
+    } else {
+      localStorage.removeItem('equitylensai_token');
+    }
+  }
+}
+
+export function getAuthToken(): string | null {
+  if (authToken) return authToken;
+  if (typeof window !== 'undefined') {
+    authToken = localStorage.getItem('equitylensai_token');
+  }
+  return authToken;
+}
+
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 type RequestOptions = {
@@ -33,8 +54,10 @@ async function request<T>(
   const { NEXT_PUBLIC_API_URL } = getFrontendEnv();
   const url = `${NEXT_PUBLIC_API_URL.replace(/\/$/, '')}${path}`;
 
+  const token = getAuthToken();
   const headers: Record<string, string> = {
     Accept: 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
@@ -42,6 +65,7 @@ async function request<T>(
     method,
     headers,
   };
+
 
   if (options.signal) {
     init.signal = options.signal;
