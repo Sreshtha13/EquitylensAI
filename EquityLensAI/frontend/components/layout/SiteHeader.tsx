@@ -4,6 +4,7 @@ const links = [
   { href: '/', label: 'Home' },
   { href: '/market', label: 'Markets' },
   { href: '/research', label: 'Research' },
+  { href: '/screener', label: 'Screener' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/login', label: 'Login' },
 ];
@@ -15,7 +16,7 @@ export function SiteHeader() {
         <Link href="/" className="text-sm font-semibold tracking-wide text-white">
           EquityLensAI
         </Link>
-        <nav className="flex items-center gap-5 text-sm text-slate-300">
+        <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-xs text-slate-300 sm:gap-x-5 sm:text-sm">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="transition hover:text-white">
               {link.label}

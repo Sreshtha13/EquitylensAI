@@ -646,6 +646,152 @@ export const openApiSpec = {
         },
       },
     },
+    '/api/v1/ai/screener/metrics': {
+      get: {
+        tags: ['AI Research'],
+        summary: 'List screener interpretation metrics',
+        description:
+          'Returns the backend-owned allowlist of real metrics from individual-company financial analysis. Catalog metrics are not available for universe-wide execution until a queryable financial data index exists.',
+        responses: {
+          '200': { description: 'Metric catalog with units, periods, and execution availability' },
+        },
+      },
+    },
+    '/api/v1/ai/screener/interpret': {
+      post: {
+        tags: ['AI Research'],
+        summary: 'Interpret natural-language screening criteria',
+        description:
+          'Uses Gemini structured output to interpret criteria only. It returns validated filters, not company results or match counts. The AI has no database or SQL execution access.',
+        parameters: [{ $ref: '#/components/parameters/RequestIdHeader' }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  query: { type: 'string', minLength: 1, maxLength: 500 },
+                  exchange: { type: 'string', enum: ['NSE', 'BSE'] },
+                  period: { type: 'string', enum: ['annual', 'ttm'], default: 'annual' },
+                },
+                required: ['query'],
+                additionalProperties: false,
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Validated filter interpretation without screening results' },
+          '400': { description: 'Invalid or unsafe query' },
+          '422': { description: 'Unsupported metric or reporting period' },
+          '429': { description: 'AI request rate limit reached' },
+          '502': { description: 'Provider unavailable or invalid structured output' },
+          '503': { description: 'AI is disabled or unavailable' },
+        },
+      },
+    },
+    '/api/v1/ai/screener': {
+      post: {
+        tags: ['AI Research'],
+        summary: 'Execute a validated screener request',
+        description:
+          'Validates an allowlisted filter set and queries the persisted financial-metrics index. Success responses include paginated matches, provenance, freshness, and coverage. The index must be migrated and ingested; database errors are returned explicitly.',
+        parameters: [{ $ref: '#/components/parameters/RequestIdHeader' }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  query: { type: 'string', minLength: 1, maxLength: 500 },
+                  exchange: { type: 'string', enum: ['NSE', 'BSE'] },
+                  assetType: { type: 'string', enum: ['equity'], default: 'equity' },
+                  period: { type: 'string', enum: ['annual', 'ttm'], default: 'annual' },
+                  filters: {
+                    type: 'array',
+                    minItems: 1,
+                    maxItems: 5,
+                    items: {
+                      type: 'object',
+                      properties: {
+                        field: {
+                          type: 'string',
+                          enum: [
+                            'roe',
+                            'roa',
+                            'roce',
+                            'net_margin',
+                            'debt_to_equity',
+                            'revenue_growth',
+                            'net_income_growth',
+                            'free_cash_flow_margin',
+                            'current_ratio',
+                            'pe_ratio',
+                            'price_to_book',
+                            'financial_health_score',
+                          ],
+                        },
+                        operator: {
+                          type: 'string',
+                          enum: ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between'],
+                        },
+                        value: { type: 'number' },
+                        upperValue: { type: 'number', nullable: true },
+                      },
+                      required: ['field', 'operator', 'value'],
+                      additionalProperties: false,
+                    },
+                  },
+                  logic: { type: 'string', enum: ['AND', 'OR'] },
+                  sort: {
+                    type: 'object',
+                    properties: {
+                      field: {
+                        type: 'string',
+                        enum: [
+                          'roe',
+                          'roa',
+                          'roce',
+                          'net_margin',
+                          'debt_to_equity',
+                          'revenue_growth',
+                          'net_income_growth',
+                          'free_cash_flow_margin',
+                          'current_ratio',
+                          'pe_ratio',
+                          'price_to_book',
+                          'financial_health_score',
+                          'symbol',
+                        ],
+                        nullable: true,
+                      },
+                      direction: { type: 'string', enum: ['asc', 'desc'] },
+                    },
+                    required: ['field', 'direction'],
+                    additionalProperties: false,
+                  },
+                  limit: { type: 'integer', minimum: 1, maximum: 100, default: 25 },
+                  offset: { type: 'integer', minimum: 0, maximum: 100000, default: 0 },
+                },
+                required: ['query', 'filters', 'logic'],
+                additionalProperties: false,
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Screen results with pagination, provenance, freshness, and coverage',
+          },
+          '400': { description: 'Invalid or unsupported filter definition' },
+          '429': { description: 'Request rate limit reached' },
+          '502': { description: 'Financial-metrics database returned an invalid response' },
+          '503': { description: 'Financial-metrics database is unavailable or not configured' },
+        },
+      },
+    },
     '/api/v1/watchlists': {
       get: {
         tags: ['Watchlists'],

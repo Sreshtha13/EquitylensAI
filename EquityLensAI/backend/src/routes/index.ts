@@ -37,6 +37,9 @@ v1Router.get('/', (_req, res) => {
       },
       ai: {
         research: 'POST /api/v1/ai/research',
+        screenerMetrics: 'GET /api/v1/ai/screener/metrics',
+        screenerInterpret: 'POST /api/v1/ai/screener/interpret',
+        screenerExecute: 'POST /api/v1/ai/screener (data index unavailable)',
       },
       watchlists: '/api/v1/watchlists (Phase 5)',
     },

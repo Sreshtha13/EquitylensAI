@@ -59,7 +59,8 @@ export function HealthScoreCard({ healthScore, isLoading }: HealthScoreCardProps
             Financial Health Diagnostic
           </h2>
           <p className="mt-1 text-xs text-slate-400">
-            Calculated as of period ending <span className="font-semibold text-slate-200">{asOfPeriod}</span> • Provenance audited
+            Calculated as of period ending <span className="font-semibold text-slate-200">{asOfPeriod}</span> • Scored at{' '}
+            <span className="font-semibold text-slate-200">{new Date(scoredAt).toLocaleString()}</span>
           </p>
         </div>
 

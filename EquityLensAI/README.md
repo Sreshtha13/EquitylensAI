@@ -4,6 +4,8 @@ AI-powered market intelligence and equity research platform.
 
 Phase 1 delivers the production foundation. Phase 2 implements market-data infrastructure backed by Angel One SmartAPI and Yahoo Finance with data provenance, in-memory caching, instrument search, and OHLCV history. Phase 3 adds financial statements, deterministic metrics, and health scoring. Phase 4 adds an evidence-bounded Gemini research assistant that interprets platform evidence without replacing deterministic calculations.
 
+Natural-language screener interpretation is available as a limited Phase 5 foundation. Queryable company-wide financial metrics are not yet persisted, so screener execution is explicitly unavailable; see [Screener](docs/screener.md) for the supported metric catalog and prerequisite.
+
 ## Architecture
 
 ```text
@@ -88,4 +90,5 @@ The home page verifies frontend/backend connectivity by calling the health endpo
 - [Development](docs/development.md)
 - [API conventions](docs/api.md)
 - [AI Research](docs/ai-research.md)
+- [Natural-language Screener](docs/screener.md)
 - [OpenAPI Specification](docs/openapi.json)

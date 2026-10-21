@@ -23,7 +23,7 @@ beforeEach(() => {
   loadEnv({
     NODE_ENV: 'test',
     GEMINI_API_KEY: 'test-only-not-a-credential',
-    GEMINI_MODEL: 'gemini-3.8-flash',
+    GEMINI_MODEL: 'gemini-3.5-flash',
     GEMINI_MAX_RETRIES: '1',
     GEMINI_TIMEOUT_MS: '30000',
     AI_RESEARCH_ENABLED: 'true',
@@ -57,7 +57,7 @@ describe('GeminiClient', () => {
     expect(generateContentMock).toHaveBeenCalledTimes(2);
     expect(generateContentMock).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        model: 'gemini-3.8-flash',
+        model: 'gemini-3.5-flash',
         config: expect.objectContaining({
           responseMimeType: 'application/json',
           responseJsonSchema: input.responseJsonSchema,
@@ -66,7 +66,7 @@ describe('GeminiClient', () => {
     );
     expect(result).toMatchObject({
       text: '{"ok":true}',
-      model: 'gemini-3.8-flash',
+      model: 'gemini-3.5-flash',
       inputTokens: 24,
       outputTokens: 6,
     });

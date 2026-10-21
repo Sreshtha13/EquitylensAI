@@ -3,7 +3,12 @@
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { useResearch } from '@/hooks/useResearch';
-import type { ResearchClaim, ResearchEvidence, ResearchRequest } from '@/services/api/research';
+import type {
+  ResearchClaim,
+  ResearchEvidence,
+  ResearchRequest,
+  ResearchResponse,
+} from '@/services/api/research';
 
 type AiResearchPanelProps = {
   symbol: string;
@@ -76,6 +81,115 @@ function ClaimList({
           </li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+function ComparisonEvidenceTable({
+  evidence,
+  instrument,
+  comparisonInstrument,
+}: {
+  evidence: ResearchEvidence[];
+  instrument: ResearchResponse['instrument'];
+  comparisonInstrument: NonNullable<ResearchResponse['comparisonInstrument']>;
+}) {
+  const rows = evidence
+    .filter(
+      (item) =>
+        (item.type === 'metric' || item.type === 'health_score') &&
+        !item.id.startsWith('comparison-'),
+    )
+    .flatMap((primary) => {
+      const comparison = evidence.find((item) => item.id === `comparison-${primary.id}`);
+      if (
+        !comparison ||
+        primary.period !== comparison.period ||
+        primary.periodType !== comparison.periodType ||
+        primary.unit !== comparison.unit
+      ) {
+        return [];
+      }
+      const delta = evidence.find((item) => item.id === `comparison-delta-${primary.id}`);
+      return [{ primary, comparison, delta }];
+    });
+
+  if (rows.length === 0) return null;
+
+  const displayValue = (value: number | string | null, unit: string | null) => {
+    if (value === null) return 'Unavailable';
+    const formatted =
+      typeof value === 'number'
+        ? new Intl.NumberFormat(undefined, { maximumFractionDigits: 4 }).format(value)
+        : value;
+    return unit ? `${formatted} ${unit}` : formatted;
+  };
+
+  return (
+    <section
+      aria-label="Side-by-side financial comparison"
+      className="overflow-hidden rounded-2xl border border-violet-400/20 bg-slate-950/60"
+    >
+      <div className="border-b border-white/10 p-4">
+        <h4 className="font-bold text-white">Comparable financial data</h4>
+        <p className="mt-1 text-xs text-slate-400">
+          Matched on reporting period, metric unit, and company reporting currency. Differences are
+          calculated from the displayed values.
+        </p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[650px] border-collapse text-left text-sm">
+          <thead className="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-400">
+            <tr>
+              <th scope="col" className="px-4 py-3 font-semibold">
+                Metric
+              </th>
+              <th scope="col" className="px-4 py-3 font-semibold">
+                {instrument.symbol} ({instrument.exchange})
+              </th>
+              <th scope="col" className="px-4 py-3 font-semibold">
+                {comparisonInstrument.symbol} ({comparisonInstrument.exchange})
+              </th>
+              <th scope="col" className="px-4 py-3 font-semibold">
+                Difference
+              </th>
+              <th scope="col" className="px-4 py-3 font-semibold">
+                Reporting period
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {rows.map(({ primary, comparison, delta }) => (
+              <tr key={primary.id} className="text-slate-200">
+                <th scope="row" className="whitespace-nowrap px-4 py-3 font-medium text-white">
+                  {primary.metric.replaceAll(/([a-z])([A-Z])/g, '$1 $2')}
+                </th>
+                <td className="whitespace-nowrap px-4 py-3">
+                  {displayValue(primary.value, primary.unit)}
+                  {primary.stale && <span className="ml-2 text-xs text-amber-300">Stale</span>}
+                </td>
+                <td className="whitespace-nowrap px-4 py-3">
+                  {displayValue(comparison.value, comparison.unit)}
+                  {comparison.stale && <span className="ml-2 text-xs text-amber-300">Stale</span>}
+                </td>
+                <td className="whitespace-nowrap px-4 py-3">
+                  {delta && typeof delta.value === 'number'
+                    ? displayValue(delta.value, delta.unit)
+                    : 'Unavailable'}
+                </td>
+                <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-400">
+                  {primary.periodType ? `${primary.periodType} · ` : ''}
+                  {primary.period ?? 'Unavailable'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="border-t border-white/10 px-4 py-3 text-xs text-slate-500">
+        Metric values retain their source and retrieval metadata in the verified evidence registry.
+        Difference is {comparisonInstrument.symbol} minus {instrument.symbol}.
+      </p>
     </section>
   );
 }
@@ -270,6 +384,14 @@ export function AiResearchPanel({ symbol, exchange }: AiResearchPanelProps) {
               evidence={result.evidence}
             />
           </div>
+
+          {result.comparisonInstrument && (
+            <ComparisonEvidenceTable
+              evidence={result.evidence}
+              instrument={result.instrument}
+              comparisonInstrument={result.comparisonInstrument}
+            />
+          )}
 
           {result.sections.map((section, index) => (
             <section

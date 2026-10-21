@@ -110,6 +110,16 @@ Request body:
 
 Success payloads contain schema version `1.0`, qualitative interpretation with evidence IDs, trusted evidence items with source/period/freshness, missing-data notes, and a qualitative evidence-coverage level. The backend creates evidence records; the model cannot introduce sources or URLs. See [AI Research](ai-research.md) for data scope and limitations.
 
+## Natural-language Screener (Phase 5 foundation)
+
+```text
+GET  /api/v1/ai/screener/metrics
+POST /api/v1/ai/screener/interpret
+POST /api/v1/ai/screener
+```
+
+The metric catalog, Gemini interpretation, persisted-metric ingestion, and bounded execution endpoint are implemented. Deployment requires applying the Supabase migration and running ingestion; execution reports database errors and coverage rather than fabricating results. See [Screener](screener.md) for setup, request/response details, data semantics, and limitations.
+
 ```text
 GET /api/v1/watchlists
 ```
