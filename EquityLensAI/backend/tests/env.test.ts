@@ -24,4 +24,20 @@ describe('environment validation', () => {
 
     expect(result.success).toBe(false);
   });
+
+  it('requires a Gemini key only when AI research is enabled', () => {
+    expect(
+      envSchemaForTests.safeParse({
+        AI_RESEARCH_ENABLED: 'false',
+        GEMINI_API_KEY: '',
+      }).success,
+    ).toBe(true);
+
+    expect(
+      envSchemaForTests.safeParse({
+        AI_RESEARCH_ENABLED: 'true',
+        GEMINI_API_KEY: '',
+      }).success,
+    ).toBe(false);
+  });
 });

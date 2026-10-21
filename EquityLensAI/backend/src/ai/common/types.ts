@@ -1,11 +1,17 @@
 export type AiGenerateInput = {
   prompt: string;
-  context?: Record<string, unknown>;
+  systemInstruction: string;
+  responseJsonSchema: Record<string, unknown>;
+  requestId?: string | undefined;
+  instrument?: string | undefined;
+  intent?: string | undefined;
 };
 
 export type AiGenerateOutput = {
   text: string;
   model: string;
+  inputTokens?: number | undefined;
+  outputTokens?: number | undefined;
 };
 
 export interface AiClient {

@@ -9,35 +9,37 @@ import { initializeInstruments } from './market/instruments/ingestion.js';
 const env = loadEnv();
 const app = createApp();
 
-void initializeInstruments();
+let shuttingDown = false;
 
-const server = app.listen(env.PORT, () => {
-  logger.info(
-    {
-      port: env.PORT,
-      nodeEnv: env.NODE_ENV,
-      frontendUrl: env.FRONTEND_URL,
-    },
-    'EquityLensAI API listening',
-  );
-});
+async function startServer(): Promise<void> {
+  await initializeInstruments();
 
-registerShutdownTask('http-server', () => {
-  return new Promise<void>((resolve, reject) => {
-    server.close((error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
+  const listeningServer = app.listen(env.PORT, () => {
+    logger.info(
+      {
+        port: env.PORT,
+        nodeEnv: env.NODE_ENV,
+        frontendUrl: env.FRONTEND_URL,
+      },
+      'EquityLensAI API listening',
+    );
+  });
 
-      resolve();
+  registerShutdownTask('http-server', () => {
+    return new Promise<void>((resolve, reject) => {
+      listeningServer.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve();
+      });
     });
   });
-});
 
-registerShutdownTask('database', () => dbClient.disconnect());
-
-let shuttingDown = false;
+  registerShutdownTask('database', () => dbClient.disconnect());
+}
 
 async function shutdown(signal: string): Promise<void> {
   if (shuttingDown) {
@@ -72,4 +74,15 @@ process.on('unhandledRejection', (reason) => {
 process.on('uncaughtException', (error) => {
   logger.error({ error }, 'Uncaught exception');
   void shutdown('uncaughtException');
+});
+
+void startServer().catch((error: unknown) => {
+  logger.fatal(
+    {
+      errorName: error instanceof Error ? error.name : 'UnknownError',
+      errorMessage: error instanceof Error ? error.message : String(error),
+    },
+    'EquityLensAI API startup failed',
+  );
+  process.exitCode = 1;
 });

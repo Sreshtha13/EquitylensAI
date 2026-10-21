@@ -47,6 +47,8 @@ describe('Scalar API Documentation & OpenAPI Endpoints', () => {
     expect(response.body.paths).toHaveProperty('/api/v1/stocks/search');
     expect(response.body.paths).toHaveProperty('/api/v1/stocks/{ticker}');
     expect(response.body.paths).toHaveProperty('/api/v1/ai/research');
+    expect(response.body.paths).toHaveProperty('/api/v1/ai/screener');
+    expect(response.body.paths).toHaveProperty('/api/v1/ai/screener/interpret');
     expect(response.body.paths).toHaveProperty('/api/v1/market');
     expect(response.body.paths).toHaveProperty('/api/v1/watchlists');
     expect(response.body.components.schemas).toHaveProperty('AssetType');

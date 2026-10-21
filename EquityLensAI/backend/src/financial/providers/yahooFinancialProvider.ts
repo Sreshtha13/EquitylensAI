@@ -46,7 +46,6 @@ class YahooFinancialProvider implements FinancialProvider {
 
     try {
       // 1. Fetch quoteSummary modules for metadata and key statistics
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const [priceData, keyStatsData, financialDataModule] = await Promise.all([
         yf.quoteSummary(ticker, { modules: ['price', 'summaryDetail'] }).catch(() => null),
         yf.quoteSummary(ticker, { modules: ['defaultKeyStatistics'] }).catch(() => null),
@@ -105,7 +104,6 @@ class YahooFinancialProvider implements FinancialProvider {
           .map((row) => this.mapTimeSeriesCashFlow(row, request.symbol, currency, retrievedAt));
       } else {
         // Fallback to legacy quoteSummary submodules if fundamentalsTimeSeries yielded nothing
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const [legacyIncome, legacyBs, legacyCf] = await Promise.all([
           yf.quoteSummary(ticker, { modules: ['incomeStatementHistory'] }).catch(() => null),
           yf.quoteSummary(ticker, { modules: ['balanceSheetHistory'] }).catch(() => null),

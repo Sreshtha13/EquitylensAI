@@ -352,3 +352,112 @@ export type FinancialAnalysis = {
   retrievedAt: string;
   isStale: boolean;
 };
+
+// ─── Phase 6: Authentication, User Profiles, Watchlists, Favorites & Preferences ───
+
+export type AuthUser = {
+  id: string;
+  email: string;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+  emailConfirmed?: boolean;
+  createdAt: string;
+};
+
+export type AuthSession = {
+  accessToken: string;
+  refreshToken?: string | null;
+  expiresIn?: number | null;
+  tokenType?: string;
+};
+
+export type UserProfile = {
+  id: string;
+  authUserId: string;
+  email: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export const SUPPORTED_EXCHANGES = ['NSE', 'BSE', 'US'] as const;
+export type SupportedExchange = (typeof SUPPORTED_EXCHANGES)[number];
+
+export const SUPPORTED_CURRENCIES = ['INR', 'USD'] as const;
+export type SupportedCurrency = (typeof SUPPORTED_CURRENCIES)[number];
+
+export const SUPPORTED_PERIODS = ['annual', 'ttm'] as const;
+export type SupportedPeriod = (typeof SUPPORTED_PERIODS)[number];
+
+export const SUPPORTED_LANDING_PAGES = [
+  '/watchlists',
+  '/market',
+  '/screener',
+  '/research',
+  '/favorites',
+] as const;
+export type SupportedLandingPage = (typeof SUPPORTED_LANDING_PAGES)[number];
+
+export const THEME_OPTIONS = ['dark', 'light', 'system'] as const;
+export type ThemeOption = (typeof THEME_OPTIONS)[number];
+
+export const TABLE_DENSITY_OPTIONS = ['compact', 'comfortable'] as const;
+export type TableDensityOption = (typeof TABLE_DENSITY_OPTIONS)[number];
+
+export type UserPreferences = {
+  userId: string;
+  defaultExchange: SupportedExchange;
+  preferredCurrency: SupportedCurrency;
+  preferredPeriod: SupportedPeriod;
+  defaultLandingPage: SupportedLandingPage;
+  theme: ThemeOption;
+  tableDensity: TableDensityOption;
+  updatedAt: string;
+};
+
+export type WatchlistSummary = {
+  id: string;
+  userId: string;
+  name: string;
+  description: string | null;
+  itemCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type WatchlistItemWithQuote = {
+  id: string;
+  watchlistId: string;
+  symbol: string;
+  exchange: string;
+  name: string;
+  assetType: AssetType;
+  currency: string;
+  addedAt: string;
+  sortOrder: number;
+  quote: NormalizedQuote | null;
+};
+
+export type WatchlistDetail = {
+  id: string;
+  userId: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: WatchlistItemWithQuote[];
+};
+
+export type FavoriteItemWithQuote = {
+  id: string;
+  userId: string;
+  symbol: string;
+  exchange: string;
+  name: string;
+  assetType: AssetType;
+  currency: string;
+  addedAt: string;
+  quote: NormalizedQuote | null;
+};
+

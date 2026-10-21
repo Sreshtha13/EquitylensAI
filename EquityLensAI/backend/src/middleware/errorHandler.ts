@@ -40,6 +40,41 @@ function toPublicError(error: unknown): {
     };
   }
 
+  if (typeof error === 'object' && error !== null && 'status' in error && error.status === 413) {
+    return {
+      statusCode: 413,
+      logLevel: 'warn',
+      body: {
+        success: false,
+        error: {
+          code: 'REQUEST_TOO_LARGE',
+          message: 'Request body exceeds the supported size limit.',
+        },
+      },
+    };
+  }
+
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error &&
+    error.status === 400 &&
+    'type' in error &&
+    error.type === 'entity.parse.failed'
+  ) {
+    return {
+      statusCode: 400,
+      logLevel: 'warn',
+      body: {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Request body must contain valid JSON.',
+        },
+      },
+    };
+  }
+
   return {
     statusCode: 500,
     logLevel: 'error',

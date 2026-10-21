@@ -2,7 +2,9 @@
 
 AI-powered market intelligence and equity research platform.
 
-Phase 1 delivers the production foundation. Phase 2 implements genuine market data infrastructure backed by Angel One SmartAPI and Yahoo Finance with strict data provenance, in-memory caching, instrument search, OHLCV historical candles, and zero simulated or hallucinated financial metrics.
+Phase 1 delivers the production foundation. Phase 2 implements market-data infrastructure backed by Angel One SmartAPI and Yahoo Finance with data provenance, in-memory caching, instrument search, and OHLCV history. Phase 3 adds financial statements, deterministic metrics, and health scoring. Phase 4 adds an evidence-bounded Gemini research assistant that interprets platform evidence without replacing deterministic calculations. Phase 5 adds the natural-language screener with catalog interpretation and execution.
+
+Phase 6 implements the complete user system: Supabase-backed authentication, session management, user profile & application preferences, persistent favorites for NSE/BSE equities, and multiple named watchlists with coordinated live market quotes and strict cross-user data isolation.
 
 ## Architecture
 
@@ -28,7 +30,7 @@ See [docs/architecture.md](docs/architecture.md) for layering rules and design d
 - **Backend:** Node.js, Express, TypeScript, Zod, Pino, Helmet, CORS
 - **Shared:** `@equitylensai/shared` API and domain contracts
 - **Future data:** Supabase PostgreSQL (boundary only in Phase 1)
-- **Future AI:** Gemini (interface only)
+- **AI research:** Google's official `@google/genai` SDK; server-side only
 - **Future market data:** provider abstraction (Angel One, Yahoo Finance slots; no live calls)
 
 ## Repository structure
@@ -55,7 +57,7 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env.local
 ```
 
-Required Phase 1 variables are documented in [.env.example](.env.example). Integration secrets stay empty until later phases. Never commit `.env` files.
+Backend and frontend variables are documented in [.env.example](.env.example). AI research is disabled by default. To enable it, set `GEMINI_API_KEY` and `AI_RESEARCH_ENABLED=true` in `backend/.env`; the key must never use a `NEXT_PUBLIC_` prefix. Never commit `.env` files.
 
 ## Installation and commands
 
@@ -87,4 +89,6 @@ The home page verifies frontend/backend connectivity by calling the health endpo
 - [Market Data Infrastructure](docs/market-data.md)
 - [Development](docs/development.md)
 - [API conventions](docs/api.md)
+- [AI Research](docs/ai-research.md)
+- [Natural-language Screener](docs/screener.md)
 - [OpenAPI Specification](docs/openapi.json)

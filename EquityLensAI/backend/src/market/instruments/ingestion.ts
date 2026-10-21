@@ -23,6 +23,50 @@ type AngelScrip = {
   tick_size?: string;
 };
 
+export function normalizeAngelScrips(scrips: AngelScrip[]): InstrumentRecord[] {
+  const records = [...SEED_INSTRUMENTS];
+
+  for (const item of scrips) {
+    if (!item.token || !item.symbol) continue;
+
+    const isNseEquity = item.exch_seg === 'NSE' && item.symbol.endsWith('-EQ');
+    const isBseEquity =
+      item.exch_seg === 'BSE' && (item.instrumenttype === 'EQ' || item.symbol.endsWith('-EQ'));
+
+    if (isNseEquity || isBseEquity) {
+      const exchange = item.exch_seg as 'NSE' | 'BSE';
+      const cleanSymbol = item.symbol.endsWith('-EQ') ? item.symbol.slice(0, -3) : item.symbol;
+      const tick = item.tick_size ? parseFloat(item.tick_size) / 100 : 0.05;
+      const lot = item.lotsize ? parseInt(item.lotsize, 10) : 1;
+
+      records.push({
+        symbol: cleanSymbol,
+        name: item.name || cleanSymbol,
+        exchange,
+        market: exchange === 'NSE' ? 'nse' : 'bse',
+        assetType: 'equity',
+        currency: 'INR',
+        providerToken: item.token,
+        tickSize: Number.isFinite(tick) ? tick : 0.05,
+        lotSize: Number.isFinite(lot) ? lot : 1,
+      });
+    } else if (item.exch_seg === 'NSE' && item.instrumenttype === 'AMXIDX') {
+      const symbol = item.name || item.symbol;
+      records.push({
+        symbol: symbol.toUpperCase().replace(/\s+/g, ''),
+        name: item.symbol,
+        exchange: 'NSE',
+        market: 'nse',
+        assetType: 'index',
+        currency: 'INR',
+        providerToken: item.token,
+      });
+    }
+  }
+
+  return records;
+}
+
 export type IngestionStatus = {
   isIngesting: boolean;
   lastIngestedAt: string | null;
@@ -67,52 +111,15 @@ export async function ingestInstruments(cachePath: string = DEFAULT_CACHE_PATH):
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to download scrip master: HTTP ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to download scrip master: HTTP ${response.status} ${response.statusText}`,
+      );
     }
 
     const scrips = (await response.json()) as AngelScrip[];
     logger.info({ rawCount: scrips.length }, 'Downloaded raw scrip master, normalizing records');
 
-    const normalizedRecords: InstrumentRecord[] = [];
-
-    // Always include our seed instruments
-    normalizedRecords.push(...SEED_INSTRUMENTS);
-
-    for (const item of scrips) {
-      if (!item.token || !item.symbol) continue;
-
-      // Filter for NSE Equities (standard shares end with -EQ)
-      if (item.exch_seg === 'NSE' && item.symbol.endsWith('-EQ')) {
-        const cleanSymbol = item.symbol.slice(0, -3);
-        const tick = item.tick_size ? parseFloat(item.tick_size) / 100 : 0.05;
-        const lot = item.lotsize ? parseInt(item.lotsize, 10) : 1;
-
-        normalizedRecords.push({
-          symbol: cleanSymbol,
-          name: item.name || cleanSymbol,
-          exchange: 'NSE',
-          market: 'nse',
-          assetType: 'equity',
-          currency: 'INR',
-          providerToken: item.token,
-          tickSize: Number.isFinite(tick) ? tick : 0.05,
-          lotSize: Number.isFinite(lot) ? lot : 1,
-        });
-      }
-      // Major NSE Indices (instrumenttype: 'AMXIDX')
-      else if (item.exch_seg === 'NSE' && item.instrumenttype === 'AMXIDX') {
-        const sym = item.name || item.symbol;
-        normalizedRecords.push({
-          symbol: sym.toUpperCase().replace(/\s+/g, ''),
-          name: item.symbol,
-          exchange: 'NSE',
-          market: 'nse',
-          assetType: 'index',
-          currency: 'INR',
-          providerToken: item.token,
-        });
-      }
-    }
+    const normalizedRecords = normalizeAngelScrips(scrips);
 
     instrumentRepository.load(normalizedRecords);
     await instrumentRepository.saveToDisk(cachePath);
@@ -122,7 +129,7 @@ export async function ingestInstruments(cachePath: string = DEFAULT_CACHE_PATH):
 
     logger.info(
       { total: instrumentRepository.count(), durationMs },
-      'Successfully completed instrument ingestion'
+      'Successfully completed instrument ingestion',
     );
 
     return {
@@ -143,12 +150,15 @@ export async function ingestInstruments(cachePath: string = DEFAULT_CACHE_PATH):
  * Initializes the repository on startup:
  * Attempts to load from disk cache if present; otherwise keeps seed data.
  */
-export async function initializeInstruments(cachePath: string = DEFAULT_CACHE_PATH): Promise<void> {
+export async function initializeInstruments(
+  cachePath: string = DEFAULT_CACHE_PATH,
+): Promise<boolean> {
   const loaded = await instrumentRepository.loadFromDisk(cachePath);
   if (!loaded) {
     logger.info(
       { count: instrumentRepository.count() },
-      'No disk cache found; initialized with seed instruments. Run ingestion to load full scrip universe.'
+      'No disk cache found; initialized with seed instruments. Run ingestion to load full scrip universe.',
     );
   }
+  return loaded;
 }

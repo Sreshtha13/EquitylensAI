@@ -33,7 +33,8 @@ export const openApiSpec = {
     },
     {
       name: 'Instruments',
-      description: 'Global equity, ETF, index, crypto, and commodity security information and search',
+      description:
+        'Global equity, ETF, index, crypto, and commodity security information and search',
     },
     {
       name: 'Market Intelligence',
@@ -41,15 +42,29 @@ export const openApiSpec = {
     },
     {
       name: 'AI Research',
-      description: 'Automated equity research, fundamental synthesis, and earnings review powered by Gemini',
+      description:
+        'Automated equity research, fundamental synthesis, and earnings review powered by Gemini',
+    },
+    {
+      name: 'Authentication',
+      description: 'User registration, sign-in, token refresh, password recovery, and account management',
+    },
+    {
+      name: 'User Profile & Preferences',
+      description: 'User profiles and personal application configurations (exchange, currency, period, theme)',
     },
     {
       name: 'Watchlists',
-      description: 'User-managed instrument watchlists and tracking',
+      description: 'User-managed instrument watchlists with coordinated real-time market data quotes',
+    },
+    {
+      name: 'Favorites',
+      description: 'Persistent user favorite equities on supported stock exchanges',
     },
     {
       name: 'Financial Intelligence',
-      description: 'Deterministic fundamental analysis, financial statement ingestion, ratio computation, and automated health scores',
+      description:
+        'Deterministic fundamental analysis, financial statement ingestion, ratio computation, and automated health scores',
     },
   ],
   paths: {
@@ -57,7 +72,8 @@ export const openApiSpec = {
       get: {
         tags: ['System'],
         summary: 'Root service discovery',
-        description: 'Returns service identity, version, status, and navigation links to health and API documentation.',
+        description:
+          'Returns service identity, version, status, and navigation links to health and API documentation.',
         responses: {
           '200': {
             description: 'Service operational metadata',
@@ -187,7 +203,8 @@ export const openApiSpec = {
             name: 'q',
             in: 'query',
             required: true,
-            description: 'Search keyword, ticker symbol, or company name (e.g., "RELIANCE", "Apple", "TCS")',
+            description:
+              'Search keyword, ticker symbol, or company name (e.g., "RELIANCE", "Apple", "TCS")',
             schema: {
               type: 'string',
               minLength: 1,
@@ -294,7 +311,8 @@ export const openApiSpec = {
       get: {
         tags: ['Instruments'],
         summary: 'Get instrument quote and profile',
-        description: 'Retrieves comprehensive overview, price quotation, and fundamental profile for a specific instrument ticker symbol.',
+        description:
+          'Retrieves comprehensive overview, price quotation, and fundamental profile for a specific instrument ticker symbol.',
         parameters: [
           {
             $ref: '#/components/parameters/RequestIdHeader',
@@ -328,7 +346,8 @@ export const openApiSpec = {
       get: {
         tags: ['Market Intelligence'],
         summary: 'Get market overview and indices',
-        description: 'Fetch snapshot of benchmark index levels, market breadth (advances/declines), and sector performance.',
+        description:
+          'Fetch snapshot of benchmark index levels, market breadth (advances/declines), and sector performance.',
         parameters: [
           {
             $ref: '#/components/parameters/RequestIdHeader',
@@ -361,7 +380,8 @@ export const openApiSpec = {
       get: {
         tags: ['Instruments'],
         summary: 'Get live or delayed stock quote',
-        description: 'Retrieves genuine, normalized price quotation from supported market data providers (Angel One SmartAPI primary for NSE, Yahoo Finance fallback). Includes explicit data provenance (source, observed timestamp, retrieved timestamp, freshness level, staleness flag).',
+        description:
+          'Retrieves genuine, normalized price quotation from supported market data providers (Angel One SmartAPI primary for NSE, Yahoo Finance fallback). Includes explicit data provenance (source, observed timestamp, retrieved timestamp, freshness level, staleness flag).',
         parameters: [
           {
             $ref: '#/components/parameters/RequestIdHeader',
@@ -415,7 +435,8 @@ export const openApiSpec = {
       get: {
         tags: ['Instruments'],
         summary: 'Get historical price candles',
-        description: 'Retrieves genuine OHLCV candlestick historical data with specified candle interval.',
+        description:
+          'Retrieves genuine OHLCV candlestick historical data with specified candle interval.',
         parameters: [
           {
             $ref: '#/components/parameters/RequestIdHeader',
@@ -447,7 +468,16 @@ export const openApiSpec = {
             description: 'Candle interval',
             schema: {
               type: 'string',
-              enum: ['ONE_MINUTE', 'THREE_MINUTE', 'FIVE_MINUTE', 'TEN_MINUTE', 'FIFTEEN_MINUTE', 'THIRTY_MINUTE', 'ONE_HOUR', 'ONE_DAY'],
+              enum: [
+                'ONE_MINUTE',
+                'THREE_MINUTE',
+                'FIVE_MINUTE',
+                'TEN_MINUTE',
+                'FIFTEEN_MINUTE',
+                'THIRTY_MINUTE',
+                'ONE_HOUR',
+                'ONE_DAY',
+              ],
               default: 'ONE_DAY',
             },
           },
@@ -488,7 +518,8 @@ export const openApiSpec = {
       post: {
         tags: ['Instruments'],
         summary: 'Trigger instrument master ingestion',
-        description: 'Downloads latest Angel One scrip master, normalizes active equities and indices, and updates local cache.',
+        description:
+          'Downloads latest Angel One scrip master, normalizes active equities and indices, and updates local cache.',
         responses: {
           '200': {
             description: 'Ingestion result',
@@ -500,7 +531,8 @@ export const openApiSpec = {
       get: {
         tags: ['Instruments'],
         summary: 'Get instrument ingestion status',
-        description: 'Returns progress, last ingested timestamp, total instruments count, and errors.',
+        description:
+          'Returns progress, last ingested timestamp, total instruments count, and errors.',
         responses: {
           '200': {
             description: 'Ingestion status',
@@ -512,7 +544,8 @@ export const openApiSpec = {
       get: {
         tags: ['Market Intelligence'],
         summary: 'Get market overview and indices',
-        description: 'Fetch snapshot of benchmark index levels with verified market data provenance.',
+        description:
+          'Fetch snapshot of benchmark index levels with verified market data provenance.',
         parameters: [
           {
             $ref: '#/components/parameters/RequestIdHeader',
@@ -556,9 +589,9 @@ export const openApiSpec = {
     '/api/v1/ai/research': {
       post: {
         tags: ['AI Research'],
-        summary: 'Generate AI investment research',
+        summary: 'Generate evidence-grounded financial research',
         description:
-          'Submits an equity analysis request to the Gemini AI research pipeline. Returns synthesis of investment thesis, valuation analysis, key competitive risks, and recent earnings review.',
+          'Uses Gemini to interpret a bounded context assembled from verified market data and deterministic financial metrics. Model claims cite backend evidence IDs. Does not provide investment recommendations, news, or earnings-call analysis.',
         parameters: [
           {
             $ref: '#/components/parameters/RequestIdHeader',
@@ -572,16 +605,16 @@ export const openApiSpec = {
                 $ref: '#/components/schemas/AiResearchRequest',
               },
               example: {
-                ticker: 'NVDA',
-                query: 'Evaluate next quarter data center demand and margins in light of new architecture ramp',
-                depth: 'deep_dive',
+                symbol: 'RELIANCE',
+                exchange: 'NSE',
+                question: 'Explain the available profitability and financial risk evidence.',
               },
             },
           },
         },
         responses: {
           '200': {
-            description: 'Generated AI research dossier',
+            description: 'Validated research and backend-owned evidence registry',
             content: {
               'application/json': {
                 schema: {
@@ -600,8 +633,8 @@ export const openApiSpec = {
               },
             },
           },
-          '501': {
-            description: 'Not yet implemented in Phase 1 (foundation boundary active)',
+          '429': {
+            description: 'AI research request or provider rate limit reached',
             content: {
               'application/json': {
                 schema: {
@@ -610,58 +643,168 @@ export const openApiSpec = {
               },
             },
           },
+          '413': {
+            description: 'Research request body exceeds the AI endpoint size limit',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ApiError' },
+              },
+            },
+          },
+          '504': { description: 'Gemini request timed out' },
+          '404': { description: 'Instrument was not found in the supported instrument repository' },
+          '502': { description: 'Provider unavailable or invalid structured model output' },
+          '503': { description: 'AI disabled or verified financial context unavailable' },
         },
       },
     },
-    '/api/v1/watchlists': {
+    '/api/v1/ai/screener/metrics': {
       get: {
-        tags: ['Watchlists'],
-        summary: 'Get user watchlists',
-        description: 'Retrieves watchlists created by the authenticated user.',
-        security: [
-          {
-            BearerAuth: [],
+        tags: ['AI Research'],
+        summary: 'List screener interpretation metrics',
+        description:
+          'Returns the backend-owned allowlist of real metrics from individual-company financial analysis. Catalog metrics are not available for universe-wide execution until a queryable financial data index exists.',
+        responses: {
+          '200': { description: 'Metric catalog with units, periods, and execution availability' },
+        },
+      },
+    },
+    '/api/v1/ai/screener/interpret': {
+      post: {
+        tags: ['AI Research'],
+        summary: 'Interpret natural-language screening criteria',
+        description:
+          'Uses Gemini structured output to interpret criteria only. It returns validated filters, not company results or match counts. The AI has no database or SQL execution access.',
+        parameters: [{ $ref: '#/components/parameters/RequestIdHeader' }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  query: { type: 'string', minLength: 1, maxLength: 500 },
+                  exchange: { type: 'string', enum: ['NSE', 'BSE'] },
+                  period: { type: 'string', enum: ['annual', 'ttm'], default: 'annual' },
+                },
+                required: ['query'],
+                additionalProperties: false,
+              },
+            },
           },
-        ],
-        parameters: [
-          {
-            $ref: '#/components/parameters/RequestIdHeader',
+        },
+        responses: {
+          '200': { description: 'Validated filter interpretation without screening results' },
+          '400': { description: 'Invalid or unsafe query' },
+          '422': { description: 'Unsupported metric or reporting period' },
+          '429': { description: 'AI request rate limit reached' },
+          '502': { description: 'Provider unavailable or invalid structured output' },
+          '503': { description: 'AI is disabled or unavailable' },
+        },
+      },
+    },
+    '/api/v1/ai/screener': {
+      post: {
+        tags: ['AI Research'],
+        summary: 'Execute a validated screener request',
+        description:
+          'Validates an allowlisted filter set and queries the persisted financial-metrics index. Success responses include paginated matches, provenance, freshness, and coverage. The index must be migrated and ingested; database errors are returned explicitly.',
+        parameters: [{ $ref: '#/components/parameters/RequestIdHeader' }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  query: { type: 'string', minLength: 1, maxLength: 500 },
+                  exchange: { type: 'string', enum: ['NSE', 'BSE'] },
+                  assetType: { type: 'string', enum: ['equity'], default: 'equity' },
+                  period: { type: 'string', enum: ['annual', 'ttm'], default: 'annual' },
+                  filters: {
+                    type: 'array',
+                    minItems: 1,
+                    maxItems: 5,
+                    items: {
+                      type: 'object',
+                      properties: {
+                        field: {
+                          type: 'string',
+                          enum: [
+                            'roe',
+                            'roa',
+                            'roce',
+                            'net_margin',
+                            'debt_to_equity',
+                            'revenue_growth',
+                            'net_income_growth',
+                            'free_cash_flow_margin',
+                            'current_ratio',
+                            'pe_ratio',
+                            'price_to_book',
+                            'financial_health_score',
+                          ],
+                        },
+                        operator: {
+                          type: 'string',
+                          enum: ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between'],
+                        },
+                        value: { type: 'number' },
+                        upperValue: { type: 'number', nullable: true },
+                      },
+                      required: ['field', 'operator', 'value'],
+                      additionalProperties: false,
+                    },
+                  },
+                  logic: { type: 'string', enum: ['AND', 'OR'] },
+                  sort: {
+                    type: 'object',
+                    properties: {
+                      field: {
+                        type: 'string',
+                        enum: [
+                          'roe',
+                          'roa',
+                          'roce',
+                          'net_margin',
+                          'debt_to_equity',
+                          'revenue_growth',
+                          'net_income_growth',
+                          'free_cash_flow_margin',
+                          'current_ratio',
+                          'pe_ratio',
+                          'price_to_book',
+                          'financial_health_score',
+                          'symbol',
+                        ],
+                        nullable: true,
+                      },
+                      direction: { type: 'string', enum: ['asc', 'desc'] },
+                    },
+                    required: ['field', 'direction'],
+                    additionalProperties: false,
+                  },
+                  limit: { type: 'integer', minimum: 1, maximum: 100, default: 25 },
+                  offset: { type: 'integer', minimum: 0, maximum: 100000, default: 0 },
+                },
+                required: ['query', 'filters', 'logic'],
+                additionalProperties: false,
+              },
+            },
           },
-        ],
+        },
         responses: {
           '200': {
-            description: 'List of user watchlists',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/WatchlistsResponse',
-                },
-              },
-            },
+            description: 'Screen results with pagination, provenance, freshness, and coverage',
           },
-          '401': {
-            description: 'Authentication required or invalid Bearer token',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/ApiError',
-                },
-              },
-            },
-          },
-          '501': {
-            description: 'Not yet implemented in Phase 1 (foundation boundary active)',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/ApiError',
-                },
-              },
-            },
-          },
+          '400': { description: 'Invalid or unsupported filter definition' },
+          '429': { description: 'Request rate limit reached' },
+          '502': { description: 'Financial-metrics database returned an invalid response' },
+          '503': { description: 'Financial-metrics database is unavailable or not configured' },
         },
       },
     },
+
     '/api/v1/financial/{symbol}/analysis': {
       get: {
         tags: ['Financial Intelligence'],
@@ -693,7 +836,8 @@ export const openApiSpec = {
         ],
         responses: {
           '200': {
-            description: 'Comprehensive financial analysis payload with statement history and calculated metrics',
+            description:
+              'Comprehensive financial analysis payload with statement history and calculated metrics',
           },
           '400': {
             description: 'Validation error: invalid symbol or period parameter',
@@ -708,7 +852,8 @@ export const openApiSpec = {
       get: {
         tags: ['Financial Intelligence'],
         summary: 'Raw financial statements',
-        description: 'Retrieves multi-period income statements, balance sheets, and cash flow statements without calculated ratios.',
+        description:
+          'Retrieves multi-period income statements, balance sheets, and cash flow statements without calculated ratios.',
         parameters: [
           {
             name: 'symbol',
@@ -768,9 +913,400 @@ export const openApiSpec = {
       get: {
         tags: ['Financial Intelligence'],
         summary: 'Financial cache statistics',
-        description: 'Returns in-memory cache operational telemetry (size, hits, misses, stale hits) for financial datasets.',
+        description:
+          'Returns in-memory cache operational telemetry (size, hits, misses, stale hits) for financial datasets.',
         responses: {
           '200': { description: 'Cache statistics' },
+        },
+      },
+    },
+    '/api/v1/auth/register': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'Register new user account',
+        description: 'Creates a new user profile with email and password via Supabase Auth.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  email: { type: 'string', format: 'email', example: 'investor@example.com' },
+                  password: { type: 'string', minLength: 8, example: 'SecurePassword123!' },
+                  fullName: { type: 'string', example: 'Aarav Sharma' },
+                },
+                required: ['email', 'password'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'User registered successfully' },
+          '400': { description: 'Validation error' },
+          '409': { description: 'Email already registered' },
+        },
+      },
+    },
+    '/api/v1/auth/login': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'User sign-in',
+        description: 'Authenticates user with email and password, returning Supabase JWT session tokens.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  email: { type: 'string', format: 'email', example: 'investor@example.com' },
+                  password: { type: 'string', example: 'SecurePassword123!' },
+                },
+                required: ['email', 'password'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Authenticated successfully' },
+          '400': { description: 'Validation error' },
+          '401': { description: 'Invalid credentials' },
+        },
+      },
+    },
+    '/api/v1/auth/logout': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'User sign-out',
+        description: 'Terminates the current user session and invalidates access tokens.',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          '200': { description: 'Logged out successfully' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/api/v1/auth/forgot-password': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'Request password reset email',
+        description: 'Sends a secure password reset link to the registered email address.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  email: { type: 'string', format: 'email', example: 'investor@example.com' },
+                },
+                required: ['email'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Reset instructions sent if account exists' },
+          '400': { description: 'Validation error' },
+        },
+      },
+    },
+    '/api/v1/auth/reset-password': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'Reset password with recovery token',
+        description: 'Updates user password using the token received in the reset email.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  password: { type: 'string', minLength: 8, example: 'NewSecurePassword123!' },
+                  accessToken: { type: 'string', example: 'recovery-token-jwt' },
+                },
+                required: ['password', 'accessToken'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Password reset successfully' },
+          '400': { description: 'Invalid or expired token' },
+        },
+      },
+    },
+    '/api/v1/auth/account': {
+      delete: {
+        tags: ['Authentication'],
+        summary: 'Delete user account',
+        description: 'Permanently deletes the authenticated user, cascading removal of profile, watchlists, favorites, and preferences.',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          '200': { description: 'Account deleted permanently' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/api/v1/users/me': {
+      get: {
+        tags: ['User Profile & Preferences'],
+        summary: 'Get current user profile and preferences',
+        description: 'Returns profile details and application preferences for the authenticated user.',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          '200': { description: 'User profile and preferences' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/api/v1/users/me/profile': {
+      put: {
+        tags: ['User Profile & Preferences'],
+        summary: 'Update user profile',
+        description: 'Updates full name, avatar URL, or bio for the authenticated user.',
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  fullName: { type: 'string', example: 'Aarav Sharma' },
+                  avatarUrl: { type: 'string', nullable: true, example: 'https://example.com/avatar.png' },
+                  bio: { type: 'string', nullable: true, example: 'Value investor focusing on Indian midcaps' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Profile updated successfully' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/api/v1/users/me/preferences': {
+      put: {
+        tags: ['User Profile & Preferences'],
+        summary: 'Update application preferences',
+        description: 'Updates user settings such as default exchange, currency, period, theme, and table density.',
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  defaultExchange: { type: 'string', enum: ['NSE', 'BSE'] },
+                  preferredCurrency: { type: 'string', enum: ['INR', 'USD'] },
+                  statementPeriod: { type: 'string', enum: ['annual', 'quarterly'] },
+                  landingPage: { type: 'string', enum: ['/dashboard', '/market', '/screener', '/research', '/watchlists'] },
+                  theme: { type: 'string', enum: ['dark', 'light', 'system'] },
+                  tableDensity: { type: 'string', enum: ['compact', 'normal', 'comfortable'] },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Preferences updated successfully' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/api/v1/watchlists': {
+      get: {
+        tags: ['Watchlists'],
+        summary: 'List user watchlists',
+        description: 'Returns all watchlists owned by the authenticated user with item counts and summary info.',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          '200': { description: 'List of watchlists' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+      post: {
+        tags: ['Watchlists'],
+        summary: 'Create a new watchlist',
+        description: 'Creates a named watchlist (up to 50 per user). Name must be unique per user.',
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', minLength: 1, maxLength: 80, example: 'Growth Tech' },
+                  description: { type: 'string', maxLength: 300, example: 'High ROE tech stocks' },
+                },
+                required: ['name'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Watchlist created' },
+          '400': { description: 'Validation error or limit exceeded' },
+          '409': { description: 'Watchlist name already exists' },
+        },
+      },
+    },
+    '/api/v1/watchlists/{watchlistId}': {
+      get: {
+        tags: ['Watchlists'],
+        summary: 'Get watchlist details with live quotes',
+        description: 'Retrieves a single watchlist by ID including items and real-time coordinated market quotes.',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Watchlist with items and quotes' },
+          '404': { description: 'Watchlist not found' },
+        },
+      },
+      put: {
+        tags: ['Watchlists'],
+        summary: 'Update watchlist name and description',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', minLength: 1, maxLength: 80 },
+                  description: { type: 'string', maxLength: 300 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Watchlist updated' },
+          '404': { description: 'Watchlist not found' },
+        },
+      },
+      delete: {
+        tags: ['Watchlists'],
+        summary: 'Delete watchlist',
+        description: 'Deletes a watchlist and all contained items.',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Watchlist deleted' },
+          '404': { description: 'Watchlist not found' },
+        },
+      },
+    },
+    '/api/v1/watchlists/{watchlistId}/items': {
+      post: {
+        tags: ['Watchlists'],
+        summary: 'Add stock to watchlist',
+        description: 'Adds an exchange-listed instrument to the watchlist (up to 100 items per watchlist).',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  symbol: { type: 'string', example: 'RELIANCE' },
+                  exchange: { type: 'string', enum: ['NSE', 'BSE'], example: 'NSE' },
+                  notes: { type: 'string', maxLength: 200, example: 'Core energy holding' },
+                },
+                required: ['symbol', 'exchange'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Item added to watchlist' },
+          '400': { description: 'Limit exceeded or invalid instrument' },
+          '409': { description: 'Item already exists in watchlist' },
+        },
+      },
+    },
+    '/api/v1/watchlists/{watchlistId}/items/{itemId}': {
+      delete: {
+        tags: ['Watchlists'],
+        summary: 'Remove item from watchlist',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+          { name: 'itemId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Item removed' },
+          '404': { description: 'Item not found' },
+        },
+      },
+    },
+    '/api/v1/favorites': {
+      get: {
+        tags: ['Favorites'],
+        summary: 'List user favorites with market quotes',
+        description: 'Retrieves all user favorite equities with coordinated market quotes.',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          '200': { description: 'Favorites with quotes' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+      post: {
+        tags: ['Favorites'],
+        summary: 'Add stock to favorites',
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  symbol: { type: 'string', example: 'TCS' },
+                  exchange: { type: 'string', enum: ['NSE', 'BSE'], example: 'NSE' },
+                },
+                required: ['symbol', 'exchange'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Added to favorites' },
+          '400': { description: 'Invalid stock symbol' },
+          '409': { description: 'Already in favorites' },
+        },
+      },
+    },
+    '/api/v1/favorites/{symbol}': {
+      delete: {
+        tags: ['Favorites'],
+        summary: 'Remove stock from favorites',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'symbol', in: 'path', required: true, schema: { type: 'string', example: 'TCS' } },
+          { name: 'exchange', in: 'query', required: false, schema: { type: 'string', enum: ['NSE', 'BSE'] } },
+        ],
+        responses: {
+          '200': { description: 'Removed from favorites' },
+          '404': { description: 'Favorite not found' },
         },
       },
     },
@@ -799,7 +1335,8 @@ export const openApiSpec = {
         name: 'X-Request-ID',
         in: 'header',
         required: false,
-        description: 'Optional caller-supplied request correlation ID. If omitted, the API generates a new UUID.',
+        description:
+          'Optional caller-supplied request correlation ID. If omitted, the API generates a new UUID.',
         schema: {
           type: 'string',
         },
@@ -1138,10 +1675,24 @@ export const openApiSpec = {
               source: { type: 'string', example: 'angel' },
               observedAt: { type: 'string', format: 'date-time' },
               retrievedAt: { type: 'string', format: 'date-time' },
-              freshness: { type: 'string', enum: ['live', 'delayed', 'eod', 'historical', 'stale', 'unavailable'] },
+              freshness: {
+                type: 'string',
+                enum: ['live', 'delayed', 'eod', 'historical', 'stale', 'unavailable'],
+              },
               isStale: { type: 'boolean', example: false },
             },
-            required: ['symbol', 'name', 'exchange', 'market', 'currency', 'source', 'observedAt', 'retrievedAt', 'freshness', 'isStale'],
+            required: [
+              'symbol',
+              'name',
+              'exchange',
+              'market',
+              'currency',
+              'source',
+              'observedAt',
+              'retrievedAt',
+              'freshness',
+              'isStale',
+            ],
           },
         },
         required: ['success', 'data'],
@@ -1180,7 +1731,16 @@ export const openApiSpec = {
                 },
               },
             },
-            required: ['symbol', 'exchange', 'interval', 'fromDate', 'toDate', 'candles', 'source', 'retrievedAt'],
+            required: [
+              'symbol',
+              'exchange',
+              'interval',
+              'fromDate',
+              'toDate',
+              'candles',
+              'source',
+              'retrievedAt',
+            ],
           },
         },
         required: ['success', 'data'],
@@ -1188,24 +1748,34 @@ export const openApiSpec = {
       AiResearchRequest: {
         type: 'object',
         properties: {
-          ticker: {
+          symbol: {
             type: 'string',
-            example: 'NVDA',
-            description: 'Instrument ticker symbol to research',
+            maxLength: 30,
+            example: 'RELIANCE',
+            description: 'Supported instrument ticker symbol',
           },
-          query: {
+          exchange: {
             type: 'string',
-            example: 'Analyze margin durability in data centers over next 12 months',
-            description: 'Optional natural language research question or theme',
+            maxLength: 10,
+            description: 'Exchange code; required if symbol resolves ambiguously',
           },
-          depth: {
+          question: {
             type: 'string',
-            enum: ['summary', 'deep_dive', 'earnings_review'],
-            default: 'summary',
-            description: 'Analysis thoroughness',
+            minLength: 10,
+            maxLength: 800,
+            example: 'Explain the available profitability and financial risk evidence.',
+          },
+          comparisonInstrument: {
+            type: 'object',
+            properties: {
+              symbol: { type: 'string', maxLength: 30 },
+              exchange: { type: 'string', maxLength: 10 },
+            },
+            required: ['symbol'],
           },
         },
-        required: ['ticker'],
+        required: ['symbol', 'question'],
+        additionalProperties: false,
       },
       AiResearchResponse: {
         type: 'object',
@@ -1217,45 +1787,154 @@ export const openApiSpec = {
           data: {
             type: 'object',
             properties: {
-              ticker: {
-                type: 'string',
-                example: 'NVDA',
+              schemaVersion: { type: 'string', enum: ['1.0'] },
+              instrument: { $ref: '#/components/schemas/AiResearchInstrument' },
+              comparisonInstrument: {
+                $ref: '#/components/schemas/AiResearchInstrument',
+                nullable: true,
               },
-              summary: {
+              question: { type: 'string' },
+              intent: {
                 type: 'string',
-                example: 'Strong demand trajectory driven by enterprise AI deployments...',
+                enum: [
+                  'GENERAL',
+                  'PROFITABILITY',
+                  'GROWTH',
+                  'VALUATION',
+                  'LIQUIDITY',
+                  'CASH_FLOW',
+                  'DEBT',
+                  'RISK',
+                  'HISTORICAL_PERFORMANCE',
+                  'COMPARISON',
+                ],
               },
-              bullCase: {
+              summary: { $ref: '#/components/schemas/AiResearchClaim' },
+              overallAssessment: { $ref: '#/components/schemas/AiResearchAssessment' },
+              sections: {
                 type: 'array',
-                items: {
-                  type: 'string',
-                },
+                items: { $ref: '#/components/schemas/AiResearchSection' },
               },
-              bearCase: {
+              strengths: { type: 'array', items: { $ref: '#/components/schemas/AiResearchClaim' } },
+              riskFactors: {
                 type: 'array',
-                items: {
-                  type: 'string',
-                },
+                items: { $ref: '#/components/schemas/AiResearchClaim' },
               },
-              keyRisks: {
+              growthSignals: {
                 type: 'array',
-                items: {
-                  type: 'string',
-                },
+                items: { $ref: '#/components/schemas/AiResearchClaim' },
               },
-              model: {
-                type: 'string',
-                example: 'gemini-1.5-pro',
+              valuationObservations: {
+                type: 'array',
+                items: { $ref: '#/components/schemas/AiResearchClaim' },
               },
-              generatedAt: {
-                type: 'string',
-                format: 'date-time',
+              financialObservations: {
+                type: 'array',
+                items: { $ref: '#/components/schemas/AiResearchClaim' },
               },
+              missingData: { type: 'array', items: { type: 'string' } },
+              evidence: {
+                type: 'array',
+                items: { $ref: '#/components/schemas/AiResearchEvidence' },
+              },
+              confidence: { $ref: '#/components/schemas/AiResearchConfidence' },
+              disclaimer: { type: 'string' },
             },
-            required: ['ticker', 'summary', 'bullCase', 'bearCase', 'keyRisks', 'generatedAt'],
+            required: [
+              'schemaVersion',
+              'instrument',
+              'comparisonInstrument',
+              'question',
+              'intent',
+              'summary',
+              'overallAssessment',
+              'sections',
+              'strengths',
+              'riskFactors',
+              'growthSignals',
+              'valuationObservations',
+              'financialObservations',
+              'missingData',
+              'evidence',
+              'confidence',
+              'disclaimer',
+            ],
           },
         },
         required: ['success', 'data'],
+      },
+      AiResearchInstrument: {
+        type: 'object',
+        properties: {
+          symbol: { type: 'string' },
+          exchange: { type: 'string' },
+          name: { type: 'string', nullable: true },
+        },
+        required: ['symbol', 'exchange', 'name'],
+      },
+      AiResearchClaim: {
+        type: 'object',
+        properties: {
+          text: { type: 'string' },
+          evidenceIds: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['text', 'evidenceIds'],
+      },
+      AiResearchAssessment: {
+        type: 'object',
+        properties: {
+          label: {
+            type: 'string',
+            enum: ['POSITIVE', 'NEGATIVE', 'MIXED', 'INSUFFICIENT_DATA'],
+          },
+          explanation: { type: 'string' },
+          evidenceIds: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['label', 'explanation', 'evidenceIds'],
+      },
+      AiResearchSection: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' },
+          analysis: { $ref: '#/components/schemas/AiResearchClaim' },
+          risks: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/AiResearchClaim' },
+          },
+          limitations: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['title', 'analysis', 'risks', 'limitations'],
+      },
+      AiResearchConfidence: {
+        type: 'object',
+        properties: {
+          level: { type: 'string', enum: ['HIGH', 'MEDIUM', 'LIMITED', 'LOW'] },
+          explanation: { type: 'string' },
+          availableEvidence: { type: 'integer', minimum: 0 },
+          totalEvidence: { type: 'integer', minimum: 1 },
+        },
+        required: ['level', 'explanation', 'availableEvidence', 'totalEvidence'],
+      },
+      AiResearchEvidence: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          type: {
+            type: 'string',
+            enum: ['statement', 'metric', 'health_score', 'market_quote', 'market_history'],
+          },
+          metric: { type: 'string' },
+          value: { nullable: true, oneOf: [{ type: 'number' }, { type: 'string' }] },
+          unit: { type: 'string', nullable: true },
+          period: { type: 'string', nullable: true },
+          periodType: { type: 'string', enum: ['annual', 'quarterly', 'ttm'] },
+          source: { type: 'string' },
+          timestamp: { type: 'string', format: 'date-time', nullable: true },
+          calculationVersion: { type: 'string' },
+          freshness: { type: 'string' },
+          stale: { type: 'boolean' },
+        },
+        required: ['id', 'type', 'metric', 'value', 'unit', 'period', 'source', 'timestamp'],
       },
       MarketOverviewResponse: {
         type: 'object',
@@ -1365,6 +2044,64 @@ export const openApiSpec = {
           },
         },
         required: ['success', 'data'],
+      },
+      UserProfile: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          email: { type: 'string', format: 'email' },
+          fullName: { type: 'string', nullable: true },
+          avatarUrl: { type: 'string', nullable: true },
+          bio: { type: 'string', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+        required: ['id', 'email', 'createdAt', 'updatedAt'],
+      },
+      UserPreferences: {
+        type: 'object',
+        properties: {
+          userId: { type: 'string', format: 'uuid' },
+          defaultExchange: { type: 'string', enum: ['NSE', 'BSE'] },
+          preferredCurrency: { type: 'string', enum: ['INR', 'USD'] },
+          statementPeriod: { type: 'string', enum: ['annual', 'quarterly'] },
+          landingPage: { type: 'string' },
+          theme: { type: 'string', enum: ['dark', 'light', 'system'] },
+          tableDensity: { type: 'string', enum: ['compact', 'normal', 'comfortable'] },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+        required: [
+          'userId',
+          'defaultExchange',
+          'preferredCurrency',
+          'statementPeriod',
+          'landingPage',
+          'theme',
+          'tableDensity',
+        ],
+      },
+      UserFavorite: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          userId: { type: 'string', format: 'uuid' },
+          symbol: { type: 'string' },
+          exchange: { type: 'string', enum: ['NSE', 'BSE'] },
+          companyName: { type: 'string' },
+          createdAt: { type: 'string', format: 'date-time' },
+          quote: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              price: { type: 'number' },
+              change: { type: 'number' },
+              changePercent: { type: 'number' },
+              currency: { type: 'string' },
+              freshness: { type: 'string' },
+            },
+          },
+        },
+        required: ['id', 'userId', 'symbol', 'exchange', 'createdAt'],
       },
     },
   },

@@ -6,6 +6,7 @@ import { InstrumentSearch } from '@/components/market/InstrumentSearch';
 import { HealthScoreCard } from '@/components/financial/HealthScoreCard';
 import { FinancialMetricsGrid } from '@/components/financial/FinancialMetricsGrid';
 import { FinancialStatementsTable } from '@/components/financial/FinancialStatementsTable';
+import { AiResearchPanel } from '@/components/research/AiResearchPanel';
 import { useFinancialAnalysis } from '@/hooks/useFinancial';
 import type { InstrumentSummary } from '@/types';
 import Link from 'next/link';
@@ -28,12 +29,16 @@ function ResearchContent() {
   useEffect(() => {
     const sym = searchParams.get('symbol');
     const ex = searchParams.get('exchange');
-    if (sym && sym !== selectedStock.symbol) {
-      setSelectedStock({
-        symbol: sym,
-        exchange: ex || undefined,
-        name: sym,
-      });
+    if (sym) {
+      setSelectedStock((current) =>
+        sym !== current.symbol
+          ? {
+              symbol: sym,
+              exchange: ex || undefined,
+              name: sym,
+            }
+          : current,
+      );
     }
   }, [searchParams]);
 
@@ -63,14 +68,15 @@ function ResearchContent() {
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            Phase 3 Deterministic Intelligence
+            Phase 4 AI + Deterministic Research
           </div>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
             Fundamental Financial Research
           </h1>
           <p className="mt-2 text-sm text-slate-400 max-w-2xl leading-relaxed">
-            Deterministic financial analysis, verified statement ingestion, and quantitative health scoring.
-            All formulas and metrics are strictly traceable with zero hallucinated or fabricated numbers.
+            Verified financial analysis and quantitative health scoring, with Gemini interpretation
+            grounded in platform evidence. Deterministic metrics remain authoritative; AI-generated
+            research is clearly identified and sourced.
           </p>
         </div>
 
@@ -81,7 +87,12 @@ function ResearchContent() {
         >
           <span>View Live Market Quotes</span>
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M14 5l7 7m0 0l-7 7m7-7H3"
+            />
           </svg>
         </Link>
       </div>
@@ -91,19 +102,14 @@ function ResearchContent() {
         <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
           Search Security for Fundamental Analysis
         </label>
-        <InstrumentSearch
-          onSelect={handleSelectInstrument}
-          selectedSymbol={selectedStock.symbol}
-        />
+        <InstrumentSearch onSelect={handleSelectInstrument} selectedSymbol={selectedStock.symbol} />
       </div>
 
       {/* Company Header Card */}
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/10 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-slate-950/90 p-6 shadow-xl backdrop-blur-xl">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-black text-white sm:text-3xl">
-              {selectedStock.symbol}
-            </h2>
+            <h2 className="text-2xl font-black text-white sm:text-3xl">{selectedStock.symbol}</h2>
             <span className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-2.5 py-0.5 text-xs font-bold text-sky-400">
               {selectedStock.exchange ?? 'NSE'}
             </span>
@@ -116,11 +122,20 @@ function ResearchContent() {
           </p>
           {analysis && (
             <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-slate-400">
-              <span>Currency: <strong className="text-slate-200">{analysis.currency}</strong></span>
+              <span>
+                Currency: <strong className="text-slate-200">{analysis.currency}</strong>
+              </span>
               <span>•</span>
-              <span>Source: <strong className="text-slate-200">{analysis.source}</strong></span>
+              <span>
+                Source: <strong className="text-slate-200">{analysis.source}</strong>
+              </span>
               <span>•</span>
-              <span>Retrieved: <strong className="text-slate-200">{new Date(analysis.retrievedAt).toLocaleDateString()}</strong></span>
+              <span>
+                Retrieved:{' '}
+                <strong className="text-slate-200">
+                  {new Date(analysis.retrievedAt).toLocaleDateString()}
+                </strong>
+              </span>
               {analysis.isStale && (
                 <span className="rounded bg-amber-500/10 px-2 py-0.5 text-amber-400 font-semibold">
                   Serving cached data
@@ -138,6 +153,12 @@ function ResearchContent() {
           {isRefetching ? 'Refreshing...' : 'Refresh Fundamentals'}
         </button>
       </div>
+
+      <AiResearchPanel
+        key={`${selectedStock.symbol}:${selectedStock.exchange ?? 'NSE'}`}
+        symbol={selectedStock.symbol}
+        exchange={selectedStock.exchange ?? 'NSE'}
+      />
 
       {/* Loading Skeleton */}
       {isLoading && (
@@ -157,13 +178,31 @@ function ResearchContent() {
           </p>
           <div className="mt-4 flex gap-3">
             <button
-              onClick={() => handleSelectInstrument({ symbol: 'RELIANCE', exchange: 'NSE', name: 'Reliance Industries', market: 'nse', assetType: 'equity', currency: 'INR' })}
+              onClick={() =>
+                handleSelectInstrument({
+                  symbol: 'RELIANCE',
+                  exchange: 'NSE',
+                  name: 'Reliance Industries',
+                  market: 'nse',
+                  assetType: 'equity',
+                  currency: 'INR',
+                })
+              }
               className="rounded-xl border border-rose-500/30 bg-rose-500/20 px-3.5 py-1.5 text-xs font-bold text-rose-200 hover:bg-rose-500/30"
             >
               Try RELIANCE (NSE)
             </button>
             <button
-              onClick={() => handleSelectInstrument({ symbol: 'AAPL', exchange: 'NASDAQ', name: 'Apple Inc.', market: 'us', assetType: 'equity', currency: 'USD' })}
+              onClick={() =>
+                handleSelectInstrument({
+                  symbol: 'AAPL',
+                  exchange: 'NASDAQ',
+                  name: 'Apple Inc.',
+                  market: 'us',
+                  assetType: 'equity',
+                  currency: 'USD',
+                })
+              }
               className="rounded-xl border border-rose-500/30 bg-rose-500/20 px-3.5 py-1.5 text-xs font-bold text-rose-200 hover:bg-rose-500/30"
             >
               Try AAPL (NASDAQ)
