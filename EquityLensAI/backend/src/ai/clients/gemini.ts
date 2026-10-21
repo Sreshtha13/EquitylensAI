@@ -17,17 +17,28 @@ function getGeminiClient(apiKey: string): GoogleGenAI {
 }
 
 function getProviderStatus(error: unknown): number | undefined {
-  if (typeof error !== 'object' || error === null || !('status' in error)) {
+  if (typeof error !== 'object' || error === null) {
     return undefined;
   }
 
-  const status = error.status;
-  if (typeof status === 'number') {
-    return status;
-  }
+  const candidates: unknown[] = [
+    'status' in error ? error.status : undefined,
+    'statusCode' in error ? error.statusCode : undefined,
+    'response' in error &&
+    typeof error.response === 'object' &&
+    error.response !== null &&
+    'status' in error.response
+      ? error.response.status
+      : undefined,
+  ];
 
-  if (typeof status === 'string' && /^\d+$/.test(status)) {
-    return Number(status);
+  for (const status of candidates) {
+    if (typeof status === 'number' && Number.isInteger(status)) {
+      return status;
+    }
+    if (typeof status === 'string' && /^\d+$/.test(status)) {
+      return Number(status);
+    }
   }
 
   return undefined;
@@ -140,7 +151,41 @@ export class GeminiClient implements AiClient {
           );
         }
 
+        if (status === 400) {
+          logger.error(
+            {
+              requestId: input.requestId,
+              instrument: input.instrument,
+              intent: input.intent,
+              model: env.GEMINI_MODEL,
+              durationMs: Date.now() - startedAt,
+              attempts: attempt,
+              errorName,
+              status,
+            },
+            'ai_provider_request_rejected',
+          );
+          throw new AppError(
+            'AI_REQUEST_INVALID',
+            'Gemini rejected the model request. Check the configured model and structured-output schema.',
+            502,
+          );
+        }
+
         if (errorName === 'TimeoutError' || errorName === 'AbortError') {
+          logger.error(
+            {
+              requestId: input.requestId,
+              instrument: input.instrument,
+              intent: input.intent,
+              model: env.GEMINI_MODEL,
+              durationMs: Date.now() - startedAt,
+              attempts: attempt,
+              errorName,
+              status,
+            },
+            'ai_provider_request_timed_out',
+          );
           throw new AppError('AI_TIMEOUT', 'The AI provider request timed out.', 504);
         }
 
@@ -174,6 +219,14 @@ export class GeminiClient implements AiClient {
           },
           'ai_provider_request_failed',
         );
+
+        if (status !== undefined && status >= 500) {
+          throw new AppError(
+            'AI_PROVIDER_UNAVAILABLE',
+            `Gemini is temporarily unavailable (HTTP ${status}) after retries. Please try again shortly.`,
+            503,
+          );
+        }
 
         throw new AppError(
           'AI_PROVIDER_UNAVAILABLE',
