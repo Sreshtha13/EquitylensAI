@@ -63,9 +63,7 @@
   "paths": {
     "/": {
       "get": {
-        "tags": [
-          "System"
-        ],
+        "tags": ["System"],
         "summary": "Root service discovery",
         "description": "Returns service identity, version, status, and navigation links to health and API documentation.",
         "responses": {
@@ -100,9 +98,7 @@
     },
     "/api/v1": {
       "get": {
-        "tags": [
-          "System"
-        ],
+        "tags": ["System"],
         "summary": "API v1 index and discovery",
         "description": "Returns versioned router metadata and registered endpoint links.",
         "responses": {
@@ -139,9 +135,7 @@
     },
     "/api/v1/health": {
       "get": {
-        "tags": [
-          "System"
-        ],
+        "tags": ["System"],
         "summary": "Health check probe",
         "description": "Verifies backend process liveness. Does not call third-party market data providers, databases, or AI models, making it safe for container orchestrators and readiness probes.",
         "parameters": [
@@ -188,9 +182,7 @@
     },
     "/api/v1/stocks/search": {
       "get": {
-        "tags": [
-          "Instruments"
-        ],
+        "tags": ["Instruments"],
         "summary": "Search instruments and equities",
         "description": "Search for stocks, ETFs, indices, and financial instruments across supported exchanges with symbol or name autocomplete and pagination.",
         "parameters": [
@@ -306,9 +298,7 @@
     },
     "/api/v1/stocks/{ticker}": {
       "get": {
-        "tags": [
-          "Instruments"
-        ],
+        "tags": ["Instruments"],
         "summary": "Get instrument quote and profile",
         "description": "Retrieves comprehensive overview, price quotation, and fundamental profile for a specific instrument ticker symbol.",
         "parameters": [
@@ -342,9 +332,7 @@
     },
     "/api/v1/market": {
       "get": {
-        "tags": [
-          "Market Intelligence"
-        ],
+        "tags": ["Market Intelligence"],
         "summary": "Get market overview and indices",
         "description": "Fetch snapshot of benchmark index levels, market breadth (advances/declines), and sector performance.",
         "parameters": [
@@ -377,9 +365,7 @@
     },
     "/api/v1/stocks/{symbol}/quote": {
       "get": {
-        "tags": [
-          "Instruments"
-        ],
+        "tags": ["Instruments"],
         "summary": "Get live or delayed stock quote",
         "description": "Retrieves genuine, normalized price quotation from supported market data providers (Angel One SmartAPI primary for NSE, Yahoo Finance fallback). Includes explicit data provenance (source, observed timestamp, retrieved timestamp, freshness level, staleness flag).",
         "parameters": [
@@ -433,9 +419,7 @@
     },
     "/api/v1/stocks/{symbol}/history": {
       "get": {
-        "tags": [
-          "Instruments"
-        ],
+        "tags": ["Instruments"],
         "summary": "Get historical price candles",
         "description": "Retrieves genuine OHLCV candlestick historical data with specified candle interval.",
         "parameters": [
@@ -517,9 +501,7 @@
     },
     "/api/v1/stocks/ingest": {
       "post": {
-        "tags": [
-          "Instruments"
-        ],
+        "tags": ["Instruments"],
         "summary": "Trigger instrument master ingestion",
         "description": "Downloads latest Angel One scrip master, normalizes active equities and indices, and updates local cache.",
         "responses": {
@@ -531,9 +513,7 @@
     },
     "/api/v1/stocks/ingest/status": {
       "get": {
-        "tags": [
-          "Instruments"
-        ],
+        "tags": ["Instruments"],
         "summary": "Get instrument ingestion status",
         "description": "Returns progress, last ingested timestamp, total instruments count, and errors.",
         "responses": {
@@ -545,9 +525,7 @@
     },
     "/api/v1/market/overview": {
       "get": {
-        "tags": [
-          "Market Intelligence"
-        ],
+        "tags": ["Market Intelligence"],
         "summary": "Get market overview and indices",
         "description": "Fetch snapshot of benchmark index levels with verified market data provenance.",
         "parameters": [
@@ -580,9 +558,7 @@
     },
     "/api/v1/market/providers": {
       "get": {
-        "tags": [
-          "Market Intelligence"
-        ],
+        "tags": ["Market Intelligence"],
         "summary": "List market data providers",
         "description": "Returns configured market data providers and availability status.",
         "responses": {
@@ -594,9 +570,7 @@
     },
     "/api/v1/ai/research": {
       "post": {
-        "tags": [
-          "AI Research"
-        ],
+        "tags": ["AI Research"],
         "summary": "Generate evidence-grounded financial research",
         "description": "Uses Gemini to interpret a bounded context assembled from verified market data and deterministic financial metrics. Model claims cite backend evidence IDs. Does not provide investment recommendations, news, or earnings-call analysis.",
         "parameters": [
@@ -677,9 +651,7 @@
     },
     "/api/v1/ai/screener/metrics": {
       "get": {
-        "tags": [
-          "AI Research"
-        ],
+        "tags": ["AI Research"],
         "summary": "List screener interpretation metrics",
         "description": "Returns the backend-owned allowlist of real metrics from individual-company financial analysis. Catalog metrics are not available for universe-wide execution until a queryable financial data index exists.",
         "responses": {
@@ -691,9 +663,7 @@
     },
     "/api/v1/ai/screener/interpret": {
       "post": {
-        "tags": [
-          "AI Research"
-        ],
+        "tags": ["AI Research"],
         "summary": "Interpret natural-language screening criteria",
         "description": "Uses Gemini structured output to interpret criteria only. It returns validated filters, not company results or match counts. The AI has no database or SQL execution access.",
         "parameters": [
@@ -715,23 +685,15 @@
                   },
                   "exchange": {
                     "type": "string",
-                    "enum": [
-                      "NSE",
-                      "BSE"
-                    ]
+                    "enum": ["NSE", "BSE"]
                   },
                   "period": {
                     "type": "string",
-                    "enum": [
-                      "annual",
-                      "ttm"
-                    ],
+                    "enum": ["annual", "ttm"],
                     "default": "annual"
                   }
                 },
-                "required": [
-                  "query"
-                ],
+                "required": ["query"],
                 "additionalProperties": false
               }
             }
@@ -761,9 +723,7 @@
     },
     "/api/v1/ai/screener": {
       "post": {
-        "tags": [
-          "AI Research"
-        ],
+        "tags": ["AI Research"],
         "summary": "Execute a validated screener request",
         "description": "Validates an allowlisted filter set and queries the persisted financial-metrics index. Success responses include paginated matches, provenance, freshness, and coverage. The index must be migrated and ingested; database errors are returned explicitly.",
         "parameters": [
@@ -785,24 +745,16 @@
                   },
                   "exchange": {
                     "type": "string",
-                    "enum": [
-                      "NSE",
-                      "BSE"
-                    ]
+                    "enum": ["NSE", "BSE"]
                   },
                   "assetType": {
                     "type": "string",
-                    "enum": [
-                      "equity"
-                    ],
+                    "enum": ["equity"],
                     "default": "equity"
                   },
                   "period": {
                     "type": "string",
-                    "enum": [
-                      "annual",
-                      "ttm"
-                    ],
+                    "enum": ["annual", "ttm"],
                     "default": "annual"
                   },
                   "filters": {
@@ -831,15 +783,7 @@
                         },
                         "operator": {
                           "type": "string",
-                          "enum": [
-                            "eq",
-                            "neq",
-                            "gt",
-                            "gte",
-                            "lt",
-                            "lte",
-                            "between"
-                          ]
+                          "enum": ["eq", "neq", "gt", "gte", "lt", "lte", "between"]
                         },
                         "value": {
                           "type": "number"
@@ -849,20 +793,13 @@
                           "nullable": true
                         }
                       },
-                      "required": [
-                        "field",
-                        "operator",
-                        "value"
-                      ],
+                      "required": ["field", "operator", "value"],
                       "additionalProperties": false
                     }
                   },
                   "logic": {
                     "type": "string",
-                    "enum": [
-                      "AND",
-                      "OR"
-                    ]
+                    "enum": ["AND", "OR"]
                   },
                   "sort": {
                     "type": "object",
@@ -888,16 +825,10 @@
                       },
                       "direction": {
                         "type": "string",
-                        "enum": [
-                          "asc",
-                          "desc"
-                        ]
+                        "enum": ["asc", "desc"]
                       }
                     },
-                    "required": [
-                      "field",
-                      "direction"
-                    ],
+                    "required": ["field", "direction"],
                     "additionalProperties": false
                   },
                   "limit": {
@@ -913,11 +844,7 @@
                     "default": 0
                   }
                 },
-                "required": [
-                  "query",
-                  "filters",
-                  "logic"
-                ],
+                "required": ["query", "filters", "logic"],
                 "additionalProperties": false
               }
             }
@@ -944,9 +871,7 @@
     },
     "/api/v1/watchlists": {
       "get": {
-        "tags": [
-          "Watchlists"
-        ],
+        "tags": ["Watchlists"],
         "summary": "List user watchlists",
         "description": "Returns all watchlists owned by the authenticated user with item counts and summary info.",
         "security": [
@@ -964,9 +889,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Watchlists"
-        ],
+        "tags": ["Watchlists"],
         "summary": "Create a new watchlist",
         "description": "Creates a named watchlist (up to 50 per user). Name must be unique per user.",
         "security": [
@@ -993,9 +916,7 @@
                     "example": "High ROE tech stocks"
                   }
                 },
-                "required": [
-                  "name"
-                ]
+                "required": ["name"]
               }
             }
           }
@@ -1015,9 +936,7 @@
     },
     "/api/v1/financial/{symbol}/analysis": {
       "get": {
-        "tags": [
-          "Financial Intelligence"
-        ],
+        "tags": ["Financial Intelligence"],
         "summary": "Full financial analysis and metrics",
         "description": "Retrieves normalized annual and TTM financial statements, deterministic financial ratios (profitability, liquidity, leverage, cash flow, growth, valuation), and the composite Financial Health Score (0-100).",
         "parameters": [
@@ -1068,9 +987,7 @@
     },
     "/api/v1/financial/{symbol}/statements": {
       "get": {
-        "tags": [
-          "Financial Intelligence"
-        ],
+        "tags": ["Financial Intelligence"],
         "summary": "Raw financial statements",
         "description": "Retrieves multi-period income statements, balance sheets, and cash flow statements without calculated ratios.",
         "parameters": [
@@ -1118,9 +1035,7 @@
     },
     "/api/v1/financial/{symbol}/health-score": {
       "get": {
-        "tags": [
-          "Financial Intelligence"
-        ],
+        "tags": ["Financial Intelligence"],
         "summary": "Financial Health Score (0-100)",
         "description": "Lightweight endpoint providing 0-100 composite financial health score, letter grade (A+ through F), dimension breakdown (profitability, liquidity, leverage, cash flow, growth), and transparent evaluation summary.",
         "parameters": [
@@ -1158,9 +1073,7 @@
     },
     "/api/v1/financial/cache-stats": {
       "get": {
-        "tags": [
-          "Financial Intelligence"
-        ],
+        "tags": ["Financial Intelligence"],
         "summary": "Financial cache statistics",
         "description": "Returns in-memory cache operational telemetry (size, hits, misses, stale hits) for financial datasets.",
         "responses": {
@@ -1172,9 +1085,7 @@
     },
     "/api/v1/auth/register": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Register new user account",
         "description": "Creates a new user profile with email and password via Supabase Auth.",
         "requestBody": {
@@ -1199,10 +1110,7 @@
                     "example": "Aarav Sharma"
                   }
                 },
-                "required": [
-                  "email",
-                  "password"
-                ]
+                "required": ["email", "password"]
               }
             }
           }
@@ -1222,9 +1130,7 @@
     },
     "/api/v1/auth/login": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "User sign-in",
         "description": "Authenticates user with email and password, returning Supabase JWT session tokens.",
         "requestBody": {
@@ -1244,10 +1150,7 @@
                     "example": "SecurePassword123!"
                   }
                 },
-                "required": [
-                  "email",
-                  "password"
-                ]
+                "required": ["email", "password"]
               }
             }
           }
@@ -1267,9 +1170,7 @@
     },
     "/api/v1/auth/logout": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "User sign-out",
         "description": "Terminates the current user session and invalidates access tokens.",
         "security": [
@@ -1289,9 +1190,7 @@
     },
     "/api/v1/auth/forgot-password": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Request password reset email",
         "description": "Sends a secure password reset link to the registered email address.",
         "requestBody": {
@@ -1307,9 +1206,7 @@
                     "example": "investor@example.com"
                   }
                 },
-                "required": [
-                  "email"
-                ]
+                "required": ["email"]
               }
             }
           }
@@ -1326,9 +1223,7 @@
     },
     "/api/v1/auth/reset-password": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Reset password with recovery token",
         "description": "Updates user password using the token received in the reset email.",
         "requestBody": {
@@ -1348,10 +1243,7 @@
                     "example": "recovery-token-jwt"
                   }
                 },
-                "required": [
-                  "password",
-                  "accessToken"
-                ]
+                "required": ["password", "accessToken"]
               }
             }
           }
@@ -1368,9 +1260,7 @@
     },
     "/api/v1/auth/account": {
       "delete": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Delete user account",
         "description": "Permanently deletes the authenticated user, cascading removal of profile, watchlists, favorites, and preferences.",
         "security": [
@@ -1390,9 +1280,7 @@
     },
     "/api/v1/users/me": {
       "get": {
-        "tags": [
-          "User Profile & Preferences"
-        ],
+        "tags": ["User Profile & Preferences"],
         "summary": "Get current user profile and preferences",
         "description": "Returns profile details and application preferences for the authenticated user.",
         "security": [
@@ -1412,9 +1300,7 @@
     },
     "/api/v1/users/me/profile": {
       "put": {
-        "tags": [
-          "User Profile & Preferences"
-        ],
+        "tags": ["User Profile & Preferences"],
         "summary": "Update user profile",
         "description": "Updates full name, avatar URL, or bio for the authenticated user.",
         "security": [
@@ -1460,9 +1346,7 @@
     },
     "/api/v1/users/me/preferences": {
       "put": {
-        "tags": [
-          "User Profile & Preferences"
-        ],
+        "tags": ["User Profile & Preferences"],
         "summary": "Update application preferences",
         "description": "Updates user settings such as default exchange, currency, period, theme, and table density.",
         "security": [
@@ -1479,50 +1363,27 @@
                 "properties": {
                   "defaultExchange": {
                     "type": "string",
-                    "enum": [
-                      "NSE",
-                      "BSE"
-                    ]
+                    "enum": ["NSE", "BSE"]
                   },
                   "preferredCurrency": {
                     "type": "string",
-                    "enum": [
-                      "INR",
-                      "USD"
-                    ]
+                    "enum": ["INR", "USD"]
                   },
                   "statementPeriod": {
                     "type": "string",
-                    "enum": [
-                      "annual",
-                      "quarterly"
-                    ]
+                    "enum": ["annual", "quarterly"]
                   },
                   "landingPage": {
                     "type": "string",
-                    "enum": [
-                      "/dashboard",
-                      "/market",
-                      "/screener",
-                      "/research",
-                      "/watchlists"
-                    ]
+                    "enum": ["/dashboard", "/market", "/screener", "/research", "/watchlists"]
                   },
                   "theme": {
                     "type": "string",
-                    "enum": [
-                      "dark",
-                      "light",
-                      "system"
-                    ]
+                    "enum": ["dark", "light", "system"]
                   },
                   "tableDensity": {
                     "type": "string",
-                    "enum": [
-                      "compact",
-                      "normal",
-                      "comfortable"
-                    ]
+                    "enum": ["compact", "normal", "comfortable"]
                   }
                 }
               }
@@ -1541,9 +1402,7 @@
     },
     "/api/v1/watchlists/{watchlistId}": {
       "get": {
-        "tags": [
-          "Watchlists"
-        ],
+        "tags": ["Watchlists"],
         "summary": "Get watchlist details with live quotes",
         "description": "Retrieves a single watchlist by ID including items and real-time coordinated market quotes.",
         "security": [
@@ -1572,9 +1431,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Watchlists"
-        ],
+        "tags": ["Watchlists"],
         "summary": "Update watchlist name and description",
         "security": [
           {
@@ -1623,9 +1480,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Watchlists"
-        ],
+        "tags": ["Watchlists"],
         "summary": "Delete watchlist",
         "description": "Deletes a watchlist and all contained items.",
         "security": [
@@ -1656,9 +1511,7 @@
     },
     "/api/v1/watchlists/{watchlistId}/items": {
       "post": {
-        "tags": [
-          "Watchlists"
-        ],
+        "tags": ["Watchlists"],
         "summary": "Add stock to watchlist",
         "description": "Adds an exchange-listed instrument to the watchlist (up to 100 items per watchlist).",
         "security": [
@@ -1690,10 +1543,7 @@
                   },
                   "exchange": {
                     "type": "string",
-                    "enum": [
-                      "NSE",
-                      "BSE"
-                    ],
+                    "enum": ["NSE", "BSE"],
                     "example": "NSE"
                   },
                   "notes": {
@@ -1702,10 +1552,7 @@
                     "example": "Core energy holding"
                   }
                 },
-                "required": [
-                  "symbol",
-                  "exchange"
-                ]
+                "required": ["symbol", "exchange"]
               }
             }
           }
@@ -1725,9 +1572,7 @@
     },
     "/api/v1/watchlists/{watchlistId}/items/{itemId}": {
       "delete": {
-        "tags": [
-          "Watchlists"
-        ],
+        "tags": ["Watchlists"],
         "summary": "Remove item from watchlist",
         "security": [
           {
@@ -1766,9 +1611,7 @@
     },
     "/api/v1/favorites": {
       "get": {
-        "tags": [
-          "Favorites"
-        ],
+        "tags": ["Favorites"],
         "summary": "List user favorites with market quotes",
         "description": "Retrieves all user favorite equities with coordinated market quotes.",
         "security": [
@@ -1786,9 +1629,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Favorites"
-        ],
+        "tags": ["Favorites"],
         "summary": "Add stock to favorites",
         "security": [
           {
@@ -1808,17 +1649,11 @@
                   },
                   "exchange": {
                     "type": "string",
-                    "enum": [
-                      "NSE",
-                      "BSE"
-                    ],
+                    "enum": ["NSE", "BSE"],
                     "example": "NSE"
                   }
                 },
-                "required": [
-                  "symbol",
-                  "exchange"
-                ]
+                "required": ["symbol", "exchange"]
               }
             }
           }
@@ -1838,9 +1673,7 @@
     },
     "/api/v1/favorites/{symbol}": {
       "delete": {
-        "tags": [
-          "Favorites"
-        ],
+        "tags": ["Favorites"],
         "summary": "Remove stock from favorites",
         "security": [
           {
@@ -1863,10 +1696,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "NSE",
-                "BSE"
-              ]
+              "enum": ["NSE", "BSE"]
             }
           }
         ],
@@ -1914,30 +1744,13 @@
     "schemas": {
       "AssetType": {
         "type": "string",
-        "enum": [
-          "equity",
-          "etf",
-          "index",
-          "crypto",
-          "commodity",
-          "forex"
-        ],
+        "enum": ["equity", "etf", "index", "crypto", "commodity", "forex"],
         "description": "Supported financial instrument asset classifications",
         "example": "equity"
       },
       "Market": {
         "type": "string",
-        "enum": [
-          "nse",
-          "bse",
-          "us",
-          "jp",
-          "uk",
-          "hk",
-          "crypto",
-          "commodity",
-          "forex"
-        ],
+        "enum": ["nse", "bse", "us", "jp", "uk", "hk", "crypto", "commodity", "forex"],
         "description": "Supported market jurisdictions and asset exchanges",
         "example": "nse"
       },
@@ -1957,20 +1770,14 @@
             "example": 154
           }
         },
-        "required": [
-          "page",
-          "pageSize",
-          "total"
-        ]
+        "required": ["page", "pageSize", "total"]
       },
       "ApiError": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              false
-            ],
+            "enum": [false],
             "example": false
           },
           "error": {
@@ -1989,25 +1796,17 @@
                 "description": "Optional error details or validation breakdowns"
               }
             },
-            "required": [
-              "code",
-              "message"
-            ]
+            "required": ["code", "message"]
           }
         },
-        "required": [
-          "success",
-          "error"
-        ]
+        "required": ["success", "error"]
       },
       "ValidationError": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              false
-            ],
+            "enum": [false],
             "example": false
           },
           "error": {
@@ -2015,9 +1814,7 @@
             "properties": {
               "code": {
                 "type": "string",
-                "enum": [
-                  "VALIDATION_ERROR"
-                ],
+                "enum": ["VALIDATION_ERROR"],
                 "example": "VALIDATION_ERROR"
               },
               "message": {
@@ -2029,25 +1826,17 @@
                 "description": "Zod validation issue breakdown grouped by target field"
               }
             },
-            "required": [
-              "code",
-              "message"
-            ]
+            "required": ["code", "message"]
           }
         },
-        "required": [
-          "success",
-          "error"
-        ]
+        "required": ["success", "error"]
       },
       "RootServiceResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -2077,29 +1866,17 @@
                 "example": "/openapi.json"
               }
             },
-            "required": [
-              "service",
-              "status",
-              "version",
-              "health",
-              "docs",
-              "openapi"
-            ]
+            "required": ["service", "status", "version", "health", "docs", "openapi"]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "V1IndexResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -2132,34 +1909,20 @@
                     "example": "/api/v1/openapi.json"
                   }
                 },
-                "required": [
-                  "health",
-                  "docs",
-                  "openapi"
-                ]
+                "required": ["health", "docs", "openapi"]
               }
             },
-            "required": [
-              "service",
-              "status",
-              "version",
-              "endpoints"
-            ]
+            "required": ["service", "status", "version", "endpoints"]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "HealthResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -2178,17 +1941,10 @@
                 "example": "2026-10-14T13:45:00.000Z"
               }
             },
-            "required": [
-              "status",
-              "service",
-              "timestamp"
-            ]
+            "required": ["status", "service", "timestamp"]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "Instrument": {
         "type": "object",
@@ -2216,23 +1972,14 @@
             "example": "INR"
           }
         },
-        "required": [
-          "symbol",
-          "name",
-          "type",
-          "market",
-          "exchange",
-          "currency"
-        ]
+        "required": ["symbol", "name", "type", "market", "exchange", "currency"]
       },
       "InstrumentSearchResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -2247,25 +1994,17 @@
                 "$ref": "#/components/schemas/Pagination"
               }
             },
-            "required": [
-              "items",
-              "pagination"
-            ]
+            "required": ["items", "pagination"]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "InstrumentDetailResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -2303,29 +2042,17 @@
                 "example": 34.2
               }
             },
-            "required": [
-              "symbol",
-              "name",
-              "price",
-              "change",
-              "changePercent",
-              "currency"
-            ]
+            "required": ["symbol", "name", "price", "change", "changePercent", "currency"]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "NormalizedQuoteResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -2408,14 +2135,7 @@
               },
               "freshness": {
                 "type": "string",
-                "enum": [
-                  "live",
-                  "delayed",
-                  "eod",
-                  "historical",
-                  "stale",
-                  "unavailable"
-                ]
+                "enum": ["live", "delayed", "eod", "historical", "stale", "unavailable"]
               },
               "isStale": {
                 "type": "boolean",
@@ -2436,19 +2156,14 @@
             ]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "HistoricalPricesResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -2509,13 +2224,7 @@
                       "nullable": true
                     }
                   },
-                  "required": [
-                    "timestamp",
-                    "open",
-                    "high",
-                    "low",
-                    "close"
-                  ]
+                  "required": ["timestamp", "open", "high", "low", "close"]
                 }
               }
             },
@@ -2531,10 +2240,7 @@
             ]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "AiResearchRequest": {
         "type": "object",
@@ -2568,15 +2274,10 @@
                 "maxLength": 10
               }
             },
-            "required": [
-              "symbol"
-            ]
+            "required": ["symbol"]
           }
         },
-        "required": [
-          "symbol",
-          "question"
-        ],
+        "required": ["symbol", "question"],
         "additionalProperties": false
       },
       "AiResearchResponse": {
@@ -2584,18 +2285,14 @@
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
             "properties": {
               "schemaVersion": {
                 "type": "string",
-                "enum": [
-                  "1.0"
-                ]
+                "enum": ["1.0"]
               },
               "instrument": {
                 "$ref": "#/components/schemas/AiResearchInstrument"
@@ -2704,10 +2401,7 @@
             ]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "AiResearchInstrument": {
         "type": "object",
@@ -2723,11 +2417,7 @@
             "nullable": true
           }
         },
-        "required": [
-          "symbol",
-          "exchange",
-          "name"
-        ]
+        "required": ["symbol", "exchange", "name"]
       },
       "AiResearchClaim": {
         "type": "object",
@@ -2742,22 +2432,14 @@
             }
           }
         },
-        "required": [
-          "text",
-          "evidenceIds"
-        ]
+        "required": ["text", "evidenceIds"]
       },
       "AiResearchAssessment": {
         "type": "object",
         "properties": {
           "label": {
             "type": "string",
-            "enum": [
-              "POSITIVE",
-              "NEGATIVE",
-              "MIXED",
-              "INSUFFICIENT_DATA"
-            ]
+            "enum": ["POSITIVE", "NEGATIVE", "MIXED", "INSUFFICIENT_DATA"]
           },
           "explanation": {
             "type": "string"
@@ -2769,11 +2451,7 @@
             }
           }
         },
-        "required": [
-          "label",
-          "explanation",
-          "evidenceIds"
-        ]
+        "required": ["label", "explanation", "evidenceIds"]
       },
       "AiResearchSection": {
         "type": "object",
@@ -2797,24 +2475,14 @@
             }
           }
         },
-        "required": [
-          "title",
-          "analysis",
-          "risks",
-          "limitations"
-        ]
+        "required": ["title", "analysis", "risks", "limitations"]
       },
       "AiResearchConfidence": {
         "type": "object",
         "properties": {
           "level": {
             "type": "string",
-            "enum": [
-              "HIGH",
-              "MEDIUM",
-              "LIMITED",
-              "LOW"
-            ]
+            "enum": ["HIGH", "MEDIUM", "LIMITED", "LOW"]
           },
           "explanation": {
             "type": "string"
@@ -2828,12 +2496,7 @@
             "minimum": 1
           }
         },
-        "required": [
-          "level",
-          "explanation",
-          "availableEvidence",
-          "totalEvidence"
-        ]
+        "required": ["level", "explanation", "availableEvidence", "totalEvidence"]
       },
       "AiResearchEvidence": {
         "type": "object",
@@ -2843,13 +2506,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "statement",
-              "metric",
-              "health_score",
-              "market_quote",
-              "market_history"
-            ]
+            "enum": ["statement", "metric", "health_score", "market_quote", "market_history"]
           },
           "metric": {
             "type": "string"
@@ -2875,11 +2532,7 @@
           },
           "periodType": {
             "type": "string",
-            "enum": [
-              "annual",
-              "quarterly",
-              "ttm"
-            ]
+            "enum": ["annual", "quarterly", "ttm"]
           },
           "source": {
             "type": "string"
@@ -2899,25 +2552,14 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "id",
-          "type",
-          "metric",
-          "value",
-          "unit",
-          "period",
-          "source",
-          "timestamp"
-        ]
+        "required": ["id", "type", "metric", "value", "unit", "period", "source", "timestamp"]
       },
       "MarketOverviewResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -2947,12 +2589,7 @@
                       "example": 0.34
                     }
                   },
-                  "required": [
-                    "name",
-                    "value",
-                    "change",
-                    "changePercent"
-                  ]
+                  "required": ["name", "value", "change", "changePercent"]
                 }
               },
               "marketBreadth": {
@@ -2971,24 +2608,13 @@
                     "example": 110
                   }
                 },
-                "required": [
-                  "advances",
-                  "declines",
-                  "unchanged"
-                ]
+                "required": ["advances", "declines", "unchanged"]
               }
             },
-            "required": [
-              "market",
-              "indices",
-              "marketBreadth"
-            ]
+            "required": ["market", "indices", "marketBreadth"]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "Watchlist": {
         "type": "object",
@@ -3013,21 +2639,14 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "items",
-          "createdAt"
-        ]
+        "required": ["id", "name", "items", "createdAt"]
       },
       "WatchlistsResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "type": "object",
@@ -3039,15 +2658,10 @@
                 }
               }
             },
-            "required": [
-              "watchlists"
-            ]
+            "required": ["watchlists"]
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "UserProfile": {
         "type": "object",
@@ -3081,12 +2695,7 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "email",
-          "createdAt",
-          "updatedAt"
-        ]
+        "required": ["id", "email", "createdAt", "updatedAt"]
       },
       "UserPreferences": {
         "type": "object",
@@ -3097,43 +2706,26 @@
           },
           "defaultExchange": {
             "type": "string",
-            "enum": [
-              "NSE",
-              "BSE"
-            ]
+            "enum": ["NSE", "BSE"]
           },
           "preferredCurrency": {
             "type": "string",
-            "enum": [
-              "INR",
-              "USD"
-            ]
+            "enum": ["INR", "USD"]
           },
           "statementPeriod": {
             "type": "string",
-            "enum": [
-              "annual",
-              "quarterly"
-            ]
+            "enum": ["annual", "quarterly"]
           },
           "landingPage": {
             "type": "string"
           },
           "theme": {
             "type": "string",
-            "enum": [
-              "dark",
-              "light",
-              "system"
-            ]
+            "enum": ["dark", "light", "system"]
           },
           "tableDensity": {
             "type": "string",
-            "enum": [
-              "compact",
-              "normal",
-              "comfortable"
-            ]
+            "enum": ["compact", "normal", "comfortable"]
           },
           "updatedAt": {
             "type": "string",
@@ -3166,10 +2758,7 @@
           },
           "exchange": {
             "type": "string",
-            "enum": [
-              "NSE",
-              "BSE"
-            ]
+            "enum": ["NSE", "BSE"]
           },
           "companyName": {
             "type": "string"
@@ -3200,13 +2789,7 @@
             }
           }
         },
-        "required": [
-          "id",
-          "userId",
-          "symbol",
-          "exchange",
-          "createdAt"
-        ]
+        "required": ["id", "userId", "symbol", "exchange", "createdAt"]
       }
     }
   }

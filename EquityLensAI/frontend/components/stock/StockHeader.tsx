@@ -70,9 +70,7 @@ export function StockHeader({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
-              {symbol}
-            </h1>
+            <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">{symbol}</h1>
 
             {/* Favorite Star Button */}
             <button
@@ -133,8 +131,18 @@ export function StockHeader({
               onClick={() => setWatchlistModalOpen(true)}
               className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-slate-800/80 px-3.5 py-2 text-xs font-semibold text-slate-200 shadow hover:bg-slate-700 hover:text-white transition"
             >
-              <svg className="h-4 w-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <svg
+                className="h-4 w-4 text-sky-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
               </svg>
               <span>Add to Watchlist</span>
             </button>
@@ -269,7 +277,9 @@ export function StockHeader({
                 Prev Close
               </div>
               <div className="mt-1 text-sm font-bold text-slate-200 font-mono">
-                {quote.previousClose !== null ? `${currencySymbol}${quote.previousClose.toFixed(2)}` : '—'}
+                {quote.previousClose !== null
+                  ? `${currencySymbol}${quote.previousClose.toFixed(2)}`
+                  : '—'}
               </div>
             </div>
 
@@ -291,7 +301,9 @@ export function StockHeader({
             </div>
             <div>
               Retrieved:{' '}
-              <span className="text-slate-400">{new Date(quote.retrievedAt).toLocaleTimeString()}</span>
+              <span className="text-slate-400">
+                {new Date(quote.retrievedAt).toLocaleTimeString()}
+              </span>
             </div>
           </div>
         </div>

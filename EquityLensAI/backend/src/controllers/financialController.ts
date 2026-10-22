@@ -16,7 +16,10 @@ const symbolParamSchema = z.object({
     .string()
     .min(1)
     .max(30)
-    .regex(/^[A-Za-z0-9._-]+$/, 'Symbol must contain only alphanumeric characters, dots, hyphens, or underscores'),
+    .regex(
+      /^[A-Za-z0-9._-]+$/,
+      'Symbol must contain only alphanumeric characters, dots, hyphens, or underscores',
+    ),
 });
 
 const analysisQuerySchema = z.object({
@@ -31,7 +34,11 @@ const analysisQuerySchema = z.object({
  * Returns fully assembled FinancialAnalysis including all statements, calculated
  * ratios, valuation multiples, and health score.
  */
-export async function getFinancialAnalysis(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function getFinancialAnalysis(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const { symbol } = symbolParamSchema.parse(req.params);
     const { exchange, periods } = analysisQuerySchema.parse(req.query);
@@ -53,7 +60,11 @@ export async function getFinancialAnalysis(req: Request, res: Response, next: Ne
  * Returns raw financial statements (income, balance sheet, cash flow) without
  * calculated ratios. Lighter endpoint for statement-only display.
  */
-export async function getFinancialStatements(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function getFinancialStatements(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const { symbol } = symbolParamSchema.parse(req.params);
     const { exchange, periods } = analysisQuerySchema.parse(req.query);
@@ -74,7 +85,11 @@ export async function getFinancialStatements(req: Request, res: Response, next: 
  * GET /api/v1/financial/:symbol/health-score
  * Returns only the financial health score (lightweight).
  */
-export async function getHealthScore(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function getHealthScore(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const { symbol } = symbolParamSchema.parse(req.params);
     const { exchange } = analysisQuerySchema.parse(req.query);
@@ -95,7 +110,11 @@ export async function getHealthScore(req: Request, res: Response, next: NextFunc
  * GET /api/v1/financial/cache-stats
  * Returns financial cache statistics for monitoring.
  */
-export async function getFinancialCacheStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function getFinancialCacheStats(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     sendSuccess(res, financialService.getCacheStats());
   } catch (err) {

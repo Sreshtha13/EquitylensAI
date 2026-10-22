@@ -9,7 +9,7 @@ import {
 
 export function useFinancialAnalysis(
   symbol: string | null | undefined,
-  options?: GetFinancialAnalysisOptions & { enabled?: boolean | undefined }
+  options?: GetFinancialAnalysisOptions & { enabled?: boolean | undefined },
 ) {
   const isEnabled = Boolean(symbol && (options?.enabled ?? true));
 
@@ -24,7 +24,7 @@ export function useFinancialAnalysis(
 export function useFinancialHealthScore(
   symbol: string | null | undefined,
   exchange?: string | undefined,
-  options?: { enabled?: boolean | undefined }
+  options?: { enabled?: boolean | undefined },
 ) {
   const isEnabled = Boolean(symbol && (options?.enabled ?? true));
 

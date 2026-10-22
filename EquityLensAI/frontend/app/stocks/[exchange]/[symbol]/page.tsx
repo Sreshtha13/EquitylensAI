@@ -14,6 +14,8 @@ import { FinancialStatementsTable } from '@/components/financial/FinancialStatem
 import { FinancialMetricsGrid } from '@/components/financial/FinancialMetricsGrid';
 import { HealthScoreCard } from '@/components/financial/HealthScoreCard';
 import { AiResearchPanel } from '@/components/research/AiResearchPanel';
+import { StockNewsSection } from '@/components/stock/StockNewsSection';
+import { StockAnnouncementsSection } from '@/components/stock/StockAnnouncementsSection';
 import { InstrumentSearch } from '@/components/market/InstrumentSearch';
 import type { InstrumentSummary } from '@/types';
 
@@ -26,6 +28,8 @@ type TabKey =
   | 'valuation'
   | 'health'
   | 'performance'
+  | 'news'
+  | 'announcements'
   | 'ai';
 
 const TABS: Array<{ key: TabKey; label: string; badge?: string }> = [
@@ -37,6 +41,8 @@ const TABS: Array<{ key: TabKey; label: string; badge?: string }> = [
   { key: 'valuation', label: 'Valuation' },
   { key: 'health', label: 'Financial Health' },
   { key: 'performance', label: 'Historical Performance' },
+  { key: 'news', label: 'News & Media' },
+  { key: 'announcements', label: 'Exchange Filings', badge: 'Official' },
   { key: 'ai', label: 'AI Research', badge: 'Gemini' },
 ];
 
@@ -49,15 +55,17 @@ export default function StockDetailPage({
 
   // Normalize exchange & symbol
   const cleanExchange = decodeURIComponent(rawExchange || 'NSE').toUpperCase();
-  const cleanSymbol = decodeURIComponent(rawSymbol || '').toUpperCase().trim();
+  const cleanSymbol = decodeURIComponent(rawSymbol || '')
+    .toUpperCase()
+    .trim();
 
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
 
   // 1. Resolve Instrument Master
-  const {
-    isLoading: isResolving,
-    isError: isResolveError,
-  } = useStockResolution(cleanSymbol, cleanExchange);
+  const { isLoading: isResolving, isError: isResolveError } = useStockResolution(
+    cleanSymbol,
+    cleanExchange,
+  );
 
   // 2. Quote (independent polling)
   const {
@@ -104,14 +112,20 @@ export default function StockDetailPage({
         <div className="rounded-3xl border border-rose-500/20 bg-rose-500/10 p-8 sm:p-12 shadow-2xl backdrop-blur-xl max-w-xl w-full">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/20 text-rose-300">
             <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
           </div>
 
           <h1 className="mt-4 text-2xl font-black text-white">Stock Not Found</h1>
           <p className="mt-2 text-sm text-rose-200/80 leading-relaxed">
-            No supported security matching <strong className="text-white">{cleanSymbol}</strong> on exchange{' '}
-            <strong className="text-white">{cleanExchange}</strong> exists in our instrument master.
+            No supported security matching <strong className="text-white">{cleanSymbol}</strong> on
+            exchange <strong className="text-white">{cleanExchange}</strong> exists in our
+            instrument master.
           </p>
 
           <p className="mt-4 text-xs text-slate-400">
@@ -241,9 +255,7 @@ export default function StockDetailPage({
             </div>
 
             {/* Quick Valuation Snapshot */}
-            {financialAnalysis && (
-              <ValuationSection analysis={financialAnalysis} quote={quote} />
-            )}
+            {financialAnalysis && <ValuationSection analysis={financialAnalysis} quote={quote} />}
 
             {/* Quick Performance Highlights */}
             <PerformanceSection symbol={cleanSymbol} exchange={cleanExchange} />
@@ -342,6 +354,20 @@ export default function StockDetailPage({
         {activeTab === 'performance' && (
           <div className="flex flex-col gap-6">
             <PerformanceSection symbol={cleanSymbol} exchange={cleanExchange} />
+          </div>
+        )}
+
+        {/* TAB: NEWS */}
+        {activeTab === 'news' && (
+          <div className="flex flex-col gap-6">
+            <StockNewsSection symbol={cleanSymbol} exchange={cleanExchange} />
+          </div>
+        )}
+
+        {/* TAB: ANNOUNCEMENTS */}
+        {activeTab === 'announcements' && (
+          <div className="flex flex-col gap-6">
+            <StockAnnouncementsSection symbol={cleanSymbol} exchange={cleanExchange} />
           </div>
         )}
 

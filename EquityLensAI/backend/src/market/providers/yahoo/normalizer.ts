@@ -22,7 +22,12 @@ export function normalizeYahooQuote(
     regularMarketVolume?: number | null | undefined;
     regularMarketTime?: Date | string | number | null | undefined;
   },
-  metadata?: { symbol?: string | undefined; name?: string | undefined; exchange?: string | undefined; market?: 'nse' | 'bse' | 'us' | undefined }
+  metadata?: {
+    symbol?: string | undefined;
+    name?: string | undefined;
+    exchange?: string | undefined;
+    market?: 'nse' | 'bse' | 'us' | undefined;
+  },
 ): NormalizedQuote {
   const now = new Date().toISOString();
   let observedAt = now;
@@ -36,8 +41,11 @@ export function normalizeYahooQuote(
   }
 
   const cleanSym = (metadata?.symbol || raw.symbol).replace(/\.(NS|BO)$/i, '');
-  const exchange = metadata?.exchange || (raw.symbol.endsWith('.NS') ? 'NSE' : raw.symbol.endsWith('.BO') ? 'BSE' : 'US');
-  const market = metadata?.market || (exchange === 'NSE' ? 'nse' : exchange === 'BSE' ? 'bse' : 'us');
+  const exchange =
+    metadata?.exchange ||
+    (raw.symbol.endsWith('.NS') ? 'NSE' : raw.symbol.endsWith('.BO') ? 'BSE' : 'US');
+  const market =
+    metadata?.market || (exchange === 'NSE' ? 'nse' : exchange === 'BSE' ? 'bse' : 'us');
 
   return {
     symbol: cleanSym,
@@ -78,7 +86,7 @@ export function normalizeYahooChart(
     close?: number | null;
     adjclose?: number | null;
     volume?: number | null;
-  }>
+  }>,
 ): HistoricalPrices {
   const now = new Date().toISOString();
 

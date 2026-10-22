@@ -36,7 +36,7 @@ export class AngelProvider implements MarketProvider {
       throw new AppError(
         'PROVIDER_UNAVAILABLE',
         'Angel One SmartAPI credentials are not configured',
-        503
+        503,
       );
     }
 
@@ -56,7 +56,7 @@ export class AngelProvider implements MarketProvider {
       throw new AppError(
         'INSTRUMENT_TOKEN_NOT_FOUND',
         `No Angel One token found for symbol ${request.symbol}. Ingest scrip master first.`,
-        404
+        404,
       );
     }
 
@@ -67,7 +67,7 @@ export class AngelProvider implements MarketProvider {
       throw new AppError(
         'QUOTE_NOT_FOUND',
         `No quote data returned from Angel One for token ${token}`,
-        404
+        404,
       );
     }
 
@@ -83,7 +83,7 @@ export class AngelProvider implements MarketProvider {
       throw new AppError(
         'PROVIDER_UNAVAILABLE',
         'Angel One SmartAPI credentials are not configured',
-        503
+        503,
       );
     }
 
@@ -103,7 +103,7 @@ export class AngelProvider implements MarketProvider {
       throw new AppError(
         'INSTRUMENT_TOKEN_NOT_FOUND',
         `No Angel One token found for symbol ${request.symbol}. Ingest scrip master first.`,
-        404
+        404,
       );
     }
 
@@ -137,7 +137,14 @@ export class AngelProvider implements MarketProvider {
       toDate,
     });
 
-    return normalizeAngelCandles(cleanSym, exchange, request.interval, fromDate, toDate, rawCandles);
+    return normalizeAngelCandles(
+      cleanSym,
+      exchange,
+      request.interval,
+      fromDate,
+      toDate,
+      rawCandles,
+    );
   }
 
   async getIndices(symbols?: string[]): Promise<IndexSnapshot[]> {
@@ -155,7 +162,7 @@ export class AngelProvider implements MarketProvider {
     try {
       const fetched = await angelClient.getQuotes(
         'NSE',
-        tokensToFetch.map((t) => t.token)
+        tokensToFetch.map((t) => t.token),
       );
 
       return fetched.map((item) => {

@@ -46,7 +46,8 @@ export function calculateStockPerformance(
       periods: [],
       methodology: {
         cumulativeReturn: '((EndPrice - StartPrice) / StartPrice) * 100',
-        annualizedReturn: '((EndPrice / StartPrice) ^ (365.25 / ActualDays) - 1) * 100 (periods >= 1 year)',
+        annualizedReturn:
+          '((EndPrice / StartPrice) ^ (365.25 / ActualDays) - 1) * 100 (periods >= 1 year)',
         volatility: 'Standard deviation of daily log returns * sqrt(252) * 100',
         maxDrawdown: 'Maximum peak-to-trough decline (negative percent) across the period',
         disclaimer:
@@ -122,7 +123,9 @@ export function calculateStockPerformance(
     if (windowCandles.length >= 5) {
       const logReturns: number[] = [];
       for (let i = 1; i < windowCandles.length; i++) {
-        const prev = hasAdjusted ? windowCandles[i - 1]!.adjustedClose! : windowCandles[i - 1]!.close;
+        const prev = hasAdjusted
+          ? windowCandles[i - 1]!.adjustedClose!
+          : windowCandles[i - 1]!.close;
         const curr = hasAdjusted ? windowCandles[i]!.adjustedClose! : windowCandles[i]!.close;
         if (prev > 0 && curr > 0) {
           logReturns.push(Math.log(curr / prev));
@@ -188,7 +191,8 @@ export function calculateStockPerformance(
     periods,
     methodology: {
       cumulativeReturn: '((EndPrice - StartPrice) / StartPrice) * 100',
-      annualizedReturn: '((EndPrice / StartPrice) ^ (365.25 / ActualDays) - 1) * 100 (periods >= 1 year)',
+      annualizedReturn:
+        '((EndPrice / StartPrice) ^ (365.25 / ActualDays) - 1) * 100 (periods >= 1 year)',
       volatility: 'Standard deviation of daily log returns * sqrt(252) * 100',
       maxDrawdown: 'Maximum peak-to-trough decline (negative percent) across the period',
       disclaimer:

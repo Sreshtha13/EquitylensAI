@@ -17,7 +17,7 @@ export function useStockSearch(
     assetType?: string | undefined;
     limit?: number | undefined;
     enabled?: boolean | undefined;
-  }
+  },
 ) {
   const trimmed = query.trim();
   const isEnabled = options?.enabled !== undefined ? options.enabled : trimmed.length >= 1;
@@ -38,7 +38,7 @@ export function useStockSearch(
 export function useStockQuote(
   symbol: string | null | undefined,
   exchange?: string | undefined,
-  options?: { refetchInterval?: number | false | undefined; enabled?: boolean | undefined }
+  options?: { refetchInterval?: number | false | undefined; enabled?: boolean | undefined },
 ) {
   const isEnabled = Boolean(symbol && (options?.enabled ?? true));
 
@@ -59,12 +59,20 @@ export function useStockHistory(
     from?: string | undefined;
     to?: string | undefined;
     enabled?: boolean | undefined;
-  }
+  },
 ) {
   const isEnabled = Boolean(symbol && (options?.enabled ?? true));
 
   return useQuery({
-    queryKey: ['stocks', 'history', symbol, options?.exchange, options?.interval, options?.from, options?.to],
+    queryKey: [
+      'stocks',
+      'history',
+      symbol,
+      options?.exchange,
+      options?.interval,
+      options?.from,
+      options?.to,
+    ],
     queryFn: () =>
       getStockHistory(symbol!, {
         exchange: options?.exchange,
@@ -79,7 +87,7 @@ export function useStockHistory(
 
 export function useMarketOverview(
   market: Market = 'nse',
-  options?: { refetchInterval?: number | false | undefined }
+  options?: { refetchInterval?: number | false | undefined },
 ) {
   return useQuery({
     queryKey: ['market', 'overview', market],

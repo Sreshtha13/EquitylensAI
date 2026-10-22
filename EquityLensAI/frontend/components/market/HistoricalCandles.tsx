@@ -12,7 +12,11 @@ type HistoricalCandlesProps = {
 export function HistoricalCandles({ symbol, exchange }: HistoricalCandlesProps) {
   const [interval, setInterval] = useState<CandleInterval>('ONE_DAY');
 
-  const { data: history, isLoading, error } = useStockHistory(symbol, {
+  const {
+    data: history,
+    isLoading,
+    error,
+  } = useStockHistory(symbol, {
     exchange,
     interval,
   });
@@ -84,13 +88,15 @@ export function HistoricalCandles({ symbol, exchange }: HistoricalCandlesProps) 
                 <div className="rounded-xl border border-white/5 bg-slate-950/40 p-3">
                   <div className="text-[10px] uppercase text-slate-500">Period High</div>
                   <div className="text-sm font-bold text-emerald-400">
-                    {currencySymbol}{maxHigh.toFixed(2)}
+                    {currencySymbol}
+                    {maxHigh.toFixed(2)}
                   </div>
                 </div>
                 <div className="rounded-xl border border-white/5 bg-slate-950/40 p-3">
                   <div className="text-[10px] uppercase text-slate-500">Period Low</div>
                   <div className="text-sm font-bold text-rose-400">
-                    {currencySymbol}{minLow.toFixed(2)}
+                    {currencySymbol}
+                    {minLow.toFixed(2)}
                   </div>
                 </div>
                 <div className="rounded-xl border border-white/5 bg-slate-950/40 p-3">
@@ -101,8 +107,11 @@ export function HistoricalCandles({ symbol, exchange }: HistoricalCandlesProps) 
                 </div>
                 <div className="rounded-xl border border-white/5 bg-slate-950/40 p-3">
                   <div className="text-[10px] uppercase text-slate-500">Period Delta</div>
-                  <div className={`text-sm font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}`}>
-                    {isPos ? '+' : ''}{periodChange.toFixed(2)} ({periodPercent.toFixed(2)}%)
+                  <div
+                    className={`text-sm font-bold ${isPos ? 'text-emerald-400' : 'text-rose-400'}`}
+                  >
+                    {isPos ? '+' : ''}
+                    {periodChange.toFixed(2)} ({periodPercent.toFixed(2)}%)
                   </div>
                 </div>
               </div>
@@ -138,16 +147,22 @@ export function HistoricalCandles({ symbol, exchange }: HistoricalCandlesProps) 
                           })}
                         </td>
                         <td className="px-4 py-2.5 text-slate-300">
-                          {currencySymbol}{c.open.toFixed(2)}
+                          {currencySymbol}
+                          {c.open.toFixed(2)}
                         </td>
                         <td className="px-4 py-2.5 text-emerald-400">
-                          {currencySymbol}{c.high.toFixed(2)}
+                          {currencySymbol}
+                          {c.high.toFixed(2)}
                         </td>
                         <td className="px-4 py-2.5 text-rose-400">
-                          {currencySymbol}{c.low.toFixed(2)}
+                          {currencySymbol}
+                          {c.low.toFixed(2)}
                         </td>
-                        <td className={`px-4 py-2.5 font-semibold ${isGreen ? 'text-emerald-400' : 'text-rose-400'}`}>
-                          {currencySymbol}{c.close.toFixed(2)}
+                        <td
+                          className={`px-4 py-2.5 font-semibold ${isGreen ? 'text-emerald-400' : 'text-rose-400'}`}
+                        >
+                          {currencySymbol}
+                          {c.close.toFixed(2)}
                         </td>
                         <td className="px-4 py-2.5 text-slate-400">
                           {c.volume !== null ? c.volume.toLocaleString() : '—'}

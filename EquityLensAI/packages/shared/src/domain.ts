@@ -523,3 +523,154 @@ export type StockPerformanceResponse = {
     disclaimer: string;
   };
 };
+
+// ─── Phase 8: Market News, Corporate Announcements & Event Intelligence ────
+
+export const SOURCE_TYPES = [
+  'official_exchange',
+  'news_publisher',
+  'company_ir',
+  'regulatory',
+] as const;
+export type SourceType = (typeof SOURCE_TYPES)[number];
+
+export const ANNOUNCEMENT_CATEGORIES = [
+  'financial_results',
+  'board_meetings',
+  'dividend',
+  'bonus_issue',
+  'stock_split',
+  'rights_issue',
+  'fundraising',
+  'mergers_acquisitions',
+  'shareholding_pattern',
+  'management_changes',
+  'credit_rating',
+  'governance',
+  'regulatory',
+  'updates',
+  'general',
+] as const;
+export type AnnouncementCategory = (typeof ANNOUNCEMENT_CATEGORIES)[number];
+
+export type CompanyAssociation = {
+  symbol: string;
+  exchange: string;
+  companyName?: string;
+  confidence: number;
+  method: 'isin' | 'token' | 'symbol_exchange' | 'symbol_exact' | 'name_match';
+};
+
+export type GroundedAiSummary = {
+  summary: string;
+  keyPoints?: string[];
+  sentiment?: 'positive' | 'negative' | 'neutral' | 'unspecified';
+  generatedAt: string;
+  model: string;
+  isHeadlineOnly: boolean;
+  disclaimer: string;
+};
+
+/** Normalized market news item from verified news publishers */
+export type NewsItem = {
+  id: string;
+  providerId: string;
+  externalId?: string | null;
+  title: string;
+  canonicalUrl: string;
+  sourceName: string;
+  sourceType: SourceType;
+  publishedAt: string | null;
+  retrievedAt: string;
+  language?: string | null;
+  contentExcerpt?: string | null;
+  category?: string | null;
+  symbols: CompanyAssociation[];
+  aiSummary?: GroundedAiSummary | null;
+};
+
+/** Verified official corporate announcement from stock exchanges or company filings */
+export type CorporateAnnouncement = {
+  id: string;
+  providerId: string;
+  externalId?: string | null;
+  symbol: string;
+  companyName: string;
+  exchange: string;
+  isin?: string | null;
+  title: string;
+  category: AnnouncementCategory;
+  description: string | null;
+  publishedAt: string;
+  receivedAt?: string | null;
+  sourceUrl: string;
+  documentUrl?: string | null;
+  fileSize?: string | null;
+  retrievedAt: string;
+  aiSummary?: GroundedAiSummary | null;
+};
+
+export type NewsFeedResponse = {
+  items: NewsItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    hasMore: boolean;
+  };
+  freshness: {
+    lastRetrievedAt: string;
+    provider: string;
+    isStale: boolean;
+  };
+};
+
+export type AnnouncementsFeedResponse = {
+  items: CorporateAnnouncement[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    hasMore: boolean;
+  };
+  freshness: {
+    lastRetrievedAt: string;
+    provider: string;
+    isStale: boolean;
+  };
+};
+
+export type WatchlistNewsResponse = {
+  items: NewsItem[];
+  symbolsWatched: string[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    hasMore: boolean;
+  };
+  freshness: {
+    lastRetrievedAt: string;
+    provider: string;
+    isStale: boolean;
+  };
+};
+
+export type ProviderHealthInfo = {
+  id: string;
+  name: string;
+  status: 'operational' | 'degraded' | 'unavailable';
+  lastSuccessAt: string | null;
+  lastError: string | null;
+  coverage: string;
+};
+
+export type NewsIngestionStatus = {
+  lastRunAt: string | null;
+  lastSuccessAt: string | null;
+  status: 'idle' | 'running' | 'success' | 'failed';
+  itemsRetrieved: number;
+  itemsInserted: number;
+  duplicatesCount: number;
+  providers: ProviderHealthInfo[];
+};

@@ -37,9 +37,7 @@ export default function ForgotPasswordPage() {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 font-bold text-white shadow-lg shadow-sky-500/25">
             EL
           </div>
-          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-white">
-            Reset Password
-          </h1>
+          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-white">Reset Password</h1>
           <p className="mt-1.5 text-xs text-slate-400">
             Enter your email address and we&apos;ll send you instructions to reset your password.
           </p>
@@ -48,7 +46,8 @@ export default function ForgotPasswordPage() {
         {submitted ? (
           <div className="mt-6 rounded-lg border border-sky-500/30 bg-sky-500/10 p-4 text-center">
             <p className="text-xs text-sky-200 leading-relaxed">
-              If an account exists for <span className="font-semibold text-white">{email}</span>, password reset instructions have been sent. Please check your inbox.
+              If an account exists for <span className="font-semibold text-white">{email}</span>,
+              password reset instructions have been sent. Please check your inbox.
             </p>
             <div className="mt-4">
               <Link
@@ -94,7 +93,10 @@ export default function ForgotPasswordPage() {
 
             <p className="mt-6 text-center text-xs text-slate-400">
               Remember your password?{' '}
-              <Link href="/login" className="font-semibold text-sky-400 hover:text-sky-300 transition">
+              <Link
+                href="/login"
+                className="font-semibold text-sky-400 hover:text-sky-300 transition"
+              >
                 Sign In
               </Link>
             </p>

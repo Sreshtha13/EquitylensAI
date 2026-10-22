@@ -18,6 +18,13 @@ import {
   getIngestStatus,
 } from '../controllers/stocksController.js';
 
+import {
+  stockNewsParamsSchema,
+  stockNewsQuerySchema,
+  stockAnnouncementsQuerySchema,
+} from '../validation/news.js';
+import { getStockNews, getStockAnnouncements } from '../controllers/newsController.js';
+
 export const stocksRouter = Router();
 
 stocksRouter.get('/search', validate({ query: searchInstrumentsQuerySchema }), searchStocks);
@@ -25,37 +32,49 @@ stocksRouter.get('/search', validate({ query: searchInstrumentsQuerySchema }), s
 stocksRouter.get(
   '/:symbol/quote',
   validate({ params: quoteParamsSchema, query: quoteQuerySchema }),
-  getStockQuote
+  getStockQuote,
 );
 
 stocksRouter.get(
   '/:symbol/profile',
   validate({ params: quoteParamsSchema, query: quoteQuerySchema }),
-  getStockProfile
+  getStockProfile,
 );
 
 stocksRouter.get(
   '/:symbol/performance',
   validate({ params: quoteParamsSchema, query: quoteQuerySchema }),
-  getStockPerformance
+  getStockPerformance,
+);
+
+stocksRouter.get(
+  '/:symbol/news',
+  validate({ params: stockNewsParamsSchema, query: stockNewsQuerySchema }),
+  getStockNews,
+);
+
+stocksRouter.get(
+  '/:symbol/announcements',
+  validate({ params: stockNewsParamsSchema, query: stockAnnouncementsQuerySchema }),
+  getStockAnnouncements,
 );
 
 stocksRouter.get(
   '/:symbol/resolve',
   validate({ params: quoteParamsSchema, query: quoteQuerySchema }),
-  resolveStock
+  resolveStock,
 );
 
 stocksRouter.get(
   '/:symbol',
   validate({ params: quoteParamsSchema, query: quoteQuerySchema }),
-  getStockQuote
+  getStockQuote,
 );
 
 stocksRouter.get(
   '/:symbol/history',
   validate({ params: historicalParamsSchema, query: historicalQuerySchema }),
-  getStockHistorical
+  getStockHistorical,
 );
 
 stocksRouter.post('/ingest', triggerIngestion);

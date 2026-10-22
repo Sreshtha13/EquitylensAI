@@ -66,7 +66,6 @@ async function request<T>(
     headers,
   };
 
-
   if (options.signal) {
     init.signal = options.signal;
   }

@@ -237,11 +237,7 @@ export class WatchlistsService {
     await userRepository.removeWatchlistItem(watchlistId, symbol, exchange);
   }
 
-  async reorderItems(
-    userId: string,
-    watchlistId: string,
-    symbols: string[],
-  ): Promise<void> {
+  async reorderItems(userId: string, watchlistId: string, symbols: string[]): Promise<void> {
     const wl = await userRepository.getWatchlistById(userId, watchlistId);
     if (!wl) {
       throw new AppError('NOT_FOUND', 'Watchlist not found', 404);

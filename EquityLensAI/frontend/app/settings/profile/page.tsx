@@ -34,7 +34,9 @@ export default function ProfileSettingsPage() {
       <div className="mx-auto flex w-full max-w-md flex-col justify-center px-6 py-20 text-center">
         <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-8">
           <h1 className="text-lg font-bold text-white">Sign In Required</h1>
-          <p className="mt-2 text-xs text-slate-400">Please sign in to view and edit your profile.</p>
+          <p className="mt-2 text-xs text-slate-400">
+            Please sign in to view and edit your profile.
+          </p>
           <div className="mt-6">
             <Link
               href="/login"
@@ -80,10 +82,7 @@ export default function ProfileSettingsPage() {
 
       {/* Tabs */}
       <div className="flex border-b border-white/10 gap-6 text-xs font-medium">
-        <Link
-          href="/settings/profile"
-          className="border-b-2 border-sky-400 pb-3 text-sky-400"
-        >
+        <Link href="/settings/profile" className="border-b-2 border-sky-400 pb-3 text-sky-400">
           Profile
         </Link>
         <Link
@@ -92,10 +91,7 @@ export default function ProfileSettingsPage() {
         >
           Preferences
         </Link>
-        <Link
-          href="/settings/security"
-          className="pb-3 text-slate-400 hover:text-white transition"
-        >
+        <Link href="/settings/security" className="pb-3 text-slate-400 hover:text-white transition">
           Security
         </Link>
       </div>

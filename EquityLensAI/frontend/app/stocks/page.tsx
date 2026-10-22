@@ -13,14 +13,34 @@ export default function StocksIndexPage() {
   };
 
   const featuredStocks = [
-    { symbol: 'RELIANCE', exchange: 'NSE', name: 'Reliance Industries Ltd.', sector: 'Energy & Petrochemicals' },
-    { symbol: 'TCS', exchange: 'NSE', name: 'Tata Consultancy Services Ltd.', sector: 'Information Technology' },
+    {
+      symbol: 'RELIANCE',
+      exchange: 'NSE',
+      name: 'Reliance Industries Ltd.',
+      sector: 'Energy & Petrochemicals',
+    },
+    {
+      symbol: 'TCS',
+      exchange: 'NSE',
+      name: 'Tata Consultancy Services Ltd.',
+      sector: 'Information Technology',
+    },
     { symbol: 'HDFCBANK', exchange: 'NSE', name: 'HDFC Bank Ltd.', sector: 'Financial Services' },
     { symbol: 'INFY', exchange: 'NSE', name: 'Infosys Ltd.', sector: 'Information Technology' },
     { symbol: 'ICICIBANK', exchange: 'NSE', name: 'ICICI Bank Ltd.', sector: 'Financial Services' },
-    { symbol: 'BHARTIARTL', exchange: 'NSE', name: 'Bharti Airtel Ltd.', sector: 'Telecommunications' },
+    {
+      symbol: 'BHARTIARTL',
+      exchange: 'NSE',
+      name: 'Bharti Airtel Ltd.',
+      sector: 'Telecommunications',
+    },
     { symbol: 'AAPL', exchange: 'NASDAQ', name: 'Apple Inc.', sector: 'Technology & Hardware' },
-    { symbol: 'MSFT', exchange: 'NASDAQ', name: 'Microsoft Corporation', sector: 'Software & Cloud' },
+    {
+      symbol: 'MSFT',
+      exchange: 'NASDAQ',
+      name: 'Microsoft Corporation',
+      sector: 'Software & Cloud',
+    },
   ];
 
   return (
@@ -34,7 +54,9 @@ export default function StocksIndexPage() {
           Search Listed Companies
         </h1>
         <p className="mt-2 text-sm text-slate-400 max-w-2xl leading-relaxed">
-          Access verified company intelligence, live quotes, interactive OHLCV charts, multi-year audited financial statements, deterministic ratios, valuation multiples, and Gemini-powered research.
+          Access verified company intelligence, live quotes, interactive OHLCV charts, multi-year
+          audited financial statements, deterministic ratios, valuation multiples, and
+          Gemini-powered research.
         </p>
       </div>
 

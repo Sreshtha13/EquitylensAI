@@ -32,8 +32,9 @@ export default function MarketPage() {
           Real Market Intelligence
         </h1>
         <p className="mt-2 text-sm text-slate-400 max-w-2xl leading-relaxed">
-          Production-grade market data streaming from verified providers (Angel One SmartAPI & Yahoo Finance).
-          Every price, volume, and tick contains strict data provenance with zero mock or hallucinated values.
+          Production-grade market data streaming from verified providers (Angel One SmartAPI & Yahoo
+          Finance). Every price, volume, and tick contains strict data provenance with zero mock or
+          hallucinated values.
         </p>
       </div>
 
@@ -45,10 +46,7 @@ export default function MarketPage() {
         <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
           Search Tradable Universe
         </label>
-        <InstrumentSearch
-          onSelect={handleSelectInstrument}
-          selectedSymbol={selectedStock.symbol}
-        />
+        <InstrumentSearch onSelect={handleSelectInstrument} selectedSymbol={selectedStock.symbol} />
       </div>
 
       {/* Active Quote Card */}

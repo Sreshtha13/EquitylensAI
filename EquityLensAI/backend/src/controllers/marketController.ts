@@ -6,7 +6,7 @@ import type { Market } from '../market/types.js';
 export async function getMarketOverview(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   try {
     const market = (req.query.market as Market) || 'nse';
@@ -17,11 +17,7 @@ export async function getMarketOverview(
   }
 }
 
-export function listProviders(
-  _req: Request,
-  res: Response,
-  _next: NextFunction
-): void {
+export function listProviders(_req: Request, res: Response, _next: NextFunction): void {
   const providers = marketService.listProviders();
   sendSuccess(res, { providers });
 }

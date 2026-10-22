@@ -9,11 +9,7 @@ type CompanyOverviewSectionProps = {
   error?: Error | null;
 };
 
-export function CompanyOverviewSection({
-  profile,
-  isLoading,
-  error,
-}: CompanyOverviewSectionProps) {
+export function CompanyOverviewSection({ profile, isLoading, error }: CompanyOverviewSectionProps) {
   const [isDescExpanded, setIsDescExpanded] = useState(false);
 
   if (isLoading) {
@@ -66,7 +62,10 @@ export function CompanyOverviewSection({
         <div>
           <h3 className="text-lg font-bold text-white">Company Overview & Profile</h3>
           <p className="text-xs text-slate-400">
-            Verified corporate data sourced from {source === 'yahoo' ? 'Yahoo Finance Corporate Profile' : 'Exchange Instrument Registry'}
+            Verified corporate data sourced from{' '}
+            {source === 'yahoo'
+              ? 'Yahoo Finance Corporate Profile'
+              : 'Exchange Instrument Registry'}
           </p>
         </div>
 
@@ -79,7 +78,12 @@ export function CompanyOverviewSection({
           >
             <span>Visit Website</span>
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
             </svg>
           </a>
         )}
@@ -87,7 +91,9 @@ export function CompanyOverviewSection({
 
       {/* Business Description */}
       <div className="mt-6">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">About the Business</h4>
+        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+          About the Business
+        </h4>
         {description ? (
           <div className="mt-2">
             <p
@@ -116,63 +122,103 @@ export function CompanyOverviewSection({
       {/* Key Corporate Facts Grid */}
       <div className="mt-8 grid grid-cols-2 gap-3.5 sm:grid-cols-4">
         <div className="rounded-2xl border border-white/5 bg-slate-950/50 p-4">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Sector</div>
+          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            Sector
+          </div>
           <div className="mt-1 text-sm font-semibold text-white">
             {sector || <span className="text-slate-500 italic font-normal">Not reported</span>}
           </div>
         </div>
 
         <div className="rounded-2xl border border-white/5 bg-slate-950/50 p-4">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Industry</div>
-          <div className="mt-1 text-sm font-semibold text-white truncate" title={industry || undefined}>
+          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            Industry
+          </div>
+          <div
+            className="mt-1 text-sm font-semibold text-white truncate"
+            title={industry || undefined}
+          >
             {industry || <span className="text-slate-500 italic font-normal">Not reported</span>}
           </div>
         </div>
 
         <div className="rounded-2xl border border-white/5 bg-slate-950/50 p-4">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Headquarters</div>
-          <div className="mt-1 text-sm font-semibold text-white truncate" title={headquarters || undefined}>
-            {headquarters || <span className="text-slate-500 italic font-normal">Not reported</span>}
+          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            Headquarters
+          </div>
+          <div
+            className="mt-1 text-sm font-semibold text-white truncate"
+            title={headquarters || undefined}
+          >
+            {headquarters || (
+              <span className="text-slate-500 italic font-normal">Not reported</span>
+            )}
           </div>
         </div>
 
         <div className="rounded-2xl border border-white/5 bg-slate-950/50 p-4">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Employees</div>
+          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            Employees
+          </div>
           <div className="mt-1 text-sm font-semibold text-white font-mono">
-            {employees ? employees.toLocaleString() : <span className="text-slate-500 italic font-normal font-sans">Not reported</span>}
+            {employees ? (
+              employees.toLocaleString()
+            ) : (
+              <span className="text-slate-500 italic font-normal font-sans">Not reported</span>
+            )}
           </div>
         </div>
 
         <div className="rounded-2xl border border-white/5 bg-slate-950/50 p-4">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Shares Outstanding</div>
+          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            Shares Outstanding
+          </div>
           <div className="mt-1 text-sm font-semibold text-white font-mono">
-            {sharesOutstanding ? sharesOutstanding.toLocaleString() : <span className="text-slate-500 italic font-normal font-sans">Not reported</span>}
+            {sharesOutstanding ? (
+              sharesOutstanding.toLocaleString()
+            ) : (
+              <span className="text-slate-500 italic font-normal font-sans">Not reported</span>
+            )}
           </div>
         </div>
 
         <div className="rounded-2xl border border-white/5 bg-slate-950/50 p-4">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Float Shares</div>
+          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            Float Shares
+          </div>
           <div className="mt-1 text-sm font-semibold text-white font-mono">
-            {floatShares ? floatShares.toLocaleString() : <span className="text-slate-500 italic font-normal font-sans">Not reported</span>}
+            {floatShares ? (
+              floatShares.toLocaleString()
+            ) : (
+              <span className="text-slate-500 italic font-normal font-sans">Not reported</span>
+            )}
           </div>
         </div>
 
         <div className="rounded-2xl border border-white/5 bg-slate-950/50 p-4">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Fiscal Year End</div>
+          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            Fiscal Year End
+          </div>
           <div className="mt-1 text-sm font-semibold text-slate-200">
-            {fiscalYearEnd || <span className="text-slate-500 italic font-normal font-sans">Not reported</span>}
+            {fiscalYearEnd || (
+              <span className="text-slate-500 italic font-normal font-sans">Not reported</span>
+            )}
           </div>
         </div>
 
         <div className="rounded-2xl border border-white/5 bg-slate-950/50 p-4">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Listing Exchange</div>
+          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            Listing Exchange
+          </div>
           <div className="mt-1 text-sm font-semibold text-sky-400">
             {exchange} ({symbol})
           </div>
         </div>
 
         <div className="rounded-2xl border border-white/5 bg-slate-950/50 p-4">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Currency & ISIN</div>
+          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            Currency & ISIN
+          </div>
           <div className="mt-1 text-sm font-semibold text-slate-200 font-mono">
             {currency} {isin ? `· ${isin}` : ''}
           </div>
@@ -182,11 +228,10 @@ export function CompanyOverviewSection({
       {/* Provenance note */}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/5 pt-4 text-[11px] text-slate-500">
         <div>
-          Verified Facts Guarantee: Profile details reflect verified filings only; no dummy corporate facts.
+          Verified Facts Guarantee: Profile details reflect verified filings only; no dummy
+          corporate facts.
         </div>
-        <div>
-          Last synced: {new Date(retrievedAt).toLocaleDateString()}
-        </div>
+        <div>Last synced: {new Date(retrievedAt).toLocaleDateString()}</div>
       </div>
     </div>
   );

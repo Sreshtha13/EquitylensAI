@@ -42,10 +42,7 @@ export class AngelClient {
   isConfigured(): boolean {
     const env = parseEnv();
     return Boolean(
-      env.ANGEL_API_KEY &&
-      env.ANGEL_CLIENT_ID &&
-      env.ANGEL_PASSWORD &&
-      env.ANGEL_TOTP_SECRET
+      env.ANGEL_API_KEY && env.ANGEL_CLIENT_ID && env.ANGEL_PASSWORD && env.ANGEL_TOTP_SECRET,
     );
   }
 
@@ -76,7 +73,7 @@ export class AngelClient {
       throw new AppError(
         'ANGEL_AUTH_CONFIG_MISSING',
         'Angel One credentials are not configured in environment',
-        503
+        503,
       );
     }
 
@@ -112,7 +109,7 @@ export class AngelClient {
           totp: totpToken,
         }),
         signal: AbortSignal.timeout(15_000),
-      }
+      },
     );
 
     const json = (await response.json()) as {
@@ -131,7 +128,7 @@ export class AngelClient {
       throw new AppError(
         'ANGEL_AUTH_FAILED',
         `Angel One login failed: ${json.message || json.errorcode || 'Unknown error'}`,
-        502
+        502,
       );
     }
 
@@ -172,7 +169,7 @@ export class AngelClient {
           },
         }),
         signal: AbortSignal.timeout(10_000),
-      }
+      },
     );
 
     const json = (await response.json()) as {
@@ -189,7 +186,7 @@ export class AngelClient {
       throw new AppError(
         'ANGEL_QUOTE_ERROR',
         `Angel One quote request failed: ${json.message || json.errorcode || 'Unknown error'}`,
-        502
+        502,
       );
     }
 
@@ -229,7 +226,7 @@ export class AngelClient {
           todate: params.toDate,
         }),
         signal: AbortSignal.timeout(15_000),
-      }
+      },
     );
 
     const json = (await response.json()) as {
@@ -243,7 +240,7 @@ export class AngelClient {
       throw new AppError(
         'ANGEL_HISTORICAL_ERROR',
         `Angel One historical data failed: ${json.message || json.errorcode || 'Unknown error'}`,
-        502
+        502,
       );
     }
 

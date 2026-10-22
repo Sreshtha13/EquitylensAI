@@ -4,7 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import { listWatchlists, createWatchlist, deleteWatchlist, updateWatchlist } from '@/services/api/watchlists';
+import {
+  listWatchlists,
+  createWatchlist,
+  deleteWatchlist,
+  updateWatchlist,
+} from '@/services/api/watchlists';
+import { WatchlistNewsSection } from '@/components/watchlists/WatchlistNewsSection';
 import type { WatchlistSummary } from '@equitylensai/shared';
 
 export default function WatchlistsPage() {
@@ -22,7 +28,12 @@ export default function WatchlistsPage() {
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const { data: watchlists = [], isLoading, isError, error } = useQuery({
+  const {
+    data: watchlists = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['watchlists'],
     queryFn: listWatchlists,
     enabled: isAuthenticated,
@@ -79,12 +90,18 @@ export default function WatchlistsPage() {
         <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-8 backdrop-blur-xl">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400">
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
             </svg>
           </div>
           <h1 className="mt-4 text-xl font-bold text-white">Sign In to View Watchlists</h1>
           <p className="mt-2 text-xs text-slate-400 leading-relaxed">
-            Create custom stock watchlists, monitor genuine market prices, and track your favorites across devices.
+            Create custom stock watchlists, monitor genuine market prices, and track your favorites
+            across devices.
           </p>
           <div className="mt-6 flex justify-center gap-3">
             <Link
@@ -141,23 +158,34 @@ export default function WatchlistsPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-44 animate-pulse rounded-2xl border border-white/5 bg-white/5" />
+            <div
+              key={i}
+              className="h-44 animate-pulse rounded-2xl border border-white/5 bg-white/5"
+            />
           ))}
         </div>
       ) : isError ? (
         <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-300">
-          {error instanceof Error ? error.message : 'Failed to load watchlists. Please try refreshing.'}
+          {error instanceof Error
+            ? error.message
+            : 'Failed to load watchlists. Please try refreshing.'}
         </div>
       ) : watchlists.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-white/10 bg-slate-900/30 p-12 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 text-slate-400">
             <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
             </svg>
           </div>
           <h2 className="mt-4 text-sm font-semibold text-white">No Watchlists Yet</h2>
           <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto">
-            Organize your investments into custom watchlists like &quot;High Growth&quot;, &quot;Dividend Aristocrats&quot;, or &quot;Nifty 50 Core&quot;.
+            Organize your investments into custom watchlists like &quot;High Growth&quot;,
+            &quot;Dividend Aristocrats&quot;, or &quot;Nifty 50 Core&quot;.
           </p>
           <button
             type="button"
@@ -229,6 +257,27 @@ export default function WatchlistsPage() {
           ))}
         </div>
       )}
+
+      {/* Watchlist News & Intelligence */}
+      <div className="mt-4 pt-6 border-t border-white/10">
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="h-2 w-2 rounded-full bg-sky-400" />
+            <span className="text-xs font-semibold tracking-wider uppercase text-sky-400">
+              Event & News Intelligence
+            </span>
+          </div>
+          <h2 className="text-xl font-bold tracking-tight text-white">
+            News for Your Tracked Stocks
+          </h2>
+          <p className="mt-0.5 text-xs text-slate-400">
+            Real-time verified reporting deduplicated across all companies in your watchlists and
+            favorites.
+          </p>
+        </div>
+
+        <WatchlistNewsSection />
+      </div>
 
       {/* Create Watchlist Modal */}
       {createModalOpen && (
@@ -383,12 +432,18 @@ export default function WatchlistsPage() {
           <div className="w-full max-w-sm rounded-2xl border border-white/15 bg-slate-900 p-6 shadow-2xl text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-500/10 text-rose-400">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
               </svg>
             </div>
             <h2 className="mt-4 text-base font-bold text-white">Delete Watchlist?</h2>
             <p className="mt-1 text-xs text-slate-400">
-              Are you sure you want to delete this watchlist? All tracked stocks inside it will be removed. This cannot be undone.
+              Are you sure you want to delete this watchlist? All tracked stocks inside it will be
+              removed. This cannot be undone.
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <button
