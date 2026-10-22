@@ -173,9 +173,12 @@ export default function FavoritesPage() {
                             </svg>
                           </button>
                           <div>
-                            <span className="font-bold text-white text-sm">
+                            <Link
+                              href={`/stocks/${encodeURIComponent(item.exchange)}/${encodeURIComponent(item.symbol)}`}
+                              className="font-bold text-white text-sm hover:text-sky-300 transition"
+                            >
                               {item.symbol}
-                            </span>
+                            </Link>
                             <div className="text-[11px] text-slate-400 truncate max-w-xs">{item.name}</div>
                           </div>
                         </div>

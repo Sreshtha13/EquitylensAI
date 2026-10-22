@@ -52,6 +52,9 @@ export type RawFinancialData = {
   incomeStatements: IncomeStatement[];
   balanceSheets: BalanceSheet[];
   cashFlowStatements: CashFlowStatement[];
+  quarterlyIncomeStatements: IncomeStatement[];
+  quarterlyBalanceSheets: BalanceSheet[];
+  quarterlyCashFlowStatements: CashFlowStatement[];
   /** Provider-supplied TTM income statement — undefined if not available */
   ttmIncome: IncomeStatement | undefined;
   /** Provider-supplied TTM balance sheet — undefined if not available */

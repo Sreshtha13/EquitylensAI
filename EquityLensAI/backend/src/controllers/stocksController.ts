@@ -102,3 +102,63 @@ export function getIngestStatus(
   const status = getIngestionStatus();
   sendSuccess(res, status);
 }
+
+export async function getStockProfile(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const symbol = req.params.symbol as string;
+    const exchange = req.query.exchange as string | undefined;
+
+    const profile = await marketService.getCompanyProfile({
+      symbol,
+      exchange,
+    });
+
+    sendSuccess(res, profile);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getStockPerformance(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const symbol = req.params.symbol as string;
+    const exchange = req.query.exchange as string | undefined;
+
+    const performance = await marketService.getStockPerformance({
+      symbol,
+      exchange,
+    });
+
+    sendSuccess(res, performance);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function resolveStock(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const symbol = req.params.symbol as string;
+    const exchange = req.query.exchange as string | undefined;
+
+    const instrument = await marketService.resolveInstrument({
+      symbol,
+      exchange,
+    });
+
+    sendSuccess(res, instrument);
+  } catch (err) {
+    next(err);
+  }
+}

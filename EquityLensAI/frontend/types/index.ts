@@ -30,6 +30,11 @@ export type {
   HealthScoreDimension,
   FinancialHealthScore,
   FinancialAnalysis,
+  // Phase 7
+  CompanyProfile,
+  HistoricalPerformancePeriod,
+  PerformancePeriodCode,
+  StockPerformanceResponse,
 } from '@equitylensai/shared';
 
 export type HealthStatus = {

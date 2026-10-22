@@ -11,6 +11,9 @@ import {
   searchStocks,
   getStockQuote,
   getStockHistorical,
+  getStockProfile,
+  getStockPerformance,
+  resolveStock,
   triggerIngestion,
   getIngestStatus,
 } from '../controllers/stocksController.js';
@@ -23,6 +26,24 @@ stocksRouter.get(
   '/:symbol/quote',
   validate({ params: quoteParamsSchema, query: quoteQuerySchema }),
   getStockQuote
+);
+
+stocksRouter.get(
+  '/:symbol/profile',
+  validate({ params: quoteParamsSchema, query: quoteQuerySchema }),
+  getStockProfile
+);
+
+stocksRouter.get(
+  '/:symbol/performance',
+  validate({ params: quoteParamsSchema, query: quoteQuerySchema }),
+  getStockPerformance
+);
+
+stocksRouter.get(
+  '/:symbol/resolve',
+  validate({ params: quoteParamsSchema, query: quoteQuerySchema }),
+  resolveStock
 );
 
 stocksRouter.get(

@@ -620,7 +620,7 @@ export default function ScreenerPage() {
                             </svg>
                           </button>
                           <Link
-                            href={`/market?symbol=${encodeURIComponent(result.symbol)}&exchange=${encodeURIComponent(result.exchange)}`}
+                            href={`/stocks/${encodeURIComponent(result.exchange)}/${encodeURIComponent(result.symbol)}`}
                             className="font-semibold text-white hover:text-sky-300 transition"
                           >
                             {result.companyName}

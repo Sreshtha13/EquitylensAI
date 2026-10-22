@@ -40,6 +40,12 @@ describe('Financial Intelligence API Routes', () => {
         expect(res.body.data.healthScore).toHaveProperty('overallScore');
         expect(res.body.data.healthScore).toHaveProperty('grade');
         expect(res.body.data.annualHistory).toBeInstanceOf(Array);
+        expect(res.body.data.quarterlyHistory).toBeInstanceOf(Array);
+        expect(
+          res.body.data.quarterlyHistory.every(
+            (period: { periodType: string }) => period.periodType === 'quarterly',
+          ),
+        ).toBe(true);
       }
     });
   });
@@ -59,6 +65,9 @@ describe('Financial Intelligence API Routes', () => {
         expect(res.body.data).toHaveProperty('incomeStatements');
         expect(res.body.data).toHaveProperty('balanceSheets');
         expect(res.body.data).toHaveProperty('cashFlowStatements');
+        expect(res.body.data.quarterlyIncomeStatements).toBeInstanceOf(Array);
+        expect(res.body.data.quarterlyBalanceSheets).toBeInstanceOf(Array);
+        expect(res.body.data.quarterlyCashFlowStatements).toBeInstanceOf(Array);
       }
     });
   });

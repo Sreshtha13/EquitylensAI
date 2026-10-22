@@ -6,6 +6,8 @@ Phase 1 delivers the production foundation. Phase 2 implements market-data infra
 
 Phase 6 implements the complete user system: Supabase-backed authentication, session management, user profile & application preferences, persistent favorites for NSE/BSE equities, and multiple named watchlists with coordinated live market quotes and strict cross-user data isolation.
 
+Phase 7 builds the comprehensive Stock Detail & Company Intelligence experience: canonical `/stocks/[exchange]/[symbol]` routing, real-time market headers with data provenance, interactive SVG price & volume charts (1D–MAX), company overview profiles, deterministic historical performance analytics (cumulative return, CAGR, volatility, max drawdown), annual and quarterly financial statements with provider-reported scope limitations, deterministic ratios, transparent valuation intelligence, financial health scoring, evidence-bounded AI company research, and favorites/watchlists integration with strict zero-dummy-data adherence.
+
 ## Architecture
 
 ```text
@@ -91,4 +93,5 @@ The home page verifies frontend/backend connectivity by calling the health endpo
 - [API conventions](docs/api.md)
 - [AI Research](docs/ai-research.md)
 - [Natural-language Screener](docs/screener.md)
+- [Stock Detail & Company Intelligence](docs/phase7-stock-detail.md)
 - [OpenAPI Specification](docs/openapi.json)

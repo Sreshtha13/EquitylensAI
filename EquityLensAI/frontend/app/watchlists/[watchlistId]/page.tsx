@@ -297,9 +297,12 @@ export default function WatchlistDetailPage({
                             </svg>
                           </button>
                           <div>
-                            <span className="font-bold text-white text-sm">
+                            <Link
+                              href={`/stocks/${encodeURIComponent(item.exchange)}/${encodeURIComponent(item.symbol)}`}
+                              className="font-bold text-white text-sm hover:text-sky-300 transition"
+                            >
                               {item.symbol}
-                            </span>
+                            </Link>
                             <div className="text-[11px] text-slate-400 truncate max-w-[220px]">
                               {item.name}
                             </div>
@@ -377,10 +380,10 @@ export default function WatchlistDetailPage({
                       <td className="px-5 py-4 text-right">
                         <div className="flex items-center justify-end gap-3">
                           <Link
-                            href={`/market`}
+                            href={`/stocks/${encodeURIComponent(item.exchange)}/${encodeURIComponent(item.symbol)}`}
                             className="text-xs text-sky-400 hover:text-sky-300 font-medium transition"
                           >
-                            Chart
+                            Research
                           </Link>
                           <span className="text-white/20">•</span>
                           <button

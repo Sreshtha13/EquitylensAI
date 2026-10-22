@@ -52,6 +52,9 @@ v1Router.get('/', (_req, res) => {
       stocks: {
         search: '/api/v1/stocks/search?q={query}',
         quote: '/api/v1/stocks/{symbol}/quote',
+        profile: '/api/v1/stocks/{symbol}/profile?exchange={exchange}',
+        performance: '/api/v1/stocks/{symbol}/performance?exchange={exchange}',
+        resolve: '/api/v1/stocks/{symbol}/resolve?exchange={exchange}',
         history: '/api/v1/stocks/{symbol}/history?interval={interval}&from={from}&to={to}',
         ingest: '/api/v1/stocks/ingest',
         ingestStatus: '/api/v1/stocks/ingest/status',

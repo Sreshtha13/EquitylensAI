@@ -341,6 +341,7 @@ export type FinancialAnalysis = {
   latestAnnual: FinancialStatements;
   ttm: FinancialStatements | null;
   annualHistory: FinancialStatements[];
+  quarterlyHistory: FinancialStatements[];
   profitability: ProfitabilityMetrics;
   liquidity: LiquidityMetrics;
   leverage: LeverageMetrics;
@@ -461,3 +462,64 @@ export type FavoriteItemWithQuote = {
   quote: NormalizedQuote | null;
 };
 
+// ─── Phase 7: Stock Detail & Company Intelligence ──────────────────────────
+
+/** Verified company profile information */
+export type CompanyProfile = {
+  symbol: string;
+  name: string;
+  exchange: string;
+  market: Market;
+  assetType: AssetType;
+  currency: string;
+  isin: string | null;
+  sector: string | null;
+  industry: string | null;
+  description: string | null;
+  website: string | null;
+  headquarters: string | null;
+  employees: number | null;
+  sharesOutstanding: number | null;
+  floatShares: number | null;
+  fiscalYearEnd: string | null;
+  source: string;
+  retrievedAt: string;
+};
+
+export const PERFORMANCE_PERIODS = ['1M', '3M', '6M', '1Y', '3Y', '5Y', 'MAX'] as const;
+export type PerformancePeriodCode = (typeof PERFORMANCE_PERIODS)[number];
+
+/** Calculated historical performance metrics for a specific window */
+export type HistoricalPerformancePeriod = {
+  period: PerformancePeriodCode;
+  label: string;
+  startDate: string;
+  endDate: string;
+  startPrice: number;
+  endPrice: number;
+  cumulativeReturnPercent: number;
+  annualizedReturnPercent: number | null;
+  annualizedVolatilityPercent: number | null;
+  maxDrawdownPercent: number | null;
+  high: number;
+  low: number;
+  observations: number;
+  priceType: 'adjusted' | 'unadjusted';
+  isSufficient: boolean;
+};
+
+/** Full multi-period performance intelligence */
+export type StockPerformanceResponse = {
+  symbol: string;
+  exchange: string;
+  source: string;
+  retrievedAt: string;
+  periods: HistoricalPerformancePeriod[];
+  methodology: {
+    cumulativeReturn: string;
+    annualizedReturn: string;
+    volatility: string;
+    maxDrawdown: string;
+    disclaimer: string;
+  };
+};

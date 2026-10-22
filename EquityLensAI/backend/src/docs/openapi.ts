@@ -342,6 +342,105 @@ export const openApiSpec = {
         },
       },
     },
+    '/api/v1/stocks/{symbol}/profile': {
+      get: {
+        tags: ['Instruments'],
+        summary: 'Get verified company profile and corporate metadata',
+        description: 'Returns sector, industry, description, website, headquarters, shares outstanding, and listing info. Zero dummy data.',
+        parameters: [
+          { $ref: '#/components/parameters/RequestIdHeader' },
+          {
+            name: 'symbol',
+            in: 'path',
+            required: true,
+            description: 'Security trading symbol (e.g., RELIANCE, AAPL)',
+            schema: { type: 'string' },
+            example: 'RELIANCE',
+          },
+          {
+            name: 'exchange',
+            in: 'query',
+            required: false,
+            description: 'Trading exchange (e.g., NSE, BSE, NASDAQ)',
+            schema: { type: 'string', default: 'NSE' },
+            example: 'NSE',
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Verified company profile',
+          },
+          '404': {
+            description: 'Instrument not found',
+          },
+        },
+      },
+    },
+    '/api/v1/stocks/{symbol}/performance': {
+      get: {
+        tags: ['Instruments'],
+        summary: 'Get deterministic historical performance intelligence',
+        description: 'Computes cumulative price returns, annualized CAGR, volatility, and maximum drawdown across 1M, 3M, 6M, 1Y, 3Y, 5Y, and MAX from observed candles.',
+        parameters: [
+          { $ref: '#/components/parameters/RequestIdHeader' },
+          {
+            name: 'symbol',
+            in: 'path',
+            required: true,
+            description: 'Security trading symbol',
+            schema: { type: 'string' },
+            example: 'RELIANCE',
+          },
+          {
+            name: 'exchange',
+            in: 'query',
+            required: false,
+            description: 'Trading exchange',
+            schema: { type: 'string', default: 'NSE' },
+            example: 'NSE',
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Historical performance metrics',
+          },
+        },
+      },
+    },
+    '/api/v1/stocks/{symbol}/resolve': {
+      get: {
+        tags: ['Instruments'],
+        summary: 'Resolve stock symbol and exchange to instrument master record',
+        description: 'Resolves trading symbol against verified instrument database. Returns 404 if unknown.',
+        parameters: [
+          { $ref: '#/components/parameters/RequestIdHeader' },
+          {
+            name: 'symbol',
+            in: 'path',
+            required: true,
+            description: 'Security trading symbol',
+            schema: { type: 'string' },
+            example: 'RELIANCE',
+          },
+          {
+            name: 'exchange',
+            in: 'query',
+            required: false,
+            description: 'Trading exchange',
+            schema: { type: 'string', default: 'NSE' },
+            example: 'NSE',
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Resolved instrument master record',
+          },
+          '404': {
+            description: 'Instrument not found',
+          },
+        },
+      },
+    },
     '/api/v1/market': {
       get: {
         tags: ['Market Intelligence'],

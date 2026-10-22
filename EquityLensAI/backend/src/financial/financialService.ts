@@ -37,7 +37,7 @@ class FinancialService {
    */
   async getFinancialAnalysis(
     request: FinancialDataRequest,
-    livePrice?: number | null
+    livePrice?: number | null,
   ): Promise<FinancialAnalysis> {
     const cacheKey = `financial:${(request.exchange ?? 'default').toUpperCase()}:${request.symbol.toUpperCase()}`;
 
@@ -69,17 +69,21 @@ class FinancialService {
         });
         price = quote.price;
       } catch {
-        logger.debug({ symbol: request.symbol }, 'Could not fetch live price for valuation; will use null');
+        logger.debug(
+          { symbol: request.symbol },
+          'Could not fetch live price for valuation; will use null',
+        );
       }
     }
 
     // ── Assemble statements ─────────────────────────────────────────────────
-    const annualHistory = this.alignPeriods(raw);
+    const annualHistory = this.alignPeriods(raw, 'annual');
+    const quarterlyHistory = this.alignPeriods(raw, 'quarterly');
     if (annualHistory.length === 0) {
       throw new AppError(
         'FINANCIAL_DATA_UNAVAILABLE',
         `No aligned financial periods available for ${request.symbol}`,
-        502
+        502,
       );
     }
 
@@ -120,7 +124,12 @@ class FinancialService {
       latestAnnual.income.basicSharesOutstanding;
     const marketCapValue = price !== null && shares !== null ? price * shares : null;
 
-    const cashFlow = calcCashFlow(baseCashFlow, baseIncome, marketCapValue, baseIncome.periodEndDate);
+    const cashFlow = calcCashFlow(
+      baseCashFlow,
+      baseIncome,
+      marketCapValue,
+      baseIncome.periodEndDate,
+    );
     const growth = calcGrowth(latestAnnual, annualHistory[1], annualHistory);
     const valuation = calcValuation(baseIncome, baseBalance, baseCashFlow, price, shares);
 
@@ -131,7 +140,7 @@ class FinancialService {
       leverage,
       cashFlow,
       growth,
-      baseIncome.periodEndDate
+      baseIncome.periodEndDate,
     );
 
     const analysis: FinancialAnalysis = {
@@ -141,6 +150,7 @@ class FinancialService {
       latestAnnual,
       ttm,
       annualHistory,
+      quarterlyHistory,
       profitability,
       liquidity,
       leverage,
@@ -173,13 +183,21 @@ class FinancialService {
   }
 
   /** Align income, balance sheet, and cash flow periods by periodEndDate */
-  private alignPeriods(raw: RawFinancialData): FinancialStatements[] {
+  private alignPeriods(
+    raw: RawFinancialData,
+    periodType: 'annual' | 'quarterly',
+  ): FinancialStatements[] {
     const result: FinancialStatements[] = [];
+    const incomeStatements =
+      periodType === 'annual' ? raw.incomeStatements : raw.quarterlyIncomeStatements;
+    const balanceSheets = periodType === 'annual' ? raw.balanceSheets : raw.quarterlyBalanceSheets;
+    const cashFlowStatements =
+      periodType === 'annual' ? raw.cashFlowStatements : raw.quarterlyCashFlowStatements;
 
-    for (const income of raw.incomeStatements) {
+    for (const income of incomeStatements) {
       const period = income.periodEndDate;
-      const bs = raw.balanceSheets.find((b) => b.periodEndDate === period);
-      const cf = raw.cashFlowStatements.find((c) => c.periodEndDate === period);
+      const bs = balanceSheets.find((b) => b.periodEndDate === period);
+      const cf = cashFlowStatements.find((c) => c.periodEndDate === period);
 
       // We need at least the balance sheet; cash flow is highly desirable
       if (!bs) continue;
@@ -190,7 +208,16 @@ class FinancialService {
         periodEndDate: period,
         income,
         balanceSheet: bs,
-        cashFlow: cf ?? this.emptyCashFlow(income.symbol, income.currency, period, raw.source, raw.retrievedAt),
+        cashFlow:
+          cf ??
+          this.emptyCashFlow(
+            income.symbol,
+            income.currency,
+            period,
+            raw.source,
+            raw.retrievedAt,
+            periodType,
+          ),
         source: raw.source,
         retrievedAt: raw.retrievedAt,
         isStale: false,
@@ -205,11 +232,12 @@ class FinancialService {
     currency: string,
     periodEndDate: string,
     source: string,
-    retrievedAt: string
+    retrievedAt: string,
+    periodType: 'annual' | 'quarterly',
   ) {
     return {
       symbol,
-      periodType: 'annual' as const,
+      periodType,
       periodEndDate,
       currency,
       netIncome: null,

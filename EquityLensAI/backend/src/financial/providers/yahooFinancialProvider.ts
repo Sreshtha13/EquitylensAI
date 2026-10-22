@@ -10,7 +10,12 @@
  */
 import { yf } from '../../market/providers/yahoo/client.js';
 import type { FinancialDataRequest, FinancialProvider, RawFinancialData } from '../types.js';
-import type { BalanceSheet, CashFlowStatement, IncomeStatement } from '@equitylensai/shared';
+import type {
+  BalanceSheet,
+  CashFlowStatement,
+  FiscalPeriodType,
+  IncomeStatement,
+} from '@equitylensai/shared';
 import { instrumentRepository } from '../../market/instruments/repository.js';
 import { AppError } from '../../utils/appError.js';
 import { logger } from '../../utils/logger.js';
@@ -55,12 +60,14 @@ class YahooFinancialProvider implements FinancialProvider {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const priceObj = (priceData as any)?.price as Record<string, unknown> | undefined;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const statsObj = (keyStatsData as any)?.defaultKeyStatistics as Record<string, unknown> | undefined;
+      const statsObj = (keyStatsData as any)?.defaultKeyStatistics as
+        Record<string, unknown> | undefined;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const finObj = (financialDataModule as any)?.financialData as Record<string, unknown> | undefined;
+      const finObj = (financialDataModule as any)?.financialData as
+        Record<string, unknown> | undefined;
 
-      const name = ((priceObj?.['longName'] ?? priceObj?.['shortName'] ?? request.symbol) as string);
-      const currency = ((priceObj?.['currency'] ?? finObj?.['financialCurrency'] ?? 'INR') as string);
+      const name = (priceObj?.['longName'] ?? priceObj?.['shortName'] ?? request.symbol) as string;
+      const currency = (priceObj?.['currency'] ?? finObj?.['financialCurrency'] ?? 'INR') as string;
 
       // 2. Fetch multi-year annual statement history via fundamentalsTimeSeries
       let annualTs: Record<string, unknown>[] = [];
@@ -76,7 +83,10 @@ class YahooFinancialProvider implements FinancialProvider {
         });
         annualTs = (rawTs as unknown as Record<string, unknown>[]) || [];
       } catch (tsErr) {
-        logger.warn({ ticker, tsErr }, 'fundamentalsTimeSeries annual fetch failed; will attempt quoteSummary fallback');
+        logger.warn(
+          { ticker, tsErr },
+          'fundamentalsTimeSeries annual fetch failed; will attempt quoteSummary fallback',
+        );
       }
 
       // Sort chronological descending (most recent first)
@@ -111,11 +121,14 @@ class YahooFinancialProvider implements FinancialProvider {
         ]);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const incRaw = ((legacyIncome as any)?.incomeStatementHistory?.incomeStatementHistory ?? []) as unknown[];
+        const incRaw = ((legacyIncome as any)?.incomeStatementHistory?.incomeStatementHistory ??
+          []) as unknown[];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const bsRaw = ((legacyBs as any)?.balanceSheetHistory?.balanceSheetStatements ?? []) as unknown[];
+        const bsRaw = ((legacyBs as any)?.balanceSheetHistory?.balanceSheetStatements ??
+          []) as unknown[];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const cfRaw = ((legacyCf as any)?.cashflowStatementHistory?.cashflowStatements ?? []) as unknown[];
+        const cfRaw = ((legacyCf as any)?.cashflowStatementHistory?.cashflowStatements ??
+          []) as unknown[];
 
         incomeStatements = incRaw
           .slice(0, periods)
@@ -132,7 +145,7 @@ class YahooFinancialProvider implements FinancialProvider {
         throw new AppError(
           'FINANCIAL_DATA_UNAVAILABLE',
           `No annual financial statement data found for ${request.symbol} (${ticker}) via Yahoo Finance`,
-          502
+          502,
         );
       }
 
@@ -140,10 +153,13 @@ class YahooFinancialProvider implements FinancialProvider {
       let ttmIncome: IncomeStatement | undefined = undefined;
       let ttmBalanceSheet: BalanceSheet | undefined = undefined;
       let ttmCashFlow: CashFlowStatement | undefined = undefined;
+      let quarterlyIncomeStatements: IncomeStatement[] = [];
+      let quarterlyBalanceSheets: BalanceSheet[] = [];
+      let quarterlyCashFlowStatements: CashFlowStatement[] = [];
 
       try {
         const rawQuarterly = await yf.fundamentalsTimeSeries(ticker, {
-          period1: new Date(Date.now() - 400 * 86400 * 1000).toISOString().split('T')[0]!,
+          period1: new Date(Date.now() - 6 * 365 * 86400 * 1000).toISOString().split('T')[0]!,
           type: 'quarterly',
           module: 'all',
         });
@@ -153,6 +169,16 @@ class YahooFinancialProvider implements FinancialProvider {
           const db = new Date((b['date'] as string | Date) || 0).getTime();
           return db - da;
         });
+
+        quarterlyIncomeStatements = sortedQ.map((row) =>
+          this.mapTimeSeriesIncome(row, request.symbol, currency, retrievedAt, 'quarterly'),
+        );
+        quarterlyBalanceSheets = sortedQ.map((row) =>
+          this.mapTimeSeriesBalanceSheet(row, request.symbol, currency, retrievedAt, 'quarterly'),
+        );
+        quarterlyCashFlowStatements = sortedQ.map((row) =>
+          this.mapTimeSeriesCashFlow(row, request.symbol, currency, retrievedAt, 'quarterly'),
+        );
 
         if (sortedQ.length >= 4) {
           const last4 = sortedQ.slice(0, 4);
@@ -190,7 +216,13 @@ class YahooFinancialProvider implements FinancialProvider {
             retrievedAt,
           };
 
-          ttmBalanceSheet = this.mapTimeSeriesBalanceSheet(last4[0]!, request.symbol, currency, retrievedAt);
+          ttmBalanceSheet = this.mapTimeSeriesBalanceSheet(
+            last4[0]!,
+            request.symbol,
+            currency,
+            retrievedAt,
+            'ttm',
+          );
           ttmCashFlow = {
             symbol: request.symbol,
             periodType: 'ttm',
@@ -210,7 +242,10 @@ class YahooFinancialProvider implements FinancialProvider {
           };
         }
       } catch (ttmErr) {
-        logger.debug({ ticker, ttmErr }, 'Quarterly TTM rollup unavailable; using annual as primary baseline');
+        logger.debug(
+          { ticker, ttmErr },
+          'Quarterly TTM rollup unavailable; using annual as primary baseline',
+        );
       }
 
       return {
@@ -220,6 +255,9 @@ class YahooFinancialProvider implements FinancialProvider {
         incomeStatements,
         balanceSheets,
         cashFlowStatements,
+        quarterlyIncomeStatements,
+        quarterlyBalanceSheets,
+        quarterlyCashFlowStatements,
         ttmIncome,
         ttmBalanceSheet,
         ttmCashFlow,
@@ -233,7 +271,7 @@ class YahooFinancialProvider implements FinancialProvider {
         'FINANCIAL_PROVIDER_ERROR',
         `Yahoo Finance financial data fetch failed for ${request.symbol}: ${String(err)}`,
         502,
-        { cause: err }
+        { cause: err },
       );
     }
   }
@@ -244,19 +282,22 @@ class YahooFinancialProvider implements FinancialProvider {
     r: Record<string, unknown>,
     symbol: string,
     currency: string,
-    retrievedAt: string
+    retrievedAt: string,
+    periodType: FiscalPeriodType = 'annual',
   ): IncomeStatement {
     const totalRevenue = n(r['totalRevenue']) ?? n(r['operatingRevenue']);
     const costOfRevenue = n(r['costOfRevenue']) ?? n(r['reconciledCostOfRevenue']);
     const grossProfit =
-      n(r['grossProfit']) ?? (totalRevenue !== null && costOfRevenue !== null ? totalRevenue - costOfRevenue : null);
+      n(r['grossProfit']) ??
+      (totalRevenue !== null && costOfRevenue !== null ? totalRevenue - costOfRevenue : null);
     const operatingIncome = n(r['operatingIncome']);
     const da = n(r['depreciationAndAmortization']) ?? n(r['depreciationAmortizationDepletion']);
-    const ebitda = n(r['ebitda']) ?? (operatingIncome !== null && da !== null ? operatingIncome + da : null);
+    const ebitda =
+      n(r['ebitda']) ?? (operatingIncome !== null && da !== null ? operatingIncome + da : null);
 
     return {
       symbol,
-      periodType: 'annual',
+      periodType,
       periodEndDate: formatDate(r['date'] as Date | string),
       currency,
       totalRevenue,
@@ -266,7 +307,8 @@ class YahooFinancialProvider implements FinancialProvider {
       sellingGeneralAdministrative: n(r['sellingGeneralAdministrative']),
       totalOperatingExpenses: n(r['totalOperatingExpenses']),
       operatingIncome,
-      interestExpense: n(r['interestExpense']) !== null ? -Math.abs(n(r['interestExpense'])!) : null,
+      interestExpense:
+        n(r['interestExpense']) !== null ? -Math.abs(n(r['interestExpense'])!) : null,
       totalOtherIncomeExpense: n(r['otherNonOperatingIncomeExpenses']),
       incomeBeforeTax: n(r['pretaxIncome']),
       incomeTaxExpense: n(r['taxProvision']),
@@ -285,7 +327,8 @@ class YahooFinancialProvider implements FinancialProvider {
     r: Record<string, unknown>,
     symbol: string,
     currency: string,
-    retrievedAt: string
+    retrievedAt: string,
+    periodType: FiscalPeriodType = 'annual',
   ): BalanceSheet {
     const currentDebt = n(r['currentDebt']) ?? n(r['currentDebtAndCapitalLeaseObligation']);
     const ltDebt = n(r['longTermDebt']) ?? n(r['longTermDebtAndCapitalLeaseObligation']);
@@ -297,7 +340,7 @@ class YahooFinancialProvider implements FinancialProvider {
 
     return {
       symbol,
-      periodType: 'annual',
+      periodType,
       periodEndDate: formatDate(r['date'] as Date | string),
       currency,
       cash: n(r['cashAndCashEquivalents']) ?? n(r['cashCashEquivalentsAndShortTermInvestments']),
@@ -326,20 +369,23 @@ class YahooFinancialProvider implements FinancialProvider {
     r: Record<string, unknown>,
     symbol: string,
     currency: string,
-    retrievedAt: string
+    retrievedAt: string,
+    periodType: FiscalPeriodType = 'annual',
   ): CashFlowStatement {
     const ocf = n(r['operatingCashFlow']);
     const capex = n(r['capitalExpenditure']) ?? n(r['capitalExpenditures']);
     const fcf =
-      n(r['freeCashFlow']) ?? (ocf !== null && capex !== null ? ocf + (capex < 0 ? capex : -capex) : null);
+      n(r['freeCashFlow']) ??
+      (ocf !== null && capex !== null ? ocf + (capex < 0 ? capex : -capex) : null);
 
     return {
       symbol,
-      periodType: 'annual',
+      periodType,
       periodEndDate: formatDate(r['date'] as Date | string),
       currency,
       netIncome: n(r['netIncome']),
-      deprecationAndAmortization: n(r['depreciationAndAmortization']) ?? n(r['depreciationAmortizationDepletion']),
+      deprecationAndAmortization:
+        n(r['depreciationAndAmortization']) ?? n(r['depreciationAmortizationDepletion']),
       changesInWorkingCapital: n(r['changeInWorkingCapital']),
       operatingCashFlow: ocf,
       capitalExpenditures: capex !== null ? (capex < 0 ? capex : -capex) : null,
@@ -354,15 +400,23 @@ class YahooFinancialProvider implements FinancialProvider {
 
   // ── Mappers for legacy quoteSummary submodules (Fallback) ────────────────────
 
-  private normalizeLegacyIncome(s: unknown, symbol: string, currency: string, retrievedAt: string): IncomeStatement {
+  private normalizeLegacyIncome(
+    s: unknown,
+    symbol: string,
+    currency: string,
+    retrievedAt: string,
+  ): IncomeStatement {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const r = (s || {}) as Record<string, any>;
     const totalRevenue = n(r['totalRevenue']);
     const costOfRevenue = n(r['costOfRevenue']);
-    const grossProfit = n(r['grossProfit']) ?? (totalRevenue !== null && costOfRevenue !== null ? totalRevenue - costOfRevenue : null);
+    const grossProfit =
+      n(r['grossProfit']) ??
+      (totalRevenue !== null && costOfRevenue !== null ? totalRevenue - costOfRevenue : null);
     const operatingIncome = n(r['operatingIncome']) ?? n(r['ebit']);
     const da = n(r['depreciation']) ?? n(r['depreciationAndAmortization']);
-    const ebitda = n(r['ebitda']) ?? (operatingIncome !== null && da !== null ? operatingIncome + da : null);
+    const ebitda =
+      n(r['ebitda']) ?? (operatingIncome !== null && da !== null ? operatingIncome + da : null);
 
     return {
       symbol,
@@ -391,7 +445,12 @@ class YahooFinancialProvider implements FinancialProvider {
     };
   }
 
-  private normalizeLegacyBalanceSheet(s: unknown, symbol: string, currency: string, retrievedAt: string): BalanceSheet {
+  private normalizeLegacyBalanceSheet(
+    s: unknown,
+    symbol: string,
+    currency: string,
+    retrievedAt: string,
+  ): BalanceSheet {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const r = (s || {}) as Record<string, any>;
     return {
@@ -421,7 +480,12 @@ class YahooFinancialProvider implements FinancialProvider {
     };
   }
 
-  private normalizeLegacyCashFlow(s: unknown, symbol: string, currency: string, retrievedAt: string): CashFlowStatement {
+  private normalizeLegacyCashFlow(
+    s: unknown,
+    symbol: string,
+    currency: string,
+    retrievedAt: string,
+  ): CashFlowStatement {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const r = (s || {}) as Record<string, any>;
     const ocf = n(r['totalCashFromOperatingActivities']);

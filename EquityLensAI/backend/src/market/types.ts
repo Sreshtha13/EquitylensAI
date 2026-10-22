@@ -9,6 +9,8 @@ import type {
   MarketOverview,
   NormalizedQuote,
   PriceCandle,
+  CompanyProfile,
+  StockPerformanceResponse,
 } from '@equitylensai/shared';
 
 export type {
@@ -22,6 +24,8 @@ export type {
   MarketOverview,
   NormalizedQuote,
   PriceCandle,
+  CompanyProfile,
+  StockPerformanceResponse,
 };
 
 export type InstrumentRecord = {

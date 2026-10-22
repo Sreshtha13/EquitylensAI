@@ -22,6 +22,7 @@ export function SiteHeader() {
   }, []);
 
   const navLinks = [
+    { href: '/stocks', label: 'Stocks' },
     { href: '/market', label: 'Markets' },
     { href: '/screener', label: 'Screener' },
     { href: '/research', label: 'Research' },
