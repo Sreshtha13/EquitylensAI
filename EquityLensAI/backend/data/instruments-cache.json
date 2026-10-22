@@ -30617,5 +30617,27 @@
     "providerToken": "9422",
     "tickSize": 0.01,
     "lotSize": 1
+  },
+  {
+    "symbol": "IIRM",
+    "name": "IIRM",
+    "exchange": "NSE",
+    "market": "nse",
+    "assetType": "equity",
+    "currency": "INR",
+    "providerToken": "766742",
+    "tickSize": 0.01,
+    "lotSize": 1
+  },
+  {
+    "symbol": "FUSIONCX",
+    "name": "FUSIONCX",
+    "exchange": "NSE",
+    "market": "nse",
+    "assetType": "equity",
+    "currency": "INR",
+    "providerToken": "766749",
+    "tickSize": 0.05,
+    "lotSize": 1
   }
 ]
