@@ -165,7 +165,10 @@ describe('Financial Health Score Engine', () => {
     const growth = calcGrowth(
       { ...currStatements, income: distressedIncome, cashFlow: distressedCashFlow },
       priorStatements,
-      [{ ...currStatements, income: distressedIncome, cashFlow: distressedCashFlow }, priorStatements]
+      [
+        { ...currStatements, income: distressedIncome, cashFlow: distressedCashFlow },
+        priorStatements,
+      ],
     );
 
     const result = calcHealthScore('DISTRESSED', prof, liq, lev, cf, growth, '2025-12-31');

@@ -7,7 +7,7 @@ async function main() {
     const result = await ingestInstruments();
     logger.info(
       { ingestedCount: result.ingestedCount, durationMs: result.durationMs },
-      'Instrument ingestion completed successfully!'
+      'Instrument ingestion completed successfully!',
     );
     process.exit(0);
   } catch (err) {

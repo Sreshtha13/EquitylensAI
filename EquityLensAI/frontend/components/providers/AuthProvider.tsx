@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-  type ReactNode,
-} from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import {
@@ -32,13 +25,12 @@ type AuthContextType = {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (
-    email: string,
-    password: string,
-    displayName?: string,
-  ) => Promise<RegisterResponse>;
+  register: (email: string, password: string, displayName?: string) => Promise<RegisterResponse>;
   logout: () => Promise<void>;
-  updateProfile: (data: { displayName?: string | null; avatarUrl?: string | null }) => Promise<void>;
+  updateProfile: (data: {
+    displayName?: string | null;
+    avatarUrl?: string | null;
+  }) => Promise<void>;
   updatePreferences: (
     data: Partial<Omit<UserPreferences, 'userId' | 'updatedAt'>>,
   ) => Promise<void>;

@@ -176,21 +176,18 @@ export const userRepository = {
     memoryStore.profiles.set(profile.authUserId, profile);
 
     if (env.NODE_ENV !== 'test') {
-      await supabaseRest(
-        'user_profiles?on_conflict=auth_user_id',
-        {
-          method: 'POST',
-          headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-          body: JSON.stringify({
-            id: profile.id,
-            auth_user_id: profile.authUserId,
-            email: profile.email,
-            display_name: profile.displayName,
-            avatar_url: profile.avatarUrl,
-            updated_at: profile.updatedAt,
-          }),
-        },
-      );
+      await supabaseRest('user_profiles?on_conflict=auth_user_id', {
+        method: 'POST',
+        headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({
+          id: profile.id,
+          auth_user_id: profile.authUserId,
+          email: profile.email,
+          display_name: profile.displayName,
+          avatar_url: profile.avatarUrl,
+          updated_at: profile.updatedAt,
+        }),
+      });
     }
 
     return profile;
@@ -253,23 +250,20 @@ export const userRepository = {
     memoryStore.preferences.set(preferences.userId, preferences);
 
     if (env.NODE_ENV !== 'test') {
-      await supabaseRest(
-        'user_preferences?on_conflict=user_id',
-        {
-          method: 'POST',
-          headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-          body: JSON.stringify({
-            user_id: preferences.userId,
-            default_exchange: preferences.defaultExchange,
-            preferred_currency: preferences.preferredCurrency,
-            preferred_period: preferences.preferredPeriod,
-            default_landing_page: preferences.defaultLandingPage,
-            theme: preferences.theme,
-            table_density: preferences.tableDensity,
-            updated_at: preferences.updatedAt,
-          }),
-        },
-      );
+      await supabaseRest('user_preferences?on_conflict=user_id', {
+        method: 'POST',
+        headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({
+          user_id: preferences.userId,
+          default_exchange: preferences.defaultExchange,
+          preferred_currency: preferences.preferredCurrency,
+          preferred_period: preferences.preferredPeriod,
+          default_landing_page: preferences.defaultLandingPage,
+          theme: preferences.theme,
+          table_density: preferences.tableDensity,
+          updated_at: preferences.updatedAt,
+        }),
+      });
     }
 
     return preferences;
@@ -412,7 +406,6 @@ export const userRepository = {
     watchlistId: string,
     data: { name?: string | undefined; description?: string | null | undefined },
   ): Promise<WatchlistRow> {
-
     const wl = await this.getWatchlistById(userId, watchlistId);
     if (!wl) {
       throw new AppError('NOT_FOUND', 'Watchlist not found', 404);
@@ -646,20 +639,17 @@ export const userRepository = {
 
     const env = getEnv();
     if (env.NODE_ENV !== 'test') {
-      await supabaseRest(
-        'user_favorites?on_conflict=user_id%2Csymbol%2Cexchange',
-        {
-          method: 'POST',
-          headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-          body: JSON.stringify({
-            id,
-            user_id: userId,
-            symbol: cleanSym,
-            exchange,
-            created_at: now,
-          }),
-        },
-      );
+      await supabaseRest('user_favorites?on_conflict=user_id%2Csymbol%2Cexchange', {
+        method: 'POST',
+        headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({
+          id,
+          user_id: userId,
+          symbol: cleanSym,
+          exchange,
+          created_at: now,
+        }),
+      });
     }
 
     return row;
@@ -672,11 +662,7 @@ export const userRepository = {
   ): Promise<void> {
     const cleanSym = symbol.toUpperCase();
     for (const [id, f] of memoryStore.favorites.entries()) {
-      if (
-        f.userId === userId &&
-        f.symbol === cleanSym &&
-        (!exchange || f.exchange === exchange)
-      ) {
+      if (f.userId === userId && f.symbol === cleanSym && (!exchange || f.exchange === exchange)) {
         memoryStore.favorites.delete(id);
       }
     }

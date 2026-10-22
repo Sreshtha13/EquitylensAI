@@ -13,13 +13,14 @@ import { instrumentRepository } from '../../instruments/repository.js';
 import { AppError } from '../../../utils/appError.js';
 import { logger } from '../../../utils/logger.js';
 
-type YahooChartInterval = '1m' | '2m' | '5m' | '15m' | '30m' | '60m' | '90m' | '1h' | '1d' | '5d' | '1wk' | '1mo' | '3mo';
+type YahooChartInterval =
+  '1m' | '2m' | '5m' | '15m' | '30m' | '60m' | '90m' | '1h' | '1d' | '5d' | '1wk' | '1mo' | '3mo';
 
 const YAHOO_INTERVAL_MAP: Record<CandleInterval, YahooChartInterval> = {
   ONE_MINUTE: '1m',
   THREE_MINUTE: '5m', // Yahoo doesn't support 3m, approximate to 5m
   FIVE_MINUTE: '5m',
-  TEN_MINUTE: '15m',  // Yahoo doesn't support 10m
+  TEN_MINUTE: '15m', // Yahoo doesn't support 10m
   FIFTEEN_MINUTE: '15m',
   THIRTY_MINUTE: '30m',
   ONE_HOUR: '1h',
@@ -84,21 +85,49 @@ export class YahooProvider implements MarketProvider {
           longName: quoteObj['longName'] as string | undefined,
           currency: quoteObj['currency'] as string | undefined,
           exchange: quoteObj['exchange'] as string | undefined,
-          regularMarketPrice: typeof quoteObj['regularMarketPrice'] === 'number' ? quoteObj['regularMarketPrice'] : null,
-          regularMarketChange: typeof quoteObj['regularMarketChange'] === 'number' ? quoteObj['regularMarketChange'] : null,
-          regularMarketChangePercent: typeof quoteObj['regularMarketChangePercent'] === 'number' ? quoteObj['regularMarketChangePercent'] : null,
-          regularMarketOpen: typeof quoteObj['regularMarketOpen'] === 'number' ? quoteObj['regularMarketOpen'] : null,
-          regularMarketDayHigh: typeof quoteObj['regularMarketDayHigh'] === 'number' ? quoteObj['regularMarketDayHigh'] : null,
-          regularMarketDayLow: typeof quoteObj['regularMarketDayLow'] === 'number' ? quoteObj['regularMarketDayLow'] : null,
-          regularMarketPreviousClose: typeof quoteObj['regularMarketPreviousClose'] === 'number' ? quoteObj['regularMarketPreviousClose'] : null,
-          regularMarketVolume: typeof quoteObj['regularMarketVolume'] === 'number' ? quoteObj['regularMarketVolume'] : null,
+          regularMarketPrice:
+            typeof quoteObj['regularMarketPrice'] === 'number'
+              ? quoteObj['regularMarketPrice']
+              : null,
+          regularMarketChange:
+            typeof quoteObj['regularMarketChange'] === 'number'
+              ? quoteObj['regularMarketChange']
+              : null,
+          regularMarketChangePercent:
+            typeof quoteObj['regularMarketChangePercent'] === 'number'
+              ? quoteObj['regularMarketChangePercent']
+              : null,
+          regularMarketOpen:
+            typeof quoteObj['regularMarketOpen'] === 'number'
+              ? quoteObj['regularMarketOpen']
+              : null,
+          regularMarketDayHigh:
+            typeof quoteObj['regularMarketDayHigh'] === 'number'
+              ? quoteObj['regularMarketDayHigh']
+              : null,
+          regularMarketDayLow:
+            typeof quoteObj['regularMarketDayLow'] === 'number'
+              ? quoteObj['regularMarketDayLow']
+              : null,
+          regularMarketPreviousClose:
+            typeof quoteObj['regularMarketPreviousClose'] === 'number'
+              ? quoteObj['regularMarketPreviousClose']
+              : null,
+          regularMarketVolume:
+            typeof quoteObj['regularMarketVolume'] === 'number'
+              ? quoteObj['regularMarketVolume']
+              : null,
           regularMarketTime: quoteObj['regularMarketTime'] as Date | string | number | null,
         },
         {
           symbol: cleanSym,
-          name: instrument?.name || (quoteObj['shortName'] as string) || (quoteObj['longName'] as string) || cleanSym,
+          name:
+            instrument?.name ||
+            (quoteObj['shortName'] as string) ||
+            (quoteObj['longName'] as string) ||
+            cleanSym,
           exchange: request.exchange || (ySymbol.endsWith('.NS') ? 'NSE' : 'US'),
-        }
+        },
       );
     } catch (err) {
       if (err instanceof AppError) throw err;
@@ -106,7 +135,7 @@ export class YahooProvider implements MarketProvider {
       throw new AppError(
         'YAHOO_QUOTE_FAILED',
         `Failed to retrieve quote for ${request.symbol} from Yahoo Finance`,
-        502
+        502,
       );
     }
   }
@@ -131,7 +160,7 @@ export class YahooProvider implements MarketProvider {
         request.interval,
         request.from,
         request.to,
-        quotes
+        quotes,
       );
     } catch (err) {
       if (err instanceof AppError) throw err;
@@ -139,7 +168,7 @@ export class YahooProvider implements MarketProvider {
       throw new AppError(
         'YAHOO_HISTORICAL_FAILED',
         `Failed to retrieve historical data for ${request.symbol} from Yahoo Finance`,
-        502
+        502,
       );
     }
   }
@@ -169,7 +198,9 @@ export class YahooProvider implements MarketProvider {
             change: q.regularMarketChange ?? 0,
             changePercent: q.regularMarketChangePercent ?? 0,
             source: 'yahoo',
-            observedAt: q.regularMarketTime ? new Date(q.regularMarketTime).toISOString() : new Date().toISOString(),
+            observedAt: q.regularMarketTime
+              ? new Date(q.regularMarketTime).toISOString()
+              : new Date().toISOString(),
           });
         }
       } catch {

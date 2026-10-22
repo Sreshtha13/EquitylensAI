@@ -12,7 +12,7 @@ export type GetFinancialAnalysisOptions = {
  */
 export async function getFinancialAnalysis(
   symbol: string,
-  options?: GetFinancialAnalysisOptions
+  options?: GetFinancialAnalysisOptions,
 ): Promise<FinancialAnalysis> {
   const params = new URLSearchParams();
   if (options?.exchange) params.set('exchange', options.exchange);
@@ -20,7 +20,7 @@ export async function getFinancialAnalysis(
   const qStr = params.toString() ? `?${params.toString()}` : '';
 
   return apiClient.get<FinancialAnalysis>(
-    `/api/v1/financial/${encodeURIComponent(symbol)}/analysis${qStr}`
+    `/api/v1/financial/${encodeURIComponent(symbol)}/analysis${qStr}`,
   );
 }
 
@@ -29,13 +29,13 @@ export async function getFinancialAnalysis(
  */
 export async function getFinancialHealthScore(
   symbol: string,
-  exchange?: string
+  exchange?: string,
 ): Promise<FinancialHealthScore> {
   const params = new URLSearchParams();
   if (exchange) params.set('exchange', exchange);
   const qStr = params.toString() ? `?${params.toString()}` : '';
 
   return apiClient.get<FinancialHealthScore>(
-    `/api/v1/financial/${encodeURIComponent(symbol)}/health-score${qStr}`
+    `/api/v1/financial/${encodeURIComponent(symbol)}/health-score${qStr}`,
   );
 }

@@ -608,7 +608,9 @@ export default function ScreenerPage() {
                                   : 'text-slate-600 hover:text-slate-400'
                               }`}
                               viewBox="0 0 20 20"
-                              fill={isFavorite(result.symbol, result.exchange) ? 'currentColor' : 'none'}
+                              fill={
+                                isFavorite(result.symbol, result.exchange) ? 'currentColor' : 'none'
+                              }
                               stroke="currentColor"
                             >
                               <path
@@ -620,7 +622,7 @@ export default function ScreenerPage() {
                             </svg>
                           </button>
                           <Link
-                            href={`/market?symbol=${encodeURIComponent(result.symbol)}&exchange=${encodeURIComponent(result.exchange)}`}
+                            href={`/stocks/${encodeURIComponent(result.exchange)}/${encodeURIComponent(result.symbol)}`}
                             className="font-semibold text-white hover:text-sky-300 transition"
                           >
                             {result.companyName}

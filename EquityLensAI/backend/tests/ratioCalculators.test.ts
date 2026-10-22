@@ -224,7 +224,13 @@ describe('Deterministic Ratio Calculators', () => {
       // marketCap = 300 * 10 = 3000
       // debt = 300 + 100 = 400. cash = 300. EV = 3000 + 400 - 300 = 3100
       // EPS = 15. BVPS = 1000 / 10 = 100
-      const res = calcValuation(sampleIncome, sampleBalanceSheet, sampleCashFlow, livePrice, shares);
+      const res = calcValuation(
+        sampleIncome,
+        sampleBalanceSheet,
+        sampleCashFlow,
+        livePrice,
+        shares,
+      );
 
       expect(res.marketCap.value).toBe(3000);
       expect(res.enterpriseValue.value).toBe(3100);

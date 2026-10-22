@@ -7,7 +7,8 @@ type FinancialMetricsGridProps = {
   analysis: FinancialAnalysis;
 };
 
-type MetricCategory = 'all' | 'profitability' | 'liquidity' | 'leverage' | 'cashFlow' | 'growth' | 'valuation';
+type MetricCategory =
+  'all' | 'profitability' | 'liquidity' | 'leverage' | 'cashFlow' | 'growth' | 'valuation';
 
 function formatMetricValue(m: FinancialMetric | null | undefined): string {
   if (!m || m.value === null || m.value === undefined) return 'N/A';
@@ -115,9 +116,7 @@ export function FinancialMetricsGrid({ analysis }: FinancialMetricsGridProps) {
   ];
 
   const visibleCategories =
-    activeCategory === 'all'
-      ? categories
-      : categories.filter((c) => c.id === activeCategory);
+    activeCategory === 'all' ? categories : categories.filter((c) => c.id === activeCategory);
 
   return (
     <div className="w-full rounded-3xl border border-white/10 bg-slate-900/60 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
@@ -128,7 +127,8 @@ export function FinancialMetricsGrid({ analysis }: FinancialMetricsGridProps) {
             Deterministic Financial Ratios
           </h3>
           <p className="mt-1 text-xs text-slate-400">
-            Every ratio is derived via pure mathematical formula with traceable source inputs. Click any card to inspect the formula.
+            Every ratio is derived via pure mathematical formula with traceable source inputs. Click
+            any card to inspect the formula.
           </p>
         </div>
 
@@ -193,9 +193,7 @@ export function FinancialMetricsGrid({ analysis }: FinancialMetricsGridProps) {
                     <div className="mt-2 flex items-baseline justify-between">
                       <span
                         className={`text-lg font-bold sm:text-xl ${
-                          isUnavailable
-                            ? 'text-slate-500 italic text-sm'
-                            : 'text-white'
+                          isUnavailable ? 'text-slate-500 italic text-sm' : 'text-white'
                         }`}
                       >
                         {formatted}

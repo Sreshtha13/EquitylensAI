@@ -26,7 +26,11 @@ export const watchlistsRouter = Router();
 watchlistsRouter.use(asyncHandler(requireAuth));
 
 watchlistsRouter.get('/', asyncHandler(listWatchlists));
-watchlistsRouter.post('/', validate({ body: createWatchlistSchema }), asyncHandler(createWatchlist));
+watchlistsRouter.post(
+  '/',
+  validate({ body: createWatchlistSchema }),
+  asyncHandler(createWatchlist),
+);
 
 watchlistsRouter.get(
   '/:watchlistId',

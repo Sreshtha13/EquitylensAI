@@ -16,7 +16,12 @@ export function QuoteCard({ symbol, exchange }: QuoteCardProps) {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
 
-  const { data: quote, isLoading, error, isRefetching } = useStockQuote(symbol, exchange, {
+  const {
+    data: quote,
+    isLoading,
+    error,
+    isRefetching,
+  } = useStockQuote(symbol, exchange, {
     refetchInterval: 10_000,
   });
 
@@ -43,7 +48,6 @@ export function QuoteCard({ symbol, exchange }: QuoteCardProps) {
     }
     queryClient.invalidateQueries({ queryKey: ['favorites'] });
   };
-
 
   if (isLoading) {
     return (
@@ -94,7 +98,12 @@ export function QuoteCard({ symbol, exchange }: QuoteCardProps) {
                 fill={isFavorite ? 'currentColor' : 'none'}
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                />
               </svg>
             </button>
             <span className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-2.5 py-0.5 text-xs font-bold text-sky-400">
@@ -110,15 +119,29 @@ export function QuoteCard({ symbol, exchange }: QuoteCardProps) {
           </div>
           <p className="mt-1 text-sm font-medium text-slate-300">{quote.name}</p>
 
-          <Link
-            href={`/research?symbol=${encodeURIComponent(quote.symbol)}&exchange=${encodeURIComponent(quote.exchange)}`}
-            className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20"
-          >
-            <span>View Fundamentals & Health Score</span>
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </Link>
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            <Link
+              href={`/stocks/${encodeURIComponent(quote.exchange)}/${encodeURIComponent(quote.symbol)}`}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-sky-500/30 bg-sky-500/15 px-3 py-1 text-xs font-semibold text-sky-300 transition hover:bg-sky-500/25"
+            >
+              <span>Dedicated Research Page</span>
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
+            </Link>
+
+            <Link
+              href={`/research?symbol=${encodeURIComponent(quote.symbol)}&exchange=${encodeURIComponent(quote.exchange)}`}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-slate-800/80 px-3 py-1 text-xs font-semibold text-slate-300 transition hover:bg-slate-700 hover:text-white"
+            >
+              <span>Fundamentals</span>
+            </Link>
+          </div>
         </div>
 
         {/* Provenance Pill */}
@@ -179,7 +202,9 @@ export function QuoteCard({ symbol, exchange }: QuoteCardProps) {
       {/* OHLCV Statistics Grid */}
       <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <div className="rounded-2xl border border-white/5 bg-slate-950/50 p-4">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Open</div>
+          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            Open
+          </div>
           <div className="mt-1 text-base font-bold text-white">
             {quote.open !== null ? `${currencySymbol}${quote.open.toFixed(2)}` : '—'}
           </div>
@@ -195,7 +220,9 @@ export function QuoteCard({ symbol, exchange }: QuoteCardProps) {
         </div>
 
         <div className="rounded-2xl border border-white/5 bg-slate-950/50 p-4">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">Day Low</div>
+          <div className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            Day Low
+          </div>
           <div className="mt-1 text-base font-bold text-rose-400">
             {quote.low !== null ? `${currencySymbol}${quote.low.toFixed(2)}` : '—'}
           </div>
@@ -206,7 +233,9 @@ export function QuoteCard({ symbol, exchange }: QuoteCardProps) {
             Prev Close
           </div>
           <div className="mt-1 text-base font-bold text-slate-200">
-            {quote.previousClose !== null ? `${currencySymbol}${quote.previousClose.toFixed(2)}` : '—'}
+            {quote.previousClose !== null
+              ? `${currencySymbol}${quote.previousClose.toFixed(2)}`
+              : '—'}
           </div>
         </div>
 
@@ -223,7 +252,12 @@ export function QuoteCard({ symbol, exchange }: QuoteCardProps) {
       {/* Provenance Audit Footer */}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/5 pt-4 text-xs text-slate-400">
         <div className="flex items-center gap-2">
-          <svg className="h-4 w-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="h-4 w-4 text-sky-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"

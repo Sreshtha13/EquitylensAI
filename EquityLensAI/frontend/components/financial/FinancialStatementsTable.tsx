@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { FinancialAnalysis } from '@/types';
 
 type StatementType = 'income' | 'balanceSheet' | 'cashFlow';
+type PeriodType = 'annual' | 'quarterly';
 
 type FinancialStatementsTableProps = {
   analysis: FinancialAnalysis;
@@ -31,13 +32,16 @@ function formatAmount(val: number | null | undefined, currency: string): string 
 
 export function FinancialStatementsTable({ analysis }: FinancialStatementsTableProps) {
   const [statementType, setStatementType] = useState<StatementType>('income');
+  const [periodType, setPeriodType] = useState<PeriodType>('annual');
 
-  const { currency, ttm, annualHistory, source } = analysis;
+  const { currency, ttm, annualHistory, quarterlyHistory, source } = analysis;
 
-  // Periods list: TTM first (if available), then annual history
+  // Keep TTM and quarterly periods separate so reporting periods are never blended.
   const periods = [
-    ...(ttm ? [{ label: 'TTM', period: ttm.periodEndDate, statements: ttm }] : []),
-    ...annualHistory.map((h) => ({
+    ...(periodType === 'annual' && ttm
+      ? [{ label: 'TTM', period: ttm.periodEndDate, statements: ttm }]
+      : []),
+    ...(periodType === 'annual' ? annualHistory : quarterlyHistory).map((h) => ({
       label: h.periodEndDate.slice(0, 4),
       period: h.periodEndDate,
       statements: h,
@@ -56,12 +60,13 @@ export function FinancialStatementsTable({ analysis }: FinancialStatementsTableP
     { label: 'Total Revenue', key: 'totalRevenue', bold: true },
     { label: 'Cost of Revenue', key: 'costOfRevenue' },
     { label: 'Gross Profit', key: 'grossProfit', bold: true },
-    { label: 'Operating Expense', key: 'operatingExpense' },
+    { label: 'Operating Expenses', key: 'totalOperatingExpenses' },
     { label: 'Research & Development', key: 'researchAndDevelopment' },
+    { label: 'Selling, General & Administrative', key: 'sellingGeneralAdministrative' },
     { label: 'Operating Income (EBIT)', key: 'operatingIncome', bold: true },
     { label: 'EBITDA', key: 'ebitda' },
     { label: 'Interest Expense', key: 'interestExpense' },
-    { label: 'Tax Expense', key: 'taxExpense' },
+    { label: 'Income Tax Expense', key: 'incomeTaxExpense' },
     { label: 'Net Income', key: 'netIncome', bold: true },
     { label: 'Diluted EPS', key: 'dilutedEPS', isEps: true },
   ];
@@ -107,95 +112,138 @@ export function FinancialStatementsTable({ analysis }: FinancialStatementsTableP
             Financial Statements
           </h3>
           <p className="mt-1 text-xs text-slate-400">
-            Reported figures across historical reporting periods • Currency: <span className="font-semibold text-white">{currency}</span> • Source: {source}
+            Provider-reported figures • Currency:{' '}
+            <span className="font-semibold text-white">{currency}</span> • Source: {source}
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex rounded-2xl border border-white/10 bg-slate-950/60 p-1">
-          <button
-            onClick={() => setStatementType('income')}
-            className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${
-              statementType === 'income'
-                ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25'
-                : 'text-slate-400 hover:text-white'
-            }`}
+        <div className="flex flex-wrap gap-3">
+          <div
+            aria-label="Reporting period"
+            className="flex rounded-2xl border border-white/10 bg-slate-950/60 p-1"
           >
-            Income Statement
-          </button>
-          <button
-            onClick={() => setStatementType('balanceSheet')}
-            className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${
-              statementType === 'balanceSheet'
-                ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25'
-                : 'text-slate-400 hover:text-white'
-            }`}
+            {(['annual', 'quarterly'] as const).map((period) => (
+              <button
+                key={period}
+                type="button"
+                onClick={() => setPeriodType(period)}
+                aria-pressed={periodType === period}
+                disabled={period === 'quarterly' && quarterlyHistory.length === 0}
+                className={`rounded-xl px-3 py-2 text-xs font-semibold capitalize transition ${
+                  periodType === period
+                    ? 'bg-indigo-500 text-white'
+                    : 'text-slate-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-40'
+                }`}
+              >
+                {period}
+              </button>
+            ))}
+          </div>
+
+          <div
+            aria-label="Statement type"
+            className="flex rounded-2xl border border-white/10 bg-slate-950/60 p-1"
           >
-            Balance Sheet
-          </button>
-          <button
-            onClick={() => setStatementType('cashFlow')}
-            className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${
-              statementType === 'cashFlow'
-                ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Cash Flow
-          </button>
+            <button
+              type="button"
+              onClick={() => setStatementType('income')}
+              className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${
+                statementType === 'income'
+                  ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Income Statement
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatementType('balanceSheet')}
+              className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${
+                statementType === 'balanceSheet'
+                  ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Balance Sheet
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatementType('cashFlow')}
+              className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${
+                statementType === 'cashFlow'
+                  ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Cash Flow
+            </button>
+          </div>
         </div>
       </div>
 
+      <p className="mt-4 text-[11px] text-amber-300/80">
+        {periodType === 'quarterly' ? 'Quarterly' : 'Annual'} reports are shown as supplied by{' '}
+        {source}. The current provider does not identify consolidated versus standalone scope, so
+        the scope cannot be independently verified.
+      </p>
+
       {/* Table */}
       <div className="mt-6 overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-white/10 text-xs font-bold uppercase tracking-wider text-slate-400">
-              <th className="py-3 pr-6 font-semibold">Line Item</th>
-              {periods.map((p, idx) => (
-                <th key={idx} className="px-4 py-3 text-right font-semibold">
-                  <div>{p.label}</div>
-                  <div className="text-[10px] text-slate-500 font-normal">{p.period}</div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {currentRows.map((row) => (
-              <tr
-                key={row.key}
-                className={`transition hover:bg-slate-800/40 ${
-                  row.bold ? 'font-semibold text-white' : 'text-slate-300'
-                }`}
-              >
-                <td className="py-3 pr-6 text-xs sm:text-sm">
-                  {row.label}
-                </td>
-                {periods.map((p, idx) => {
-                  const targetObj =
-                    statementType === 'income'
-                      ? p.statements.income
-                      : statementType === 'balanceSheet'
-                        ? p.statements.balanceSheet
-                        : p.statements.cashFlow;
-
-                  const rawVal = (targetObj as Record<string, unknown>)?.[row.key] as number | null | undefined;
-                  const displayVal = row.isEps
-                    ? rawVal !== null && rawVal !== undefined
-                      ? `${currency === 'INR' ? '₹' : '$'}${rawVal.toFixed(2)}`
-                      : '—'
-                    : formatAmount(rawVal, currency);
-
-                  return (
-                    <td key={idx} className="px-4 py-3 text-right font-mono text-xs sm:text-sm">
-                      {displayVal}
-                    </td>
-                  );
-                })}
+        {periods.length === 0 ? (
+          <p className="py-8 text-center text-sm text-slate-400">
+            {periodType === 'quarterly'
+              ? 'Quarterly statements are unavailable from the current provider for this company.'
+              : 'Annual statements are unavailable from the current provider for this company.'}
+          </p>
+        ) : (
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-white/10 text-xs font-bold uppercase tracking-wider text-slate-400">
+                <th className="py-3 pr-6 font-semibold">Line Item</th>
+                {periods.map((p, idx) => (
+                  <th key={idx} className="px-4 py-3 text-right font-semibold">
+                    <div>{p.label}</div>
+                    <div className="text-[10px] text-slate-500 font-normal">{p.period}</div>
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {currentRows.map((row) => (
+                <tr
+                  key={row.key}
+                  className={`transition hover:bg-slate-800/40 ${
+                    row.bold ? 'font-semibold text-white' : 'text-slate-300'
+                  }`}
+                >
+                  <td className="py-3 pr-6 text-xs sm:text-sm">{row.label}</td>
+                  {periods.map((p, idx) => {
+                    const targetObj =
+                      statementType === 'income'
+                        ? p.statements.income
+                        : statementType === 'balanceSheet'
+                          ? p.statements.balanceSheet
+                          : p.statements.cashFlow;
+
+                    const rawVal = (targetObj as Record<string, unknown>)?.[row.key] as
+                      number | null | undefined;
+                    const displayVal = row.isEps
+                      ? rawVal !== null && rawVal !== undefined
+                        ? `${currency === 'INR' ? '₹' : '$'}${rawVal.toFixed(2)}`
+                        : '—'
+                      : formatAmount(rawVal, currency);
+
+                    return (
+                      <td key={idx} className="px-4 py-3 text-right font-mono text-xs sm:text-sm">
+                        {displayVal}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

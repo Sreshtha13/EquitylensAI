@@ -1,6 +1,8 @@
 import type {
+  CompanyProfile,
   HistoricalPrices,
   HistoricalRequest,
+  InstrumentRecord,
   InstrumentSummary,
   Market,
   MarketOverview,
@@ -9,11 +11,14 @@ import type {
   ProviderStatus,
   QuoteRequest,
   SearchInstrumentsQuery,
+  StockPerformanceResponse,
 } from './types.js';
 import { angelProvider } from './providers/angel/index.js';
 import { yahooProvider } from './providers/yahoo/index.js';
 import { instrumentRepository } from './instruments/repository.js';
 import { marketCache } from './cache/memoryCache.js';
+import { calculateStockPerformance } from './performanceCalculator.js';
+import { yf } from './providers/yahoo/client.js';
 import { AppError } from '../utils/appError.js';
 import { logger } from '../utils/logger.js';
 
@@ -57,7 +62,10 @@ export class MarketService {
   }
 
   async getQuote(request: QuoteRequest): Promise<NormalizedQuote> {
-    const cleanSym = request.symbol.trim().toUpperCase().replace(/\.(NS|BO)$/i, '');
+    const cleanSym = request.symbol
+      .trim()
+      .toUpperCase()
+      .replace(/\.(NS|BO)$/i, '');
     const exchange = (request.exchange || 'NSE').toUpperCase();
     const cacheKey = `quote:${exchange}:${cleanSym}`;
 
@@ -86,7 +94,7 @@ export class MarketService {
         lastError = err;
         logger.warn(
           { err, symbol: cleanSym },
-          'Angel One quote failed; attempting Yahoo Finance fallback'
+          'Angel One quote failed; attempting Yahoo Finance fallback',
         );
       }
     }
@@ -122,12 +130,15 @@ export class MarketService {
     throw new AppError(
       'MARKET_DATA_UNAVAILABLE',
       `Unable to retrieve quote for ${request.symbol} from any active provider`,
-      502
+      502,
     );
   }
 
   async getHistoricalPrices(request: HistoricalRequest): Promise<HistoricalPrices> {
-    const cleanSym = request.symbol.trim().toUpperCase().replace(/\.(NS|BO)$/i, '');
+    const cleanSym = request.symbol
+      .trim()
+      .toUpperCase()
+      .replace(/\.(NS|BO)$/i, '');
     const exchange = (request.exchange || 'NSE').toUpperCase();
     const cacheKey = `history:${exchange}:${cleanSym}:${request.interval}:${request.from}:${request.to}`;
 
@@ -138,11 +149,13 @@ export class MarketService {
 
     const instrument = instrumentRepository.getBySymbol(cleanSym, exchange);
     const isNSE = exchange === 'NSE' || instrument?.market === 'nse';
+    const requestsFullHistory =
+      request.interval === 'ONE_DAY' && request.from.startsWith('1900-01-01');
 
     let lastError: unknown = null;
 
-    // 1. Try Angel One if configured and NSE
-    if (isNSE && angelProvider.isConfigured()) {
+    // Angel's NSE history endpoint is intended for bounded ranges; use Yahoo for MAX.
+    if (!requestsFullHistory && isNSE && angelProvider.isConfigured()) {
       try {
         const history = await angelProvider.getHistoricalPrices({
           ...request,
@@ -157,7 +170,7 @@ export class MarketService {
         lastError = err;
         logger.warn(
           { err, symbol: cleanSym },
-          'Angel One historical data failed; attempting Yahoo Finance fallback'
+          'Angel One historical data failed; attempting Yahoo Finance fallback',
         );
       }
     }
@@ -189,7 +202,7 @@ export class MarketService {
     throw new AppError(
       'MARKET_DATA_UNAVAILABLE',
       `Unable to retrieve historical prices for ${request.symbol} from any active provider`,
-      502
+      502,
     );
   }
 
@@ -241,6 +254,213 @@ export class MarketService {
 
     marketCache.set(cacheKey, overview, { ttlSeconds: 15, staleTtlSeconds: 60 });
     return overview;
+  }
+
+  /**
+   * Resolves an instrument against the local master or verified live provider.
+   * Throws 404 AppError if the instrument cannot be found anywhere.
+   */
+  async resolveInstrument(request: {
+    symbol: string;
+    exchange?: string | undefined;
+  }): Promise<InstrumentRecord> {
+    const cleanSym = request.symbol
+      .trim()
+      .toUpperCase()
+      .replace(/\.(NS|BO)$/i, '');
+    const exchange = (request.exchange || 'NSE').toUpperCase();
+
+    const existing = instrumentRepository.getBySymbol(cleanSym, exchange);
+    if (existing) {
+      return existing;
+    }
+
+    // Attempt live quote resolution to verify if the symbol is real
+    try {
+      const quote = await this.getQuote({ symbol: cleanSym, exchange });
+      const record: InstrumentRecord = {
+        symbol: quote.symbol,
+        name: quote.name,
+        exchange: quote.exchange,
+        market: quote.market,
+        assetType: quote.assetType,
+        currency: quote.currency,
+      };
+      instrumentRepository.upsert(record);
+      return record;
+    } catch {
+      throw new AppError(
+        'INSTRUMENT_NOT_FOUND',
+        `Instrument ${cleanSym} on exchange ${exchange} not found or unsupported`,
+        404,
+      );
+    }
+  }
+
+  /**
+   * Retrieves verified company profile metadata (sector, industry, description, website, HQ).
+   * Missing fields are null with zero fabrication.
+   */
+  async getCompanyProfile(request: {
+    symbol: string;
+    exchange?: string | undefined;
+  }): Promise<CompanyProfile> {
+    const cleanSym = request.symbol
+      .trim()
+      .toUpperCase()
+      .replace(/\.(NS|BO)$/i, '');
+    const exchange = (request.exchange || 'NSE').toUpperCase();
+    const cacheKey = `profile:${exchange}:${cleanSym}`;
+
+    const cached = marketCache.get<CompanyProfile>(cacheKey);
+    if (cached && !cached.isStale) {
+      return cached.value;
+    }
+
+    const instrument = await this.resolveInstrument({ symbol: cleanSym, exchange });
+    const isNSE = exchange === 'NSE' || instrument.market === 'nse';
+    const ticker = isNSE ? `${cleanSym}.NS` : exchange === 'BSE' ? `${cleanSym}.BO` : cleanSym;
+
+    const retrievedAt = new Date().toISOString();
+
+    // Default baseline from repository
+    let sector: string | null = null;
+    let industry: string | null = null;
+    let description: string | null = null;
+    let website: string | null = null;
+    let headquarters: string | null = null;
+    let employees: number | null = null;
+    let sharesOutstanding: number | null = null;
+    let floatShares: number | null = null;
+    let fiscalYearEnd: string | null = null;
+    let name = instrument.name;
+    let source = 'instrument_master';
+
+    try {
+      // Query Yahoo quoteSummary for profile & statistics
+      const [profileData, statsData, priceData] = await Promise.all([
+        yf.quoteSummary(ticker, { modules: ['assetProfile'] }).catch(() => null),
+        yf.quoteSummary(ticker, { modules: ['defaultKeyStatistics'] }).catch(() => null),
+        yf.quoteSummary(ticker, { modules: ['price'] }).catch(() => null),
+      ]);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ap = (profileData as any)?.assetProfile as Record<string, unknown> | undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ks = (statsData as any)?.defaultKeyStatistics as Record<string, unknown> | undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pr = (priceData as any)?.price as Record<string, unknown> | undefined;
+
+      if (ap || ks || pr) {
+        source = 'yahoo';
+        if (pr?.['longName'] || pr?.['shortName']) {
+          name = (pr['longName'] ?? pr['shortName']) as string;
+        }
+        if (typeof ap?.['sector'] === 'string' && ap['sector'].trim()) {
+          sector = ap['sector'].trim();
+        }
+        if (typeof ap?.['industry'] === 'string' && ap['industry'].trim()) {
+          industry = ap['industry'].trim();
+        }
+        if (typeof ap?.['longBusinessSummary'] === 'string' && ap['longBusinessSummary'].trim()) {
+          description = ap['longBusinessSummary'].trim();
+        }
+        if (typeof ap?.['website'] === 'string' && ap['website'].trim()) {
+          website = ap['website'].trim();
+        }
+
+        const hqParts = [ap?.['city'], ap?.['state'], ap?.['country']].filter(
+          (p): p is string => typeof p === 'string' && Boolean(p.trim()),
+        );
+        if (hqParts.length > 0) {
+          headquarters = hqParts.join(', ');
+        }
+
+        if (typeof ap?.['fullTimeEmployees'] === 'number' && ap['fullTimeEmployees'] > 0) {
+          employees = ap['fullTimeEmployees'];
+        }
+
+        if (typeof ks?.['sharesOutstanding'] === 'number' && ks['sharesOutstanding'] > 0) {
+          sharesOutstanding = ks['sharesOutstanding'];
+        }
+        if (typeof ks?.['floatShares'] === 'number' && ks['floatShares'] > 0) {
+          floatShares = ks['floatShares'];
+        }
+        if (ks?.['fiscalYearEnd']) {
+          fiscalYearEnd = String(ks['fiscalYearEnd']).split('T')[0] ?? null;
+        }
+      }
+    } catch (err) {
+      logger.warn(
+        { err, ticker },
+        'Could not fetch extended profile summary; using baseline instrument',
+      );
+    }
+
+    const profile: CompanyProfile = {
+      symbol: cleanSym,
+      name,
+      exchange: instrument.exchange,
+      market: instrument.market,
+      assetType: instrument.assetType,
+      currency: instrument.currency,
+      isin: instrument.isin ?? null,
+      sector,
+      industry,
+      description,
+      website,
+      headquarters,
+      employees,
+      sharesOutstanding,
+      floatShares,
+      fiscalYearEnd,
+      source,
+      retrievedAt,
+    };
+
+    marketCache.set(cacheKey, profile, { ttlSeconds: 24 * 3600, staleTtlSeconds: 48 * 3600 });
+    return profile;
+  }
+
+  /**
+   * Calculates deterministic historical performance metrics across multiple periods.
+   */
+  async getStockPerformance(request: {
+    symbol: string;
+    exchange?: string | undefined;
+  }): Promise<StockPerformanceResponse> {
+    const cleanSym = request.symbol
+      .trim()
+      .toUpperCase()
+      .replace(/\.(NS|BO)$/i, '');
+    const exchange = (request.exchange || 'NSE').toUpperCase();
+    const cacheKey = `performance:${exchange}:${cleanSym}`;
+
+    const cached = marketCache.get<StockPerformanceResponse>(cacheKey);
+    if (cached && !cached.isStale) {
+      return cached.value;
+    }
+
+    const fiveYearsAgo = new Date();
+    fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+
+    const history = await this.getHistoricalPrices({
+      symbol: cleanSym,
+      exchange,
+      interval: 'ONE_DAY',
+      from: fiveYearsAgo.toISOString(),
+      to: new Date().toISOString(),
+    });
+
+    const performance = calculateStockPerformance(
+      cleanSym,
+      exchange,
+      history.candles,
+      history.source,
+    );
+
+    marketCache.set(cacheKey, performance, { ttlSeconds: 3600, staleTtlSeconds: 86400 });
+    return performance;
   }
 }
 

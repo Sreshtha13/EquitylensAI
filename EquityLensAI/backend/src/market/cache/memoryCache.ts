@@ -67,11 +67,7 @@ export class MemoryCache {
     };
   }
 
-  set<T>(
-    key: string,
-    value: T,
-    options?: { ttlSeconds?: number; staleTtlSeconds?: number }
-  ): void {
+  set<T>(key: string, value: T, options?: { ttlSeconds?: number; staleTtlSeconds?: number }): void {
     const ttlMs = options?.ttlSeconds !== undefined ? options.ttlSeconds * 1000 : this.defaultTtlMs;
     const staleTtlMs =
       options?.staleTtlSeconds !== undefined

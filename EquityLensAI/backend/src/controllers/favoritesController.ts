@@ -32,5 +32,4 @@ export async function removeFavorite(req: Request, res: Response): Promise<void>
   const symbol = req.params.symbol!;
   await favoritesService.removeFavorite(req.user.id, symbol, exchange);
   sendSuccess(res, { message: 'Stock removed from favorites' });
-
 }

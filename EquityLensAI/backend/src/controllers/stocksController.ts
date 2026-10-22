@@ -4,11 +4,7 @@ import { ingestInstruments, getIngestionStatus } from '../market/instruments/ing
 import { sendSuccess } from '../utils/response.js';
 import type { Market, AssetType, CandleInterval } from '../market/types.js';
 
-export async function searchStocks(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
+export async function searchStocks(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const q = (req.query.q as string) || '';
     const market = req.query.market as Market | undefined;
@@ -35,7 +31,7 @@ export async function searchStocks(
 export async function getStockQuote(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   try {
     const symbol = req.params.symbol as string;
@@ -55,7 +51,7 @@ export async function getStockQuote(
 export async function getStockHistorical(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   try {
     const symbol = req.params.symbol as string;
@@ -81,7 +77,7 @@ export async function getStockHistorical(
 export async function triggerIngestion(
   _req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   try {
     const result = await ingestInstruments();
@@ -94,11 +90,63 @@ export async function triggerIngestion(
   }
 }
 
-export function getIngestStatus(
-  _req: Request,
-  res: Response,
-  _next: NextFunction
-): void {
+export function getIngestStatus(_req: Request, res: Response, _next: NextFunction): void {
   const status = getIngestionStatus();
   sendSuccess(res, status);
+}
+
+export async function getStockProfile(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const symbol = req.params.symbol as string;
+    const exchange = req.query.exchange as string | undefined;
+
+    const profile = await marketService.getCompanyProfile({
+      symbol,
+      exchange,
+    });
+
+    sendSuccess(res, profile);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getStockPerformance(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const symbol = req.params.symbol as string;
+    const exchange = req.query.exchange as string | undefined;
+
+    const performance = await marketService.getStockPerformance({
+      symbol,
+      exchange,
+    });
+
+    sendSuccess(res, performance);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function resolveStock(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const symbol = req.params.symbol as string;
+    const exchange = req.query.exchange as string | undefined;
+
+    const instrument = await marketService.resolveInstrument({
+      symbol,
+      exchange,
+    });
+
+    sendSuccess(res, instrument);
+  } catch (err) {
+    next(err);
+  }
 }

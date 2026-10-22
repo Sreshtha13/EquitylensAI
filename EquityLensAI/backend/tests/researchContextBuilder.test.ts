@@ -66,6 +66,7 @@ function makeAnalysis(symbol: string, stale = false, currency = 'INR') {
     },
     ttm: null,
     annualHistory: [],
+    quarterlyHistory: [],
     profitability: {
       grossMargin: metric(40),
       operatingMargin: metric(20),

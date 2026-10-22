@@ -9,6 +9,8 @@ import type {
   MarketOverview,
   NormalizedQuote,
   PriceCandle,
+  CompanyProfile,
+  StockPerformanceResponse,
 } from '@equitylensai/shared';
 
 export type {
@@ -22,6 +24,8 @@ export type {
   MarketOverview,
   NormalizedQuote,
   PriceCandle,
+  CompanyProfile,
+  StockPerformanceResponse,
 };
 
 export type InstrumentRecord = {
@@ -56,7 +60,7 @@ export type HistoricalRequest = {
   token?: string | undefined;
   interval: CandleInterval;
   from: string; // ISO 8601 or YYYY-MM-DD HH:mm
-  to: string;   // ISO 8601 or YYYY-MM-DD HH:mm
+  to: string; // ISO 8601 or YYYY-MM-DD HH:mm
 };
 
 export interface MarketProvider {

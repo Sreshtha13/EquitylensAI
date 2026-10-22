@@ -75,6 +75,10 @@ alter table public.user_favorites enable row level security;
 alter table public.user_preferences enable row level security;
 
 -- Policies for user_profiles
+drop policy if exists "Users can view own profile" on public.user_profiles;
+drop policy if exists "Users can update own profile" on public.user_profiles;
+drop policy if exists "Users can insert own profile" on public.user_profiles;
+
 create policy "Users can view own profile"
   on public.user_profiles for select
   using (auth.uid() = auth_user_id);
@@ -88,6 +92,11 @@ create policy "Users can insert own profile"
   with check (auth.uid() = auth_user_id);
 
 -- Policies for watchlists
+drop policy if exists "Users can view own watchlists" on public.watchlists;
+drop policy if exists "Users can insert own watchlists" on public.watchlists;
+drop policy if exists "Users can update own watchlists" on public.watchlists;
+drop policy if exists "Users can delete own watchlists" on public.watchlists;
+
 create policy "Users can view own watchlists"
   on public.watchlists for select
   using (auth.uid() = user_id);
@@ -105,6 +114,10 @@ create policy "Users can delete own watchlists"
   using (auth.uid() = user_id);
 
 -- Policies for watchlist_items
+drop policy if exists "Users can view items in own watchlists" on public.watchlist_items;
+drop policy if exists "Users can insert items into own watchlists" on public.watchlist_items;
+drop policy if exists "Users can delete items from own watchlists" on public.watchlist_items;
+
 create policy "Users can view items in own watchlists"
   on public.watchlist_items for select
   using (
@@ -133,6 +146,10 @@ create policy "Users can delete items from own watchlists"
   );
 
 -- Policies for user_favorites
+drop policy if exists "Users can view own favorites" on public.user_favorites;
+drop policy if exists "Users can insert own favorites" on public.user_favorites;
+drop policy if exists "Users can delete own favorites" on public.user_favorites;
+
 create policy "Users can view own favorites"
   on public.user_favorites for select
   using (auth.uid() = user_id);
@@ -146,6 +163,9 @@ create policy "Users can delete own favorites"
   using (auth.uid() = user_id);
 
 -- Policies for user_preferences
+drop policy if exists "Users can view own preferences" on public.user_preferences;
+drop policy if exists "Users can upsert own preferences" on public.user_preferences;
+
 create policy "Users can view own preferences"
   on public.user_preferences for select
   using (auth.uid() = user_id);

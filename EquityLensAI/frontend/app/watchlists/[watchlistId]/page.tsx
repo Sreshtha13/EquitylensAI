@@ -138,7 +138,9 @@ export default function WatchlistDetailPage({
         <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-8 backdrop-blur-xl">
           <h1 className="text-lg font-bold text-white">Watchlist Not Found</h1>
           <p className="mt-2 text-xs text-slate-400">
-            {error instanceof Error ? error.message : "This watchlist does not exist or you don't have permission to view it."}
+            {error instanceof Error
+              ? error.message
+              : "This watchlist does not exist or you don't have permission to view it."}
           </p>
           <div className="mt-6">
             <Link
@@ -193,7 +195,12 @@ export default function WatchlistDetailPage({
             className="inline-flex items-center gap-1.5 rounded-lg bg-sky-500 px-3.5 py-2 text-xs font-semibold text-white shadow-md shadow-sky-500/20 hover:bg-sky-400 transition"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             Add Stock
           </button>
@@ -225,7 +232,12 @@ export default function WatchlistDetailPage({
         <div className="rounded-2xl border border-dashed border-white/10 bg-slate-900/30 p-12 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 text-slate-400">
             <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+              />
             </svg>
           </div>
           <h2 className="mt-4 text-sm font-semibold text-white">No Stocks in Watchlist</h2>
@@ -274,16 +286,23 @@ export default function WatchlistDetailPage({
                   const q = item.quote;
                   const isPositive = q?.change !== null && q?.change !== undefined && q.change > 0;
                   const isNegative = q?.change !== null && q?.change !== undefined && q.change < 0;
-                  const isFav = favorites.some((f) => f.symbol === item.symbol && f.exchange === item.exchange);
+                  const isFav = favorites.some(
+                    (f) => f.symbol === item.symbol && f.exchange === item.exchange,
+                  );
 
                   return (
-                    <tr key={`${item.exchange}:${item.symbol}`} className="hover:bg-white/[0.02] transition">
+                    <tr
+                      key={`${item.exchange}:${item.symbol}`}
+                      className="hover:bg-white/[0.02] transition"
+                    >
                       {/* Symbol & Name */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2.5">
                           <button
                             type="button"
-                            onClick={() => void toggleFavorite(item.symbol, item.exchange as SupportedExchange)}
+                            onClick={() =>
+                              void toggleFavorite(item.symbol, item.exchange as SupportedExchange)
+                            }
                             className="text-slate-400 hover:text-amber-400 transition"
                             title={isFav ? 'Remove from favorites' : 'Add to favorites'}
                           >
@@ -293,13 +312,21 @@ export default function WatchlistDetailPage({
                               fill={isFav ? 'currentColor' : 'none'}
                               stroke="currentColor"
                             >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                              />
                             </svg>
                           </button>
                           <div>
-                            <span className="font-bold text-white text-sm">
+                            <Link
+                              href={`/stocks/${encodeURIComponent(item.exchange)}/${encodeURIComponent(item.symbol)}`}
+                              className="font-bold text-white text-sm hover:text-sky-300 transition"
+                            >
                               {item.symbol}
-                            </span>
+                            </Link>
                             <div className="text-[11px] text-slate-400 truncate max-w-[220px]">
                               {item.name}
                             </div>
@@ -318,7 +345,11 @@ export default function WatchlistDetailPage({
                       <td className="px-4 py-4 text-right font-medium">
                         {q?.price !== null && q?.price !== undefined ? (
                           <span className="text-white font-mono text-sm">
-                            ₹{q.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            ₹
+                            {q.price.toLocaleString('en-IN', {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
                           </span>
                         ) : (
                           <span className="text-slate-500 italic">Unavailable</span>
@@ -328,8 +359,17 @@ export default function WatchlistDetailPage({
                       {/* Absolute Change */}
                       <td className="px-4 py-4 text-right font-mono">
                         {q?.change !== null && q?.change !== undefined ? (
-                          <span className={isPositive ? 'text-emerald-400 font-semibold' : isNegative ? 'text-rose-400 font-semibold' : 'text-slate-400'}>
-                            {isPositive ? '+' : ''}{q.change.toFixed(2)}
+                          <span
+                            className={
+                              isPositive
+                                ? 'text-emerald-400 font-semibold'
+                                : isNegative
+                                  ? 'text-rose-400 font-semibold'
+                                  : 'text-slate-400'
+                            }
+                          >
+                            {isPositive ? '+' : ''}
+                            {q.change.toFixed(2)}
                           </span>
                         ) : (
                           <span className="text-slate-600">—</span>
@@ -339,14 +379,17 @@ export default function WatchlistDetailPage({
                       {/* Percent Change */}
                       <td className="px-4 py-4 text-right font-mono">
                         {q?.changePercent !== null && q?.changePercent !== undefined ? (
-                          <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold ${
-                            isPositive
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                              : isNegative
-                              ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                              : 'bg-white/5 text-slate-400'
-                          }`}>
-                            {isPositive ? '+' : ''}{q.changePercent.toFixed(2)}%
+                          <span
+                            className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold ${
+                              isPositive
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                : isNegative
+                                  ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                  : 'bg-white/5 text-slate-400'
+                            }`}
+                          >
+                            {isPositive ? '+' : ''}
+                            {q.changePercent.toFixed(2)}%
                           </span>
                         ) : (
                           <span className="text-slate-600">—</span>
@@ -356,16 +399,24 @@ export default function WatchlistDetailPage({
                       {/* Data Freshness */}
                       <td className="px-4 py-4 text-center">
                         {q ? (
-                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                            q.freshness === 'live'
-                              ? 'bg-emerald-500/10 text-emerald-400'
-                              : q.isStale
-                              ? 'bg-amber-500/10 text-amber-400'
-                              : 'bg-sky-500/10 text-sky-400'
-                          }`}>
-                            <span className={`h-1.5 w-1.5 rounded-full ${
-                              q.freshness === 'live' ? 'bg-emerald-400 animate-pulse' : q.isStale ? 'bg-amber-400' : 'bg-sky-400'
-                            }`} />
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                              q.freshness === 'live'
+                                ? 'bg-emerald-500/10 text-emerald-400'
+                                : q.isStale
+                                  ? 'bg-amber-500/10 text-amber-400'
+                                  : 'bg-sky-500/10 text-sky-400'
+                            }`}
+                          >
+                            <span
+                              className={`h-1.5 w-1.5 rounded-full ${
+                                q.freshness === 'live'
+                                  ? 'bg-emerald-400 animate-pulse'
+                                  : q.isStale
+                                    ? 'bg-amber-400'
+                                    : 'bg-sky-400'
+                              }`}
+                            />
                             {q.freshness}
                           </span>
                         ) : (
@@ -377,10 +428,10 @@ export default function WatchlistDetailPage({
                       <td className="px-5 py-4 text-right">
                         <div className="flex items-center justify-end gap-3">
                           <Link
-                            href={`/market`}
+                            href={`/stocks/${encodeURIComponent(item.exchange)}/${encodeURIComponent(item.symbol)}`}
                             className="text-xs text-sky-400 hover:text-sky-300 font-medium transition"
                           >
-                            Chart
+                            Research
                           </Link>
                           <span className="text-white/20">•</span>
                           <button
@@ -422,7 +473,8 @@ export default function WatchlistDetailPage({
               </button>
             </div>
             <p className="mt-1 text-xs text-slate-400">
-              Search the verified NSE / BSE tradable universe. Only genuine registered stocks can be added.
+              Search the verified NSE / BSE tradable universe. Only genuine registered stocks can be
+              added.
             </p>
 
             {addItemError && (
@@ -468,7 +520,9 @@ export default function WatchlistDetailPage({
                             {item.exchange}
                           </span>
                         </div>
-                        <div className="text-[11px] text-slate-400 truncate max-w-xs">{item.name}</div>
+                        <div className="text-[11px] text-slate-400 truncate max-w-xs">
+                          {item.name}
+                        </div>
                       </div>
                       <button
                         type="button"
@@ -523,7 +577,10 @@ export default function WatchlistDetailPage({
               className="mt-4 space-y-4"
             >
               <div>
-                <label className="block text-xs font-medium text-slate-300" htmlFor="editWlNameDetail">
+                <label
+                  className="block text-xs font-medium text-slate-300"
+                  htmlFor="editWlNameDetail"
+                >
                   Name *
                 </label>
                 <input
@@ -537,7 +594,10 @@ export default function WatchlistDetailPage({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300" htmlFor="editWlDescDetail">
+                <label
+                  className="block text-xs font-medium text-slate-300"
+                  htmlFor="editWlDescDetail"
+                >
                   Description
                 </label>
                 <textarea

@@ -46,10 +46,10 @@ EquityLensAI Phase 2 implements a production-grade, genuine market data pipeline
 
 ### Supported Providers
 
-| Provider | Role | Authentication | Freshness | Supported Markets |
-| :--- | :--- | :--- | :--- | :--- |
-| **Angel One SmartAPI** | Primary | Client ID, Password, TOTP, API Key | `live` (tick / session feed) | `NSE` (Equities & Indices) |
-| **Yahoo Finance** | Supplementary / Fallback | None (Public HTTP) | `delayed` (~15 min delay) | `US`, `NSE` (`.NS`), `BSE` (`.BO`) |
+| Provider               | Role                     | Authentication                     | Freshness                    | Supported Markets                  |
+| :--------------------- | :----------------------- | :--------------------------------- | :--------------------------- | :--------------------------------- |
+| **Angel One SmartAPI** | Primary                  | Client ID, Password, TOTP, API Key | `live` (tick / session feed) | `NSE` (Equities & Indices)         |
+| **Yahoo Finance**      | Supplementary / Fallback | None (Public HTTP)                 | `delayed` (~15 min delay)    | `US`, `NSE` (`.NS`), `BSE` (`.BO`) |
 
 ---
 
@@ -63,11 +63,13 @@ Because Supabase database access is established as a boundary in Phase 1, Phase 
 - **Disk Persistence**: Persisted to `backend/data/instruments-cache.json` for instantaneous subsequent backend restarts.
 
 ### Running Ingestion CLI
+
 ```bash
 npm run ingest:instruments --workspace @equitylensai/backend
 ```
 
 Or via REST API:
+
 ```http
 POST /api/v1/stocks/ingest
 ```
@@ -77,20 +79,26 @@ POST /api/v1/stocks/ingest
 ## 4. API Endpoints
 
 ### 4.1 Search Tradable Instruments
+
 ```http
 GET /api/v1/stocks/search?q={query}&market={market}&limit={limit}
 ```
+
 **Query Parameters**:
+
 - `q` (required, string 1-50): Search query (e.g. `RELIANCE`, `TCS`, `AAPL`).
 - `market` (optional): `nse`, `bse`, `us`, etc.
 - `assetType` (optional): `equity`, `etf`, `index`.
 - `limit` (optional, default 20): Maximum results to return (1-100).
 
 ### 4.2 Stock Quote
+
 ```http
 GET /api/v1/stocks/{symbol}/quote?exchange={exchange}
 ```
+
 **Response Format**:
+
 ```json
 {
   "success": true,
@@ -119,20 +127,26 @@ GET /api/v1/stocks/{symbol}/quote?exchange={exchange}
 ```
 
 ### 4.3 Historical OHLCV Candles
+
 ```http
 GET /api/v1/stocks/{symbol}/history?exchange={exchange}&interval={interval}&from={from}&to={to}
 ```
+
 **Supported Intervals**:
 `ONE_MINUTE`, `THREE_MINUTE`, `FIVE_MINUTE`, `TEN_MINUTE`, `FIFTEEN_MINUTE`, `THIRTY_MINUTE`, `ONE_HOUR`, `ONE_DAY`.
 
 ### 4.4 Market Overview
+
 ```http
 GET /api/v1/market/overview?market={market}
 ```
+
 Returns benchmark index snapshots (e.g., NIFTY 50, NIFTY Bank, S&P 500) with provenanced values and net changes.
 
 ### 4.5 Market Providers Status
+
 ```http
 GET /api/v1/market/providers
 ```
+
 Returns list of registered providers and whether credentials are configured.

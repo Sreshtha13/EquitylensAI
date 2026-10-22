@@ -34,11 +34,7 @@ export async function updateWatchlist(req: Request, res: Response): Promise<void
     throw new AppError('UNAUTHORIZED', 'User not authenticated', 401);
   }
   const watchlistId = req.params.watchlistId!;
-  const updated = await watchlistsService.updateWatchlist(
-    req.user.id,
-    watchlistId,
-    req.body,
-  );
+  const updated = await watchlistsService.updateWatchlist(req.user.id, watchlistId, req.body);
   sendSuccess(res, updated);
 }
 
@@ -67,12 +63,7 @@ export async function removeWatchlistItem(req: Request, res: Response): Promise<
   const watchlistId = req.params.watchlistId!;
   const symbol = req.params.symbol!;
   const exchange = req.query.exchange as SupportedExchange | undefined;
-  await watchlistsService.removeItem(
-    req.user.id,
-    watchlistId,
-    symbol,
-    exchange,
-  );
+  await watchlistsService.removeItem(req.user.id, watchlistId, symbol, exchange);
   sendSuccess(res, { message: 'Stock removed from watchlist' });
 }
 
@@ -88,4 +79,3 @@ export async function reorderWatchlistItems(req: Request, res: Response): Promis
   await watchlistsService.reorderItems(req.user.id, watchlistId, symbols);
   sendSuccess(res, { message: 'Watchlist items reordered successfully' });
 }
-

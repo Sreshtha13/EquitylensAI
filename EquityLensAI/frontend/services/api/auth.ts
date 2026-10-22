@@ -1,10 +1,5 @@
 import { apiClient, setAuthToken } from './client';
-import type {
-  AuthUser,
-  AuthSession,
-  UserProfile,
-  UserPreferences,
-} from '@equitylensai/shared';
+import type { AuthUser, AuthSession, UserProfile, UserPreferences } from '@equitylensai/shared';
 
 export type RegisterResponse = {
   user: AuthUser;
@@ -32,10 +27,7 @@ export async function registerUser(body: {
   return data;
 }
 
-export async function loginUser(body: {
-  email: string;
-  password: string;
-}): Promise<LoginResponse> {
+export async function loginUser(body: { email: string; password: string }): Promise<LoginResponse> {
   const data = await apiClient.post<LoginResponse>('/api/v1/auth/login', body);
   if (data.session?.accessToken) {
     setAuthToken(data.session.accessToken);

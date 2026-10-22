@@ -30,7 +30,7 @@ function scoreValue(
   value: number | null,
   thresholds: { excellent: number; good: number; fair: number; poor: number },
   higherIsBetter: boolean,
-  max: number
+  max: number,
 ): number {
   if (value === null) return 0; // missing — caller will note the absence
 
@@ -50,14 +50,62 @@ function scoreProfitability(m: ProfitabilityMetrics): RatingResult {
   let score = 0;
   let max = 0;
 
-  const items: Array<{ name: string; value: number | null; thresholds: { excellent: number; good: number; fair: number; poor: number }; higher: boolean; weight: number }> = [
-    { name: 'grossMargin', value: m.grossMargin.value, thresholds: { excellent: 50, good: 35, fair: 20, poor: 10 }, higher: true, weight: 10 },
-    { name: 'operatingMargin', value: m.operatingMargin.value, thresholds: { excellent: 20, good: 12, fair: 5, poor: 0 }, higher: true, weight: 15 },
-    { name: 'netMargin', value: m.netMargin.value, thresholds: { excellent: 15, good: 8, fair: 3, poor: 0 }, higher: true, weight: 15 },
-    { name: 'returnOnEquity', value: m.returnOnEquity.value, thresholds: { excellent: 20, good: 12, fair: 6, poor: 0 }, higher: true, weight: 10 },
-    { name: 'returnOnAssets', value: m.returnOnAssets.value, thresholds: { excellent: 10, good: 6, fair: 3, poor: 0 }, higher: true, weight: 10 },
-    { name: 'ebitdaMargin', value: m.ebitdaMargin.value, thresholds: { excellent: 25, good: 15, fair: 8, poor: 0 }, higher: true, weight: 10 },
-    { name: 'returnOnCapitalEmployed', value: m.returnOnCapitalEmployed.value, thresholds: { excellent: 20, good: 12, fair: 6, poor: 0 }, higher: true, weight: 10 },
+  const items: Array<{
+    name: string;
+    value: number | null;
+    thresholds: { excellent: number; good: number; fair: number; poor: number };
+    higher: boolean;
+    weight: number;
+  }> = [
+    {
+      name: 'grossMargin',
+      value: m.grossMargin.value,
+      thresholds: { excellent: 50, good: 35, fair: 20, poor: 10 },
+      higher: true,
+      weight: 10,
+    },
+    {
+      name: 'operatingMargin',
+      value: m.operatingMargin.value,
+      thresholds: { excellent: 20, good: 12, fair: 5, poor: 0 },
+      higher: true,
+      weight: 15,
+    },
+    {
+      name: 'netMargin',
+      value: m.netMargin.value,
+      thresholds: { excellent: 15, good: 8, fair: 3, poor: 0 },
+      higher: true,
+      weight: 15,
+    },
+    {
+      name: 'returnOnEquity',
+      value: m.returnOnEquity.value,
+      thresholds: { excellent: 20, good: 12, fair: 6, poor: 0 },
+      higher: true,
+      weight: 10,
+    },
+    {
+      name: 'returnOnAssets',
+      value: m.returnOnAssets.value,
+      thresholds: { excellent: 10, good: 6, fair: 3, poor: 0 },
+      higher: true,
+      weight: 10,
+    },
+    {
+      name: 'ebitdaMargin',
+      value: m.ebitdaMargin.value,
+      thresholds: { excellent: 25, good: 15, fair: 8, poor: 0 },
+      higher: true,
+      weight: 10,
+    },
+    {
+      name: 'returnOnCapitalEmployed',
+      value: m.returnOnCapitalEmployed.value,
+      thresholds: { excellent: 20, good: 12, fair: 6, poor: 0 },
+      higher: true,
+      weight: 10,
+    },
   ];
 
   for (const item of items) {
@@ -78,10 +126,34 @@ function scoreLiquidity(m: LiquidityMetrics): RatingResult {
   let max = 0;
 
   const items = [
-    { name: 'currentRatio', value: m.currentRatio.value, thresholds: { excellent: 2.0, good: 1.5, fair: 1.0, poor: 0.75 }, higher: true, weight: 20 },
-    { name: 'quickRatio', value: m.quickRatio.value, thresholds: { excellent: 1.5, good: 1.0, fair: 0.7, poor: 0.5 }, higher: true, weight: 20 },
-    { name: 'cashRatio', value: m.cashRatio.value, thresholds: { excellent: 0.5, good: 0.3, fair: 0.1, poor: 0.0 }, higher: true, weight: 10 },
-    { name: 'operatingCashFlowRatio', value: m.operatingCashFlowRatio.value, thresholds: { excellent: 1.0, good: 0.7, fair: 0.4, poor: 0.1 }, higher: true, weight: 10 },
+    {
+      name: 'currentRatio',
+      value: m.currentRatio.value,
+      thresholds: { excellent: 2.0, good: 1.5, fair: 1.0, poor: 0.75 },
+      higher: true,
+      weight: 20,
+    },
+    {
+      name: 'quickRatio',
+      value: m.quickRatio.value,
+      thresholds: { excellent: 1.5, good: 1.0, fair: 0.7, poor: 0.5 },
+      higher: true,
+      weight: 20,
+    },
+    {
+      name: 'cashRatio',
+      value: m.cashRatio.value,
+      thresholds: { excellent: 0.5, good: 0.3, fair: 0.1, poor: 0.0 },
+      higher: true,
+      weight: 10,
+    },
+    {
+      name: 'operatingCashFlowRatio',
+      value: m.operatingCashFlowRatio.value,
+      thresholds: { excellent: 1.0, good: 0.7, fair: 0.4, poor: 0.1 },
+      higher: true,
+      weight: 10,
+    },
   ];
 
   for (const item of items) {
@@ -102,10 +174,34 @@ function scoreLeverage(m: LeverageMetrics): RatingResult {
   let max = 0;
 
   const items = [
-    { name: 'debtToEquity', value: m.debtToEquity.value, thresholds: { excellent: 0.3, good: 0.75, fair: 1.5, poor: 3.0 }, higher: false, weight: 20 },
-    { name: 'debtToAssets', value: m.debtToAssets.value, thresholds: { excellent: 0.2, good: 0.4, fair: 0.6, poor: 0.8 }, higher: false, weight: 15 },
-    { name: 'interestCoverageRatio', value: m.interestCoverageRatio.value, thresholds: { excellent: 8, good: 4, fair: 2, poor: 1 }, higher: true, weight: 15 },
-    { name: 'netDebtToEbitda', value: m.netDebtToEbitda.value, thresholds: { excellent: 0.5, good: 1.5, fair: 3.0, poor: 5.0 }, higher: false, weight: 10 },
+    {
+      name: 'debtToEquity',
+      value: m.debtToEquity.value,
+      thresholds: { excellent: 0.3, good: 0.75, fair: 1.5, poor: 3.0 },
+      higher: false,
+      weight: 20,
+    },
+    {
+      name: 'debtToAssets',
+      value: m.debtToAssets.value,
+      thresholds: { excellent: 0.2, good: 0.4, fair: 0.6, poor: 0.8 },
+      higher: false,
+      weight: 15,
+    },
+    {
+      name: 'interestCoverageRatio',
+      value: m.interestCoverageRatio.value,
+      thresholds: { excellent: 8, good: 4, fair: 2, poor: 1 },
+      higher: true,
+      weight: 15,
+    },
+    {
+      name: 'netDebtToEbitda',
+      value: m.netDebtToEbitda.value,
+      thresholds: { excellent: 0.5, good: 1.5, fair: 3.0, poor: 5.0 },
+      higher: false,
+      weight: 10,
+    },
   ];
 
   for (const item of items) {
@@ -126,10 +222,34 @@ function scoreCashFlow(m: CashFlowMetrics): RatingResult {
   let max = 0;
 
   const items = [
-    { name: 'freeCashFlowMargin', value: m.freeCashFlowMargin.value, thresholds: { excellent: 15, good: 8, fair: 3, poor: 0 }, higher: true, weight: 20 },
-    { name: 'operatingCashFlowToNetIncome', value: m.operatingCashFlowToNetIncome.value, thresholds: { excellent: 1.2, good: 0.9, fair: 0.6, poor: 0.2 }, higher: true, weight: 15 },
-    { name: 'capexToRevenue', value: m.capexToRevenue.value, thresholds: { excellent: 2, good: 5, fair: 10, poor: 20 }, higher: false, weight: 10 },
-    { name: 'freeCashFlowYield', value: m.freeCashFlowYield.value, thresholds: { excellent: 5, good: 3, fair: 1, poor: 0 }, higher: true, weight: 15 },
+    {
+      name: 'freeCashFlowMargin',
+      value: m.freeCashFlowMargin.value,
+      thresholds: { excellent: 15, good: 8, fair: 3, poor: 0 },
+      higher: true,
+      weight: 20,
+    },
+    {
+      name: 'operatingCashFlowToNetIncome',
+      value: m.operatingCashFlowToNetIncome.value,
+      thresholds: { excellent: 1.2, good: 0.9, fair: 0.6, poor: 0.2 },
+      higher: true,
+      weight: 15,
+    },
+    {
+      name: 'capexToRevenue',
+      value: m.capexToRevenue.value,
+      thresholds: { excellent: 2, good: 5, fair: 10, poor: 20 },
+      higher: false,
+      weight: 10,
+    },
+    {
+      name: 'freeCashFlowYield',
+      value: m.freeCashFlowYield.value,
+      thresholds: { excellent: 5, good: 3, fair: 1, poor: 0 },
+      higher: true,
+      weight: 15,
+    },
   ];
 
   for (const item of items) {
@@ -150,12 +270,44 @@ function scoreGrowth(m: GrowthMetrics): RatingResult {
   let max = 0;
 
   const items = [
-    { name: 'revenueGrowthYoY', value: m.revenueGrowthYoY.value, thresholds: { excellent: 20, good: 10, fair: 5, poor: 0 }, higher: true, weight: 15 },
-    { name: 'netIncomeGrowthYoY', value: m.netIncomeGrowthYoY.value, thresholds: { excellent: 20, good: 10, fair: 5, poor: 0 }, higher: true, weight: 15 },
-    { name: 'epsGrowthYoY', value: m.epsGrowthYoY.value, thresholds: { excellent: 20, good: 10, fair: 5, poor: 0 }, higher: true, weight: 10 },
-    { name: 'freeCashFlowGrowthYoY', value: m.freeCashFlowGrowthYoY.value, thresholds: { excellent: 20, good: 10, fair: 5, poor: 0 }, higher: true, weight: 10 },
+    {
+      name: 'revenueGrowthYoY',
+      value: m.revenueGrowthYoY.value,
+      thresholds: { excellent: 20, good: 10, fair: 5, poor: 0 },
+      higher: true,
+      weight: 15,
+    },
+    {
+      name: 'netIncomeGrowthYoY',
+      value: m.netIncomeGrowthYoY.value,
+      thresholds: { excellent: 20, good: 10, fair: 5, poor: 0 },
+      higher: true,
+      weight: 15,
+    },
+    {
+      name: 'epsGrowthYoY',
+      value: m.epsGrowthYoY.value,
+      thresholds: { excellent: 20, good: 10, fair: 5, poor: 0 },
+      higher: true,
+      weight: 10,
+    },
+    {
+      name: 'freeCashFlowGrowthYoY',
+      value: m.freeCashFlowGrowthYoY.value,
+      thresholds: { excellent: 20, good: 10, fair: 5, poor: 0 },
+      higher: true,
+      weight: 10,
+    },
     ...(m.revenueCAGR
-      ? [{ name: 'revenueCAGR', value: m.revenueCAGR.value, thresholds: { excellent: 15, good: 8, fair: 3, poor: 0 }, higher: true, weight: 10 }]
+      ? [
+          {
+            name: 'revenueCAGR',
+            value: m.revenueCAGR.value,
+            thresholds: { excellent: 15, good: 8, fair: 3, poor: 0 },
+            higher: true,
+            weight: 10,
+          },
+        ]
       : []),
   ];
 
@@ -187,11 +339,9 @@ function toGrade(score: number): FinancialHealthScore['grade'] {
 function buildDimension(
   name: string,
   result: RatingResult,
-  keyMetrics: string[]
+  keyMetrics: string[],
 ): HealthScoreDimension {
-  const normalised = result.max > 0
-    ? Math.round((result.score / result.max) * 100)
-    : 0;
+  const normalised = result.max > 0 ? Math.round((result.score / result.max) * 100) : 0;
 
   const rationale =
     result.max === 0
@@ -218,7 +368,7 @@ export function calcHealthScore(
   leverage: LeverageMetrics,
   cashFlow: CashFlowMetrics,
   growth: GrowthMetrics,
-  asOfPeriod: string
+  asOfPeriod: string,
 ): FinancialHealthScore {
   const profResult = scoreProfitability(profitability);
   const liqResult = scoreLiquidity(liquidity);
@@ -227,17 +377,16 @@ export function calcHealthScore(
   const growResult = scoreGrowth(growth);
 
   // Weighted composite: profitability 25%, liquidity 20%, leverage 20%, cashflow 20%, growth 15%
-  const weights = { prof: 0.25, liq: 0.20, lev: 0.20, cf: 0.20, grow: 0.15 };
+  const weights = { prof: 0.25, liq: 0.2, lev: 0.2, cf: 0.2, grow: 0.15 };
 
-  const normalise = (r: RatingResult) =>
-    r.max > 0 ? (r.score / r.max) * 100 : 0;
+  const normalise = (r: RatingResult) => (r.max > 0 ? (r.score / r.max) * 100 : 0);
 
   const composite = Math.round(
     normalise(profResult) * weights.prof +
-    normalise(liqResult) * weights.liq +
-    normalise(levResult) * weights.lev +
-    normalise(cfResult) * weights.cf +
-    normalise(growResult) * weights.grow
+      normalise(liqResult) * weights.liq +
+      normalise(levResult) * weights.lev +
+      normalise(cfResult) * weights.cf +
+      normalise(growResult) * weights.grow,
   );
 
   const grade = toGrade(composite);
@@ -258,11 +407,40 @@ export function calcHealthScore(
     grade,
     summary,
     dimensions: {
-      profitability: buildDimension('Profitability', profResult, ['grossMargin', 'operatingMargin', 'netMargin', 'ROE', 'ROA', 'EBITDA margin', 'ROCE']),
-      liquidity: buildDimension('Liquidity', liqResult, ['currentRatio', 'quickRatio', 'cashRatio', 'operatingCFRatio']),
-      leverage: buildDimension('Leverage', levResult, ['debtToEquity', 'debtToAssets', 'interestCoverage', 'netDebtToEBITDA']),
-      cashFlow: buildDimension('Cash Flow', cfResult, ['FCFMargin', 'FCFYield', 'OCF/NI', 'CapEx/Revenue']),
-      growth: buildDimension('Growth', growResult, ['revenueGrowthYoY', 'netIncomeGrowthYoY', 'EPSGrowthYoY', 'FCFGrowthYoY', 'revenueCAGR']),
+      profitability: buildDimension('Profitability', profResult, [
+        'grossMargin',
+        'operatingMargin',
+        'netMargin',
+        'ROE',
+        'ROA',
+        'EBITDA margin',
+        'ROCE',
+      ]),
+      liquidity: buildDimension('Liquidity', liqResult, [
+        'currentRatio',
+        'quickRatio',
+        'cashRatio',
+        'operatingCFRatio',
+      ]),
+      leverage: buildDimension('Leverage', levResult, [
+        'debtToEquity',
+        'debtToAssets',
+        'interestCoverage',
+        'netDebtToEBITDA',
+      ]),
+      cashFlow: buildDimension('Cash Flow', cfResult, [
+        'FCFMargin',
+        'FCFYield',
+        'OCF/NI',
+        'CapEx/Revenue',
+      ]),
+      growth: buildDimension('Growth', growResult, [
+        'revenueGrowthYoY',
+        'netIncomeGrowthYoY',
+        'EPSGrowthYoY',
+        'FCFGrowthYoY',
+        'revenueCAGR',
+      ]),
     },
     dataQualityWarnings: allWarnings,
     asOfPeriod,
