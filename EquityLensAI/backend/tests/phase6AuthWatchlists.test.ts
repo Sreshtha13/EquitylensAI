@@ -27,22 +27,18 @@ describe('Phase 6 — Authentication, Watchlists, Favorites & Preferences', () =
   describe('Authentication flows', () => {
     it('registers a user, validates password rules, and creates profile + preferences', async () => {
       // Weak password rejection
-      const weakRes = await request(app)
-        .post('/api/v1/auth/register')
-        .send({
-          email: 'user1@example.com',
-          password: 'weak',
-        });
+      const weakRes = await request(app).post('/api/v1/auth/register').send({
+        email: 'user1@example.com',
+        password: 'weak',
+      });
       expect(weakRes.status).toBe(400);
 
       // Successful registration
-      const res = await request(app)
-        .post('/api/v1/auth/register')
-        .send({
-          email: 'user1@example.com',
-          password: 'Password123!',
-          displayName: 'Investor One',
-        });
+      const res = await request(app).post('/api/v1/auth/register').send({
+        email: 'user1@example.com',
+        password: 'Password123!',
+        displayName: 'Investor One',
+      });
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
@@ -51,31 +47,25 @@ describe('Phase 6 — Authentication, Watchlists, Favorites & Preferences', () =
     });
 
     it('rejects duplicate registration for existing email', async () => {
-      await request(app)
-        .post('/api/v1/auth/register')
-        .send({
-          email: 'duplicate@example.com',
-          password: 'Password123!',
-        });
+      await request(app).post('/api/v1/auth/register').send({
+        email: 'duplicate@example.com',
+        password: 'Password123!',
+      });
 
       // Try registering again
-      const dupRes = await request(app)
-        .post('/api/v1/auth/register')
-        .send({
-          email: 'duplicate@example.com',
-          password: 'Password123!',
-        });
+      const dupRes = await request(app).post('/api/v1/auth/register').send({
+        email: 'duplicate@example.com',
+        password: 'Password123!',
+      });
       expect(dupRes.status).toBe(409);
       expect(dupRes.body.error.code).toBe('USER_ALREADY_EXISTS');
     });
 
     it('authenticates existing user and restores session with valid token', async () => {
-      const regRes = await request(app)
-        .post('/api/v1/auth/register')
-        .send({
-          email: 'loginuser@example.com',
-          password: 'Password123!',
-        });
+      const regRes = await request(app).post('/api/v1/auth/register').send({
+        email: 'loginuser@example.com',
+        password: 'Password123!',
+      });
       const token = regRes.body.data.session.accessToken;
 
       // Session restore
@@ -312,17 +302,13 @@ describe('Phase 6 — Authentication, Watchlists, Favorites & Preferences', () =
       expect(addRes.body.data.name).toContain('Tata Consultancy');
 
       // List favorites
-      const listRes = await request(app)
-        .get('/api/v1/favorites')
-        .set('x-test-user-id', userA);
+      const listRes = await request(app).get('/api/v1/favorites').set('x-test-user-id', userA);
       expect(listRes.status).toBe(200);
       expect(listRes.body.data.length).toBe(1);
       expect(listRes.body.data[0].symbol).toBe('TCS');
 
       // Bob lists favorites -> empty list (isolation!)
-      const bobList = await request(app)
-        .get('/api/v1/favorites')
-        .set('x-test-user-id', userB);
+      const bobList = await request(app).get('/api/v1/favorites').set('x-test-user-id', userB);
       expect(bobList.status).toBe(200);
       expect(bobList.body.data.length).toBe(0);
 
@@ -332,9 +318,7 @@ describe('Phase 6 — Authentication, Watchlists, Favorites & Preferences', () =
         .set('x-test-user-id', userA);
       expect(delRes.status).toBe(200);
 
-      const afterDel = await request(app)
-        .get('/api/v1/favorites')
-        .set('x-test-user-id', userA);
+      const afterDel = await request(app).get('/api/v1/favorites').set('x-test-user-id', userA);
       expect(afterDel.body.data.length).toBe(0);
     });
 

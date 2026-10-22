@@ -75,7 +75,14 @@ describe('Market Normalizers', () => {
         ['2026-10-05T00:00:00+05:30', 1171.2, 1193, 1171.2, 1186.4, 14254907],
       ];
 
-      const res = normalizeAngelCandles('RELIANCE', 'NSE', 'ONE_DAY', '2026-10-01', '2026-10-14', rawCandles);
+      const res = normalizeAngelCandles(
+        'RELIANCE',
+        'NSE',
+        'ONE_DAY',
+        '2026-10-01',
+        '2026-10-14',
+        rawCandles,
+      );
       expect(res.symbol).toBe('RELIANCE');
       expect(res.source).toBe('angel');
       expect(res.candles).toHaveLength(1);
@@ -124,7 +131,14 @@ describe('Market Normalizers', () => {
         },
       ];
 
-      const chart = normalizeYahooChart('AAPL', 'NASDAQ', 'ONE_DAY', '2026-10-01', '2026-10-02', rawQuotes);
+      const chart = normalizeYahooChart(
+        'AAPL',
+        'NASDAQ',
+        'ONE_DAY',
+        '2026-10-01',
+        '2026-10-02',
+        rawQuotes,
+      );
       expect(chart.symbol).toBe('AAPL');
       expect(chart.source).toBe('yahoo');
       expect(chart.candles).toHaveLength(1);

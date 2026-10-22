@@ -11,7 +11,10 @@ import type {
 export class UnimplementedMarketProvider implements MarketProvider {
   readonly name: string;
 
-  constructor(public readonly id: string, name?: string) {
+  constructor(
+    public readonly id: string,
+    name?: string,
+  ) {
     this.name = name || id;
   }
 
@@ -35,7 +38,7 @@ export class UnimplementedMarketProvider implements MarketProvider {
     return new AppError(
       'MARKET_PROVIDER_NOT_IMPLEMENTED',
       `Market provider "${this.id}" does not implement ${method}`,
-      501
+      501,
     );
   }
 }

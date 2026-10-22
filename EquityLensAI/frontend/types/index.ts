@@ -35,6 +35,18 @@ export type {
   HistoricalPerformancePeriod,
   PerformancePeriodCode,
   StockPerformanceResponse,
+  // Phase 8
+  SourceType,
+  AnnouncementCategory,
+  CompanyAssociation,
+  GroundedAiSummary,
+  NewsItem,
+  CorporateAnnouncement,
+  NewsFeedResponse,
+  AnnouncementsFeedResponse,
+  WatchlistNewsResponse,
+  ProviderHealthInfo,
+  NewsIngestionStatus,
 } from '@equitylensai/shared';
 
 export type HealthStatus = {

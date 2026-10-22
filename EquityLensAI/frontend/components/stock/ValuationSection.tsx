@@ -8,7 +8,10 @@ type ValuationSectionProps = {
   quote?: NormalizedQuote | undefined;
 };
 
-function formatValuationValue(m: FinancialMetric | null | undefined): { text: string; isNegative: boolean } {
+function formatValuationValue(m: FinancialMetric | null | undefined): {
+  text: string;
+  isNegative: boolean;
+} {
   if (!m || m.value === null || m.value === undefined) {
     return { text: 'N/A', isNegative: false };
   }
@@ -18,10 +21,14 @@ function formatValuationValue(m: FinancialMetric | null | undefined): { text: st
     case 'ratio':
       return { text: `${m.value.toFixed(2)}x`, isNegative: isNeg };
     case 'currency':
-      if (Math.abs(m.value) >= 1e12) return { text: `${(m.value / 1e12).toFixed(2)}T`, isNegative: isNeg };
-      if (Math.abs(m.value) >= 1e9) return { text: `${(m.value / 1e9).toFixed(2)}B`, isNegative: isNeg };
-      if (Math.abs(m.value) >= 1e7) return { text: `${(m.value / 1e7).toFixed(2)} Cr`, isNegative: isNeg };
-      if (Math.abs(m.value) >= 1e6) return { text: `${(m.value / 1e6).toFixed(2)}M`, isNegative: isNeg };
+      if (Math.abs(m.value) >= 1e12)
+        return { text: `${(m.value / 1e12).toFixed(2)}T`, isNegative: isNeg };
+      if (Math.abs(m.value) >= 1e9)
+        return { text: `${(m.value / 1e9).toFixed(2)}B`, isNegative: isNeg };
+      if (Math.abs(m.value) >= 1e7)
+        return { text: `${(m.value / 1e7).toFixed(2)} Cr`, isNegative: isNeg };
+      if (Math.abs(m.value) >= 1e6)
+        return { text: `${(m.value / 1e6).toFixed(2)}M`, isNegative: isNeg };
       return { text: m.value.toLocaleString(), isNegative: isNeg };
     case 'percent':
       return { text: `${m.value.toFixed(2)}%`, isNegative: isNeg };
@@ -98,7 +105,8 @@ export function ValuationSection({ analysis, quote }: ValuationSectionProps) {
       label: 'Market Capitalization',
       m: valuation.marketCap,
       subtitle: 'Share Price × Outstanding Shares',
-      notes: 'Total equity market valuation of all common shares outstanding at latest observed price.',
+      notes:
+        'Total equity market valuation of all common shares outstanding at latest observed price.',
     },
     {
       key: 'enterpriseValue',
@@ -116,23 +124,35 @@ export function ValuationSection({ analysis, quote }: ValuationSectionProps) {
         <div>
           <h3 className="text-lg font-bold text-white">Valuation Intelligence</h3>
           <p className="text-xs text-slate-400">
-            Market multiples computed deterministically combining live quotation prices with verified fiscal statements.
+            Market multiples computed deterministically combining live quotation prices with
+            verified fiscal statements.
           </p>
         </div>
 
         <div className="text-right text-[11px] text-slate-500">
-          <div>Period Base: {ttm ? `TTM (${ttm.periodEndDate})` : `Annual (${latestAnnual.periodEndDate})`}</div>
+          <div>
+            Period Base:{' '}
+            {ttm ? `TTM (${ttm.periodEndDate})` : `Annual (${latestAnnual.periodEndDate})`}
+          </div>
           {quote && typeof quote.price === 'number' && (
-            <div>Price Basis: {currency} {quote.price.toFixed(2)} ({new Date(quote.observedAt).toLocaleDateString()})</div>
+            <div>
+              Price Basis: {currency} {quote.price.toFixed(2)} (
+              {new Date(quote.observedAt).toLocaleDateString()})
+            </div>
           )}
-          <div>Currency: <span className="font-semibold text-slate-300">{currency}</span></div>
+          <div>
+            Currency: <span className="font-semibold text-slate-300">{currency}</span>
+          </div>
         </div>
       </div>
 
       {/* Rules & Transparency Notice */}
       <div className="mt-5 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3.5 text-xs text-amber-200">
         <p>
-          <strong>Valuation Multiples Integrity:</strong> Multiples are calculated strictly using verifiable prices and reported statement numbers. No speculative DCF forecasts, price targets, or invented analyst ratings are included. Negative multiples are honestly noted rather than substituted.
+          <strong>Valuation Multiples Integrity:</strong> Multiples are calculated strictly using
+          verifiable prices and reported statement numbers. No speculative DCF forecasts, price
+          targets, or invented analyst ratings are included. Negative multiples are honestly noted
+          rather than substituted.
         </p>
       </div>
 
@@ -143,7 +163,9 @@ export function ValuationSection({ analysis, quote }: ValuationSectionProps) {
           return (
             <div
               key={card.key}
-              onClick={() => setSelectedMetric({ label: card.label, metric: card.m, notes: card.notes })}
+              onClick={() =>
+                setSelectedMetric({ label: card.label, metric: card.m, notes: card.notes })
+              }
               className="cursor-pointer flex flex-col justify-between rounded-2xl border border-white/5 bg-slate-950/60 p-4 transition hover:border-sky-500/40 hover:bg-slate-950/80"
             >
               <div>
@@ -163,8 +185,8 @@ export function ValuationSection({ analysis, quote }: ValuationSectionProps) {
                       isNegative
                         ? 'text-rose-400'
                         : text === 'N/A'
-                        ? 'text-slate-500 font-sans text-lg'
-                        : 'text-white'
+                          ? 'text-slate-500 font-sans text-lg'
+                          : 'text-white'
                     }`}
                   >
                     {text}

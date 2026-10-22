@@ -52,7 +52,9 @@ export default function SecuritySettingsPage() {
     try {
       await deleteAccount();
     } catch (err: unknown) {
-      setDeleteError(err instanceof Error ? err.message : 'Failed to delete account. Please try again.');
+      setDeleteError(
+        err instanceof Error ? err.message : 'Failed to delete account. Please try again.',
+      );
       setIsDeleting(false);
     }
   };
@@ -70,10 +72,7 @@ export default function SecuritySettingsPage() {
 
       {/* Tabs */}
       <div className="flex border-b border-white/10 gap-6 text-xs font-medium">
-        <Link
-          href="/settings/profile"
-          className="pb-3 text-slate-400 hover:text-white transition"
-        >
+        <Link href="/settings/profile" className="pb-3 text-slate-400 hover:text-white transition">
           Profile
         </Link>
         <Link
@@ -82,10 +81,7 @@ export default function SecuritySettingsPage() {
         >
           Preferences
         </Link>
-        <Link
-          href="/settings/security"
-          className="border-b-2 border-sky-400 pb-3 text-sky-400"
-        >
+        <Link href="/settings/security" className="border-b-2 border-sky-400 pb-3 text-sky-400">
           Security
         </Link>
       </div>
@@ -130,7 +126,9 @@ export default function SecuritySettingsPage() {
         <div className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.03] p-6 sm:p-8 backdrop-blur-xl">
           <h2 className="text-base font-bold text-rose-300">Danger Zone</h2>
           <p className="mt-1 text-xs text-slate-400">
-            Deleting your account will permanently delete your user profile, all custom watchlists, and your starred favorites. Shared company financial data and market quotes remain intact.
+            Deleting your account will permanently delete your user profile, all custom watchlists,
+            and your starred favorites. Shared company financial data and market quotes remain
+            intact.
           </p>
 
           <div className="mt-6 flex items-center justify-between border-t border-rose-500/10 pt-4">
@@ -161,12 +159,20 @@ export default function SecuritySettingsPage() {
           <div className="w-full max-w-md rounded-2xl border border-rose-500/30 bg-slate-900 p-6 shadow-2xl">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-500/10 text-rose-400">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
             </div>
-            <h2 className="mt-4 text-center text-lg font-bold text-white">Permanently Delete Account?</h2>
+            <h2 className="mt-4 text-center text-lg font-bold text-white">
+              Permanently Delete Account?
+            </h2>
             <p className="mt-2 text-center text-xs text-slate-300 leading-relaxed">
-              This will immediately delete your account credentials, all your custom watchlists, and all your starred favorites.
+              This will immediately delete your account credentials, all your custom watchlists, and
+              all your starred favorites.
             </p>
 
             {deleteError && (
@@ -177,7 +183,8 @@ export default function SecuritySettingsPage() {
 
             <div className="mt-5">
               <label className="block text-xs font-medium text-slate-300" htmlFor="confirmText">
-                To confirm, type <span className="font-mono font-bold text-rose-400">DELETE_ACCOUNT</span> below:
+                To confirm, type{' '}
+                <span className="font-mono font-bold text-rose-400">DELETE_ACCOUNT</span> below:
               </label>
               <input
                 id="confirmText"

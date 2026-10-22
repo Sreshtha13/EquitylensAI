@@ -7,11 +7,7 @@ import {
   favoriteParamsSchema,
   favoriteQuerySchema,
 } from '../validation/auth.js';
-import {
-  listFavorites,
-  addFavorite,
-  removeFavorite,
-} from '../controllers/favoritesController.js';
+import { listFavorites, addFavorite, removeFavorite } from '../controllers/favoritesController.js';
 
 export const favoritesRouter = Router();
 

@@ -11,7 +11,6 @@ export type RegisterResult = {
   message?: string | undefined;
 };
 
-
 export type LoginResult = {
   user: AuthUser;
   session: AuthSession;
@@ -59,7 +58,11 @@ export class AuthService {
     if (env.NODE_ENV === 'test' && (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY)) {
       for (const p of memoryStore.profiles.values()) {
         if (p.email.toLowerCase() === cleanEmail.toLowerCase()) {
-          throw new AppError('USER_ALREADY_EXISTS', 'An account with this email address already exists', 409);
+          throw new AppError(
+            'USER_ALREADY_EXISTS',
+            'An account with this email address already exists',
+            409,
+          );
         }
       }
 
@@ -95,7 +98,6 @@ export class AuthService {
       };
     }
 
-
     if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
       throw new AppError(
         'DATABASE_NOT_CONFIGURED',
@@ -125,7 +127,9 @@ export class AuthService {
     // If email rate limit exceeded or signup blocked by provider in dev/test, fallback to admin create user
     if (
       !res.ok &&
-      (res.status === 429 || resBody.error_code === 'over_email_send_rate_limit' || env.NODE_ENV !== 'production')
+      (res.status === 429 ||
+        resBody.error_code === 'over_email_send_rate_limit' ||
+        env.NODE_ENV !== 'production')
     ) {
       logger.info({ email: cleanEmail }, 'Attempting admin user creation fallback');
       const adminRes = await fetch(`${baseUrl}/auth/v1/admin/users`, {
@@ -171,15 +175,25 @@ export class AuthService {
         const adminErr = (await adminRes.json().catch(() => ({}))) as SupabaseAuthResponse;
         const msg = adminErr.msg ?? adminErr.message ?? '';
         if (msg.includes('already been registered') || adminErr.error_code === 'email_exists') {
-          throw new AppError('USER_ALREADY_EXISTS', 'An account with this email address already exists', 409);
+          throw new AppError(
+            'USER_ALREADY_EXISTS',
+            'An account with this email address already exists',
+            409,
+          );
         }
       }
-
     }
 
     if (!res.ok) {
-      if (resBody.msg?.includes('already registered') || resBody.error_code === 'user_already_exists') {
-        throw new AppError('USER_ALREADY_EXISTS', 'An account with this email address already exists', 409);
+      if (
+        resBody.msg?.includes('already registered') ||
+        resBody.error_code === 'user_already_exists'
+      ) {
+        throw new AppError(
+          'USER_ALREADY_EXISTS',
+          'An account with this email address already exists',
+          409,
+        );
       }
       throw new AppError(
         'REGISTRATION_FAILED',
@@ -190,7 +204,11 @@ export class AuthService {
 
     const authId = resBody.id || resBody.user?.id;
     if (!authId) {
-      throw new AppError('REGISTRATION_FAILED', 'Identity provider did not return user identifier', 502);
+      throw new AppError(
+        'REGISTRATION_FAILED',
+        'Identity provider did not return user identifier',
+        502,
+      );
     }
 
     const emailConfirmed = Boolean(
@@ -257,7 +275,7 @@ export class AuthService {
         tokenType: 'bearer',
         expiresIn: 3600,
       };
-      const profile = await userRepository.getProfile(id) || {
+      const profile = (await userRepository.getProfile(id)) || {
         id: crypto.randomUUID(),
         authUserId: id,
         email: cleanEmail,
@@ -326,7 +344,11 @@ export class AuthService {
     };
 
     if (!body.access_token) {
-      throw new AppError('AUTHENTICATION_FAILED', 'Identity provider did not return access token', 502);
+      throw new AppError(
+        'AUTHENTICATION_FAILED',
+        'Identity provider did not return access token',
+        502,
+      );
     }
 
     const session: AuthSession = {
@@ -358,7 +380,6 @@ export class AuthService {
       profile,
       preferences,
     };
-
   }
 
   async logout(token?: string): Promise<void> {
@@ -424,14 +445,10 @@ export class AuthService {
 
     if (!res.ok) {
       const err = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-      const errMessage = typeof err.msg === 'string' ? err.msg : 'Failed to update password with identity provider';
-      throw new AppError(
-        'PASSWORD_RESET_FAILED',
-        errMessage,
-        res.status,
-      );
+      const errMessage =
+        typeof err.msg === 'string' ? err.msg : 'Failed to update password with identity provider';
+      throw new AppError('PASSWORD_RESET_FAILED', errMessage, res.status);
     }
-
   }
 
   async deleteAccount(userId: string): Promise<void> {

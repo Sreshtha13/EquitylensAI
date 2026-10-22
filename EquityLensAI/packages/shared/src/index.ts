@@ -1,9 +1,5 @@
 export type { ApiError, ApiResponse, ApiSuccess } from './api.js';
-export {
-  ASSET_TYPES,
-  MARKETS,
-  CANDLE_INTERVALS,
-} from './domain.js';
+export { ASSET_TYPES, MARKETS, CANDLE_INTERVALS } from './domain.js';
 
 export type {
   AssetType,
@@ -54,6 +50,18 @@ export type {
   HistoricalPerformancePeriod,
   PerformancePeriodCode,
   StockPerformanceResponse,
+  // Phase 8
+  SourceType,
+  AnnouncementCategory,
+  CompanyAssociation,
+  GroundedAiSummary,
+  NewsItem,
+  CorporateAnnouncement,
+  NewsFeedResponse,
+  AnnouncementsFeedResponse,
+  WatchlistNewsResponse,
+  ProviderHealthInfo,
+  NewsIngestionStatus,
 } from './domain.js';
 export {
   SUPPORTED_EXCHANGES,
@@ -63,5 +71,7 @@ export {
   THEME_OPTIONS,
   TABLE_DENSITY_OPTIONS,
   PERFORMANCE_PERIODS,
+  // Phase 8
+  SOURCE_TYPES,
+  ANNOUNCEMENT_CATEGORIES,
 } from './domain.js';
-

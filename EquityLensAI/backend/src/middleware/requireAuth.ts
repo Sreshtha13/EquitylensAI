@@ -10,7 +10,8 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
   // Test environment bypass hook for automated test suites
   if (env.NODE_ENV === 'test') {
     const testUserId = req.headers['x-test-user-id'] as string | undefined;
-    const testUserEmail = (req.headers['x-test-user-email'] as string | undefined) ?? 'test@equitylensai.com';
+    const testUserEmail =
+      (req.headers['x-test-user-email'] as string | undefined) ?? 'test@equitylensai.com';
     if (testUserId) {
       req.user = {
         id: testUserId,
@@ -41,7 +42,6 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
     return next();
   }
 
-
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
     if (env.NODE_ENV === 'test') {
       return next(new AppError('UNAUTHORIZED', 'Invalid or expired session token', 401));
@@ -54,7 +54,6 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
       ),
     );
   }
-
 
   try {
     const response = await fetch(`${env.SUPABASE_URL.replace(/\/+$/, '')}/auth/v1/user`, {
@@ -84,7 +83,8 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
     return next();
   } catch (error) {
     logger.error({ error }, 'Error during server-side authentication verification');
-    return next(new AppError('UNAUTHORIZED', 'Authentication service unavailable or timed out', 401));
+    return next(
+      new AppError('UNAUTHORIZED', 'Authentication service unavailable or timed out', 401),
+    );
   }
 }
-

@@ -5,10 +5,7 @@ export {
   listMarketProviders,
 } from './marketService.js';
 
-export {
-  instrumentRepository,
-  InstrumentRepository,
-} from './instruments/repository.js';
+export { instrumentRepository, InstrumentRepository } from './instruments/repository.js';
 
 export {
   ingestInstruments,
@@ -16,10 +13,7 @@ export {
   getIngestionStatus,
 } from './instruments/ingestion.js';
 
-export {
-  marketCache,
-  MemoryCache,
-} from './cache/memoryCache.js';
+export { marketCache, MemoryCache } from './cache/memoryCache.js';
 
 export { angelProvider } from './providers/angel/index.js';
 export { yahooProvider } from './providers/yahoo/index.js';

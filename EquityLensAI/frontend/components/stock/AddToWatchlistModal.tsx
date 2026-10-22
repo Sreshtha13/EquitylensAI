@@ -4,11 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  listWatchlists,
-  createWatchlist,
-  addWatchlistItem,
-} from '@/services/api/watchlists';
+import { listWatchlists, createWatchlist, addWatchlistItem } from '@/services/api/watchlists';
 import type { SupportedExchange, WatchlistSummary } from '@equitylensai/shared';
 
 type AddToWatchlistModalProps = {
@@ -89,7 +85,8 @@ export function AddToWatchlistModal({
           <div>
             <h3 className="text-lg font-bold text-white">Add to Watchlist</h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Select a watchlist for <span className="font-semibold text-sky-400">{symbol}</span> ({exchange})
+              Select a watchlist for <span className="font-semibold text-sky-400">{symbol}</span> (
+              {exchange})
             </p>
           </div>
           <button
@@ -97,7 +94,12 @@ export function AddToWatchlistModal({
             className="rounded-xl p-1.5 text-slate-400 hover:bg-white/5 hover:text-white transition"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -116,7 +118,9 @@ export function AddToWatchlistModal({
 
         {!isAuthenticated ? (
           <div className="mt-6 text-center py-4">
-            <p className="text-sm text-slate-300">Sign in to manage and customize your watchlists.</p>
+            <p className="text-sm text-slate-300">
+              Sign in to manage and customize your watchlists.
+            </p>
             <Link
               href="/login"
               className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 px-5 py-2.5 text-xs font-semibold text-white shadow-lg shadow-sky-500/20 hover:from-sky-400 hover:to-indigo-500 transition"
@@ -127,7 +131,9 @@ export function AddToWatchlistModal({
         ) : (
           <div className="mt-6 space-y-4">
             {isLoadingWatchlists ? (
-              <div className="py-6 text-center text-xs text-slate-400">Loading your watchlists...</div>
+              <div className="py-6 text-center text-xs text-slate-400">
+                Loading your watchlists...
+              </div>
             ) : watchlists.length === 0 ? (
               <div className="rounded-2xl border border-white/5 bg-slate-950/40 p-4 text-center">
                 <p className="text-xs text-slate-400">You don&apos;t have any watchlists yet.</p>
@@ -167,7 +173,12 @@ export function AddToWatchlistModal({
                   className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-white/15 p-3 text-xs font-semibold text-slate-300 hover:border-sky-500/40 hover:text-white transition"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
                   </svg>
                   <span>Create New Watchlist</span>
                 </button>

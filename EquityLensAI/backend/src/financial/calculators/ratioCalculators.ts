@@ -53,7 +53,7 @@ function metric(
   formula: string,
   unit: FinancialMetric['unit'],
   periodEndDate: string,
-  isBlended?: boolean
+  isBlended?: boolean,
 ): FinancialMetric {
   return { value, formula, unit, periodEndDate, isBlended: isBlended };
 }
@@ -62,7 +62,7 @@ function metric(
 
 export function calcProfitability(
   income: IncomeStatement,
-  balanceSheet: BalanceSheet
+  balanceSheet: BalanceSheet,
 ): ProfitabilityMetrics {
   const p = income.periodEndDate;
   const rev = income.totalRevenue;
@@ -75,19 +75,34 @@ export function calcProfitability(
   const currLiab = balanceSheet.totalCurrentLiabilities;
 
   // ROCE: EBIT / (TotalAssets - CurrentLiabilities)
-  const capitalEmployed =
-    assets !== null && currLiab !== null ? assets - currLiab : null;
+  const capitalEmployed = assets !== null && currLiab !== null ? assets - currLiab : null;
 
   return {
     grossMargin: metric(toPercent(safeDiv(gp, rev)), 'GrossProfit / Revenue × 100', 'percent', p),
-    operatingMargin: metric(toPercent(safeDiv(oi, rev)), 'OperatingIncome / Revenue × 100', 'percent', p),
+    operatingMargin: metric(
+      toPercent(safeDiv(oi, rev)),
+      'OperatingIncome / Revenue × 100',
+      'percent',
+      p,
+    ),
     netMargin: metric(toPercent(safeDiv(ni, rev)), 'NetIncome / Revenue × 100', 'percent', p),
-    returnOnAssets: metric(toPercent(safeDiv(ni, assets)), 'NetIncome / TotalAssets × 100', 'percent', p),
-    returnOnEquity: metric(toPercent(safeDiv(ni, equity)), 'NetIncome / StockholdersEquity × 100', 'percent', p),
+    returnOnAssets: metric(
+      toPercent(safeDiv(ni, assets)),
+      'NetIncome / TotalAssets × 100',
+      'percent',
+      p,
+    ),
+    returnOnEquity: metric(
+      toPercent(safeDiv(ni, equity)),
+      'NetIncome / StockholdersEquity × 100',
+      'percent',
+      p,
+    ),
     returnOnCapitalEmployed: metric(
       toPercent(safeDiv(oi, capitalEmployed)),
       'OperatingIncome / (TotalAssets - CurrentLiabilities) × 100',
-      'percent', p
+      'percent',
+      p,
     ),
     ebitdaMargin: metric(toPercent(safeDiv(ebitda, rev)), 'EBITDA / Revenue × 100', 'percent', p),
   };
@@ -97,7 +112,7 @@ export function calcProfitability(
 
 export function calcLiquidity(
   balanceSheet: BalanceSheet,
-  cashFlow: CashFlowStatement
+  cashFlow: CashFlowStatement,
 ): LiquidityMetrics {
   const p = balanceSheet.periodEndDate;
   const ca = balanceSheet.totalCurrentAssets;
@@ -110,18 +125,25 @@ export function calcLiquidity(
 
   return {
     currentRatio: metric(safeDiv(ca, cl), 'CurrentAssets / CurrentLiabilities', 'ratio', p),
-    quickRatio: metric(safeDiv(quickAssets, cl), '(CurrentAssets - Inventory) / CurrentLiabilities', 'ratio', p),
+    quickRatio: metric(
+      safeDiv(quickAssets, cl),
+      '(CurrentAssets - Inventory) / CurrentLiabilities',
+      'ratio',
+      p,
+    ),
     cashRatio: metric(safeDiv(cash, cl), 'Cash / CurrentLiabilities', 'ratio', p),
-    operatingCashFlowRatio: metric(safeDiv(ocf, cl), 'OperatingCashFlow / CurrentLiabilities', 'ratio', p),
+    operatingCashFlowRatio: metric(
+      safeDiv(ocf, cl),
+      'OperatingCashFlow / CurrentLiabilities',
+      'ratio',
+      p,
+    ),
   };
 }
 
 // ─── Leverage ───────────────────────────────────────────────────────────────
 
-export function calcLeverage(
-  balanceSheet: BalanceSheet,
-  income: IncomeStatement
-): LeverageMetrics {
+export function calcLeverage(balanceSheet: BalanceSheet, income: IncomeStatement): LeverageMetrics {
   const p = balanceSheet.periodEndDate;
   const equity = balanceSheet.totalStockholderEquity;
   const totalLiab = balanceSheet.totalLiabilities;
@@ -133,29 +155,44 @@ export function calcLeverage(
   const interest = income.interestExpense;
   const ebitda = income.ebitda;
 
-  const totalDebt =
-    ltDebt !== null || stDebt !== null
-      ? (ltDebt ?? 0) + (stDebt ?? 0)
-      : null;
+  const totalDebt = ltDebt !== null || stDebt !== null ? (ltDebt ?? 0) + (stDebt ?? 0) : null;
 
-  const netDebt =
-    totalDebt !== null && cash !== null
-      ? totalDebt - cash
-      : null;
+  const netDebt = totalDebt !== null && cash !== null ? totalDebt - cash : null;
 
   return {
-    debtToEquity: metric(safeDiv(totalDebt, equity), '(LongTermDebt + ShortTermDebt) / StockholdersEquity', 'ratio', p),
-    debtToAssets: metric(safeDiv(totalLiab, totalAssets), 'TotalLiabilities / TotalAssets', 'ratio', p),
-    equityMultiplier: metric(safeDiv(totalAssets, equity), 'TotalAssets / StockholdersEquity', 'ratio', p),
+    debtToEquity: metric(
+      safeDiv(totalDebt, equity),
+      '(LongTermDebt + ShortTermDebt) / StockholdersEquity',
+      'ratio',
+      p,
+    ),
+    debtToAssets: metric(
+      safeDiv(totalLiab, totalAssets),
+      'TotalLiabilities / TotalAssets',
+      'ratio',
+      p,
+    ),
+    equityMultiplier: metric(
+      safeDiv(totalAssets, equity),
+      'TotalAssets / StockholdersEquity',
+      'ratio',
+      p,
+    ),
     interestCoverageRatio: metric(
       // interest expense from income statement is typically negative; negate it
       interest !== null && interest !== 0
         ? safeDiv(ebit, -interest < 0 ? interest : -interest)
         : null,
       'EBIT / |InterestExpense|',
-      'x', p
+      'x',
+      p,
     ),
-    netDebtToEbitda: metric(safeDiv(netDebt, ebitda), '(LongTermDebt + ShortTermDebt - Cash) / EBITDA', 'x', p),
+    netDebtToEbitda: metric(
+      safeDiv(netDebt, ebitda),
+      '(LongTermDebt + ShortTermDebt - Cash) / EBITDA',
+      'x',
+      p,
+    ),
   };
 }
 
@@ -165,7 +202,7 @@ export function calcCashFlow(
   cashFlow: CashFlowStatement,
   income: IncomeStatement,
   marketCapValue: number | null,
-  periodEndDate: string
+  periodEndDate: string,
 ): CashFlowMetrics {
   const p = periodEndDate;
   const fcf = cashFlow.freeCashFlow;
@@ -175,13 +212,29 @@ export function calcCashFlow(
   const rev = income.totalRevenue;
 
   return {
-    freeCashFlowMargin: metric(toPercent(safeDiv(fcf, rev)), 'FreeCashFlow / Revenue × 100', 'percent', p),
-    freeCashFlowYield: metric(toPercent(safeDiv(fcf, marketCapValue)), 'FreeCashFlow / MarketCap × 100', 'percent', p),
-    operatingCashFlowToNetIncome: metric(safeDiv(ocf, ni), 'OperatingCashFlow / NetIncome', 'ratio', p),
+    freeCashFlowMargin: metric(
+      toPercent(safeDiv(fcf, rev)),
+      'FreeCashFlow / Revenue × 100',
+      'percent',
+      p,
+    ),
+    freeCashFlowYield: metric(
+      toPercent(safeDiv(fcf, marketCapValue)),
+      'FreeCashFlow / MarketCap × 100',
+      'percent',
+      p,
+    ),
+    operatingCashFlowToNetIncome: metric(
+      safeDiv(ocf, ni),
+      'OperatingCashFlow / NetIncome',
+      'ratio',
+      p,
+    ),
     capexToRevenue: metric(
       toPercent(safeDiv(capex !== null ? Math.abs(capex) : null, rev)),
       '|CapEx| / Revenue × 100',
-      'percent', p
+      'percent',
+      p,
     ),
   };
 }
@@ -191,7 +244,7 @@ export function calcCashFlow(
 export function calcGrowth(
   current: FinancialStatements,
   prior: FinancialStatements | undefined,
-  allAnnual: FinancialStatements[]
+  allAnnual: FinancialStatements[],
 ): GrowthMetrics {
   const p = current.income.periodEndDate;
 
@@ -211,7 +264,7 @@ export function calcGrowth(
       cagrVal,
       `(Revenue[${allAnnual[0]!.income.periodEndDate}] / Revenue[${allAnnual[allAnnual.length - 1]!.income.periodEndDate}])^(1/${years}) - 1`,
       'percent',
-      p
+      p,
     );
   }
 
@@ -219,32 +272,38 @@ export function calcGrowth(
     revenueGrowthYoY: metric(
       growthRate(curr.totalRevenue, pInc?.totalRevenue ?? null),
       '(Revenue_t - Revenue_t-1) / |Revenue_t-1| × 100',
-      'percent', p
+      'percent',
+      p,
     ),
     grossProfitGrowthYoY: metric(
       growthRate(curr.grossProfit, pInc?.grossProfit ?? null),
       '(GrossProfit_t - GrossProfit_t-1) / |GrossProfit_t-1| × 100',
-      'percent', p
+      'percent',
+      p,
     ),
     operatingIncomeGrowthYoY: metric(
       growthRate(curr.operatingIncome, pInc?.operatingIncome ?? null),
       '(OperatingIncome_t - OperatingIncome_t-1) / |OperatingIncome_t-1| × 100',
-      'percent', p
+      'percent',
+      p,
     ),
     netIncomeGrowthYoY: metric(
       growthRate(curr.netIncome, pInc?.netIncome ?? null),
       '(NetIncome_t - NetIncome_t-1) / |NetIncome_t-1| × 100',
-      'percent', p
+      'percent',
+      p,
     ),
     epsGrowthYoY: metric(
       growthRate(curr.dilutedEPS, pInc?.dilutedEPS ?? null),
       '(DilutedEPS_t - DilutedEPS_t-1) / |DilutedEPS_t-1| × 100',
-      'percent', p
+      'percent',
+      p,
     ),
     freeCashFlowGrowthYoY: metric(
       growthRate(currCf.freeCashFlow, priorCf?.freeCashFlow ?? null),
       '(FCF_t - FCF_t-1) / |FCF_t-1| × 100',
-      'percent', p
+      'percent',
+      p,
     ),
     revenueCAGR: revCAGR,
   };
@@ -257,7 +316,7 @@ export function calcValuation(
   balanceSheet: BalanceSheet,
   cashFlow: CashFlowStatement,
   livePrice: number | null,
-  sharesOutstanding: number | null
+  sharesOutstanding: number | null,
 ): ValuationMetrics {
   const p = income.periodEndDate;
 
@@ -272,18 +331,15 @@ export function calcValuation(
 
   // Market Cap
   const marketCap =
-    livePrice !== null && sharesOutstanding !== null
-      ? livePrice * sharesOutstanding
-      : null;
+    livePrice !== null && sharesOutstanding !== null ? livePrice * sharesOutstanding : null;
 
   // Enterprise Value = MarketCap + TotalDebt - Cash
-  const ev =
-    marketCap !== null
-      ? marketCap + ltDebt + stDebt - cash
-      : null;
+  const ev = marketCap !== null ? marketCap + ltDebt + stDebt - cash : null;
 
   // EPS fallback from net income
-  const eps = income.dilutedEPS ?? (ni !== null && sharesOutstanding !== null ? ni / sharesOutstanding : null);
+  const eps =
+    income.dilutedEPS ??
+    (ni !== null && sharesOutstanding !== null ? ni / sharesOutstanding : null);
 
   // Book value per share
   const bvps =
@@ -297,15 +353,22 @@ export function calcValuation(
     priceToSales: metric(
       marketCap !== null && rev !== null ? safeDiv(marketCap, rev) : null,
       'MarketCap / Revenue',
-      'ratio', p
+      'ratio',
+      p,
     ),
-    priceToBook: metric(safeDiv(livePrice, bvps), 'Price / (StockholdersEquity / SharesOutstanding)', 'ratio', p),
+    priceToBook: metric(
+      safeDiv(livePrice, bvps),
+      'Price / (StockholdersEquity / SharesOutstanding)',
+      'ratio',
+      p,
+    ),
     evToEbitda: metric(safeDiv(ev, ebitda), 'EnterpriseValue / EBITDA', 'ratio', p),
     evToRevenue: metric(safeDiv(ev, rev), 'EnterpriseValue / Revenue', 'ratio', p),
     priceToFreeCashFlow: metric(
       marketCap !== null ? safeDiv(marketCap, fcf) : null,
       'MarketCap / FreeCashFlow',
-      'ratio', p
+      'ratio',
+      p,
     ),
     marketCap: metric(marketCap, 'Price × SharesOutstanding', 'currency', p),
     enterpriseValue: metric(ev, 'MarketCap + LongTermDebt + ShortTermDebt - Cash', 'currency', p),

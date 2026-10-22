@@ -15,7 +15,7 @@ export async function searchStocks(
     market?: Market | undefined;
     assetType?: string | undefined;
     limit?: number | undefined;
-  }
+  },
 ): Promise<SearchStocksResponse> {
   const params = new URLSearchParams();
   params.set('q', query);
@@ -26,15 +26,14 @@ export async function searchStocks(
   return apiClient.get<SearchStocksResponse>(`/api/v1/stocks/search?${params.toString()}`);
 }
 
-export async function getStockQuote(
-  symbol: string,
-  exchange?: string
-): Promise<NormalizedQuote> {
+export async function getStockQuote(symbol: string, exchange?: string): Promise<NormalizedQuote> {
   const params = new URLSearchParams();
   if (exchange) params.set('exchange', exchange);
   const qStr = params.toString() ? `?${params.toString()}` : '';
 
-  return apiClient.get<NormalizedQuote>(`/api/v1/stocks/${encodeURIComponent(symbol)}/quote${qStr}`);
+  return apiClient.get<NormalizedQuote>(
+    `/api/v1/stocks/${encodeURIComponent(symbol)}/quote${qStr}`,
+  );
 }
 
 export async function getStockHistory(
@@ -44,7 +43,7 @@ export async function getStockHistory(
     interval?: CandleInterval | undefined;
     from?: string | undefined;
     to?: string | undefined;
-  }
+  },
 ): Promise<HistoricalPrices> {
   const params = new URLSearchParams();
   if (options?.exchange) params.set('exchange', options.exchange);
@@ -54,7 +53,7 @@ export async function getStockHistory(
   const qStr = params.toString() ? `?${params.toString()}` : '';
 
   return apiClient.get<HistoricalPrices>(
-    `/api/v1/stocks/${encodeURIComponent(symbol)}/history${qStr}`
+    `/api/v1/stocks/${encodeURIComponent(symbol)}/history${qStr}`,
   );
 }
 

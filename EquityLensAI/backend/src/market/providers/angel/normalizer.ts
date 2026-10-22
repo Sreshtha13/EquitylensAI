@@ -24,7 +24,7 @@ export function parseAngelTimestamp(timestampStr?: string): string {
 
 export function normalizeAngelQuote(
   item: AngelQuoteItem,
-  metadata?: { symbol?: string; name?: string }
+  metadata?: { symbol?: string; name?: string },
 ): NormalizedQuote {
   const cleanSymbol = (metadata?.symbol || item.tradingSymbol).replace(/-EQ$/, '');
   const now = new Date().toISOString();
@@ -59,7 +59,7 @@ export function normalizeAngelCandles(
   interval: CandleInterval,
   fromDate: string,
   toDate: string,
-  rawCandles: [string, number, number, number, number, number][]
+  rawCandles: [string, number, number, number, number, number][],
 ): HistoricalPrices {
   const now = new Date().toISOString();
 

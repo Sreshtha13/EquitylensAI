@@ -608,7 +608,9 @@ export default function ScreenerPage() {
                                   : 'text-slate-600 hover:text-slate-400'
                               }`}
                               viewBox="0 0 20 20"
-                              fill={isFavorite(result.symbol, result.exchange) ? 'currentColor' : 'none'}
+                              fill={
+                                isFavorite(result.symbol, result.exchange) ? 'currentColor' : 'none'
+                              }
                               stroke="currentColor"
                             >
                               <path

@@ -36,10 +36,7 @@ export async function getStockPerformance(
 /**
  * Resolve stock against the verified instrument master.
  */
-export async function resolveStock(
-  symbol: string,
-  exchange?: string,
-): Promise<InstrumentSummary> {
+export async function resolveStock(symbol: string, exchange?: string): Promise<InstrumentSummary> {
   const params = new URLSearchParams();
   if (exchange) params.set('exchange', exchange);
   const qStr = params.toString() ? `?${params.toString()}` : '';

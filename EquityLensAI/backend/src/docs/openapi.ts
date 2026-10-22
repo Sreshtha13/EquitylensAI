@@ -47,15 +47,18 @@ export const openApiSpec = {
     },
     {
       name: 'Authentication',
-      description: 'User registration, sign-in, token refresh, password recovery, and account management',
+      description:
+        'User registration, sign-in, token refresh, password recovery, and account management',
     },
     {
       name: 'User Profile & Preferences',
-      description: 'User profiles and personal application configurations (exchange, currency, period, theme)',
+      description:
+        'User profiles and personal application configurations (exchange, currency, period, theme)',
     },
     {
       name: 'Watchlists',
-      description: 'User-managed instrument watchlists with coordinated real-time market data quotes',
+      description:
+        'User-managed instrument watchlists with coordinated real-time market data quotes',
     },
     {
       name: 'Favorites',
@@ -65,6 +68,11 @@ export const openApiSpec = {
       name: 'Financial Intelligence',
       description:
         'Deterministic fundamental analysis, financial statement ingestion, ratio computation, and automated health scores',
+    },
+    {
+      name: 'Market News & Corporate Announcements',
+      description:
+        'Official exchange corporate announcements, market news, and grounded intelligence without fabrication',
     },
   ],
   paths: {
@@ -346,7 +354,8 @@ export const openApiSpec = {
       get: {
         tags: ['Instruments'],
         summary: 'Get verified company profile and corporate metadata',
-        description: 'Returns sector, industry, description, website, headquarters, shares outstanding, and listing info. Zero dummy data.',
+        description:
+          'Returns sector, industry, description, website, headquarters, shares outstanding, and listing info. Zero dummy data.',
         parameters: [
           { $ref: '#/components/parameters/RequestIdHeader' },
           {
@@ -380,7 +389,8 @@ export const openApiSpec = {
       get: {
         tags: ['Instruments'],
         summary: 'Get deterministic historical performance intelligence',
-        description: 'Computes cumulative price returns, annualized CAGR, volatility, and maximum drawdown across 1M, 3M, 6M, 1Y, 3Y, 5Y, and MAX from observed candles.',
+        description:
+          'Computes cumulative price returns, annualized CAGR, volatility, and maximum drawdown across 1M, 3M, 6M, 1Y, 3Y, 5Y, and MAX from observed candles.',
         parameters: [
           { $ref: '#/components/parameters/RequestIdHeader' },
           {
@@ -411,7 +421,8 @@ export const openApiSpec = {
       get: {
         tags: ['Instruments'],
         summary: 'Resolve stock symbol and exchange to instrument master record',
-        description: 'Resolves trading symbol against verified instrument database. Returns 404 if unknown.',
+        description:
+          'Resolves trading symbol against verified instrument database. Returns 404 if unknown.',
         parameters: [
           { $ref: '#/components/parameters/RequestIdHeader' },
           {
@@ -1051,7 +1062,8 @@ export const openApiSpec = {
       post: {
         tags: ['Authentication'],
         summary: 'User sign-in',
-        description: 'Authenticates user with email and password, returning Supabase JWT session tokens.',
+        description:
+          'Authenticates user with email and password, returning Supabase JWT session tokens.',
         requestBody: {
           required: true,
           content: {
@@ -1141,7 +1153,8 @@ export const openApiSpec = {
       delete: {
         tags: ['Authentication'],
         summary: 'Delete user account',
-        description: 'Permanently deletes the authenticated user, cascading removal of profile, watchlists, favorites, and preferences.',
+        description:
+          'Permanently deletes the authenticated user, cascading removal of profile, watchlists, favorites, and preferences.',
         security: [{ BearerAuth: [] }],
         responses: {
           '200': { description: 'Account deleted permanently' },
@@ -1153,7 +1166,8 @@ export const openApiSpec = {
       get: {
         tags: ['User Profile & Preferences'],
         summary: 'Get current user profile and preferences',
-        description: 'Returns profile details and application preferences for the authenticated user.',
+        description:
+          'Returns profile details and application preferences for the authenticated user.',
         security: [{ BearerAuth: [] }],
         responses: {
           '200': { description: 'User profile and preferences' },
@@ -1175,8 +1189,16 @@ export const openApiSpec = {
                 type: 'object',
                 properties: {
                   fullName: { type: 'string', example: 'Aarav Sharma' },
-                  avatarUrl: { type: 'string', nullable: true, example: 'https://example.com/avatar.png' },
-                  bio: { type: 'string', nullable: true, example: 'Value investor focusing on Indian midcaps' },
+                  avatarUrl: {
+                    type: 'string',
+                    nullable: true,
+                    example: 'https://example.com/avatar.png',
+                  },
+                  bio: {
+                    type: 'string',
+                    nullable: true,
+                    example: 'Value investor focusing on Indian midcaps',
+                  },
                 },
               },
             },
@@ -1192,7 +1214,8 @@ export const openApiSpec = {
       put: {
         tags: ['User Profile & Preferences'],
         summary: 'Update application preferences',
-        description: 'Updates user settings such as default exchange, currency, period, theme, and table density.',
+        description:
+          'Updates user settings such as default exchange, currency, period, theme, and table density.',
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
@@ -1204,7 +1227,10 @@ export const openApiSpec = {
                   defaultExchange: { type: 'string', enum: ['NSE', 'BSE'] },
                   preferredCurrency: { type: 'string', enum: ['INR', 'USD'] },
                   statementPeriod: { type: 'string', enum: ['annual', 'quarterly'] },
-                  landingPage: { type: 'string', enum: ['/dashboard', '/market', '/screener', '/research', '/watchlists'] },
+                  landingPage: {
+                    type: 'string',
+                    enum: ['/dashboard', '/market', '/screener', '/research', '/watchlists'],
+                  },
                   theme: { type: 'string', enum: ['dark', 'light', 'system'] },
                   tableDensity: { type: 'string', enum: ['compact', 'normal', 'comfortable'] },
                 },
@@ -1222,7 +1248,8 @@ export const openApiSpec = {
       get: {
         tags: ['Watchlists'],
         summary: 'List user watchlists',
-        description: 'Returns all watchlists owned by the authenticated user with item counts and summary info.',
+        description:
+          'Returns all watchlists owned by the authenticated user with item counts and summary info.',
         security: [{ BearerAuth: [] }],
         responses: {
           '200': { description: 'List of watchlists' },
@@ -1260,10 +1287,16 @@ export const openApiSpec = {
       get: {
         tags: ['Watchlists'],
         summary: 'Get watchlist details with live quotes',
-        description: 'Retrieves a single watchlist by ID including items and real-time coordinated market quotes.',
+        description:
+          'Retrieves a single watchlist by ID including items and real-time coordinated market quotes.',
         security: [{ BearerAuth: [] }],
         parameters: [
-          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+          {
+            name: 'watchlistId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
         ],
         responses: {
           '200': { description: 'Watchlist with items and quotes' },
@@ -1275,7 +1308,12 @@ export const openApiSpec = {
         summary: 'Update watchlist name and description',
         security: [{ BearerAuth: [] }],
         parameters: [
-          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+          {
+            name: 'watchlistId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
         ],
         requestBody: {
           required: true,
@@ -1302,7 +1340,12 @@ export const openApiSpec = {
         description: 'Deletes a watchlist and all contained items.',
         security: [{ BearerAuth: [] }],
         parameters: [
-          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+          {
+            name: 'watchlistId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
         ],
         responses: {
           '200': { description: 'Watchlist deleted' },
@@ -1314,10 +1357,16 @@ export const openApiSpec = {
       post: {
         tags: ['Watchlists'],
         summary: 'Add stock to watchlist',
-        description: 'Adds an exchange-listed instrument to the watchlist (up to 100 items per watchlist).',
+        description:
+          'Adds an exchange-listed instrument to the watchlist (up to 100 items per watchlist).',
         security: [{ BearerAuth: [] }],
         parameters: [
-          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+          {
+            name: 'watchlistId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
         ],
         requestBody: {
           required: true,
@@ -1348,8 +1397,18 @@ export const openApiSpec = {
         summary: 'Remove item from watchlist',
         security: [{ BearerAuth: [] }],
         parameters: [
-          { name: 'watchlistId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
-          { name: 'itemId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+          {
+            name: 'watchlistId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+          {
+            name: 'itemId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
         ],
         responses: {
           '200': { description: 'Item removed' },
@@ -1400,12 +1459,169 @@ export const openApiSpec = {
         summary: 'Remove stock from favorites',
         security: [{ BearerAuth: [] }],
         parameters: [
-          { name: 'symbol', in: 'path', required: true, schema: { type: 'string', example: 'TCS' } },
-          { name: 'exchange', in: 'query', required: false, schema: { type: 'string', enum: ['NSE', 'BSE'] } },
+          {
+            name: 'symbol',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', example: 'TCS' },
+          },
+          {
+            name: 'exchange',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['NSE', 'BSE'] },
+          },
         ],
         responses: {
           '200': { description: 'Removed from favorites' },
           '404': { description: 'Favorite not found' },
+        },
+      },
+    },
+    '/api/v1/news': {
+      get: {
+        tags: ['Market News & Corporate Announcements'],
+        summary: 'Market news feed',
+        description:
+          'Returns genuine verified market news with provenance and pagination. No fabricated news.',
+        parameters: [
+          {
+            name: 'exchange',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['NSE', 'BSE'] },
+          },
+          { name: 'symbol', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'category', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'limit', in: 'query', required: false, schema: { type: 'integer', default: 20 } },
+          { name: 'offset', in: 'query', required: false, schema: { type: 'integer', default: 0 } },
+        ],
+        responses: {
+          '200': { description: 'Market news feed response with data provenance' },
+        },
+      },
+    },
+    '/api/v1/news/status': {
+      get: {
+        tags: ['Market News & Corporate Announcements'],
+        summary: 'News ingestion & provider health status',
+        description: 'Returns provider health, telemetry, and last ingestion metrics.',
+        responses: {
+          '200': { description: 'News ingestion status' },
+        },
+      },
+    },
+    '/api/v1/news/ingest': {
+      post: {
+        tags: ['Market News & Corporate Announcements'],
+        summary: 'Trigger news and announcements ingestion job',
+        description:
+          'Executes idempotent ingestion cycle across all active news and exchange announcement providers.',
+        responses: {
+          '200': { description: 'Ingestion outcome report' },
+        },
+      },
+    },
+    '/api/v1/stocks/{symbol}/news': {
+      get: {
+        tags: ['Market News & Corporate Announcements'],
+        summary: 'Company-specific market news',
+        description: 'Returns verified news associated with the company symbol.',
+        parameters: [
+          {
+            name: 'symbol',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', example: 'RELIANCE' },
+          },
+          {
+            name: 'exchange',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['NSE', 'BSE'], default: 'NSE' },
+          },
+          { name: 'limit', in: 'query', required: false, schema: { type: 'integer', default: 10 } },
+        ],
+        responses: {
+          '200': { description: 'Company news feed' },
+        },
+      },
+    },
+    '/api/v1/announcements': {
+      get: {
+        tags: ['Market News & Corporate Announcements'],
+        summary: 'Corporate disclosures feed',
+        description: 'Official exchange filings and disclosures from NSE and BSE.',
+        parameters: [
+          {
+            name: 'exchange',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['NSE', 'BSE'] },
+          },
+          { name: 'symbol', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'category', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'limit', in: 'query', required: false, schema: { type: 'integer', default: 20 } },
+          { name: 'offset', in: 'query', required: false, schema: { type: 'integer', default: 0 } },
+        ],
+        responses: {
+          '200': { description: 'Announcements feed' },
+        },
+      },
+    },
+    '/api/v1/announcements/{announcementId}': {
+      get: {
+        tags: ['Market News & Corporate Announcements'],
+        summary: 'Announcement detail',
+        description: 'Returns filing detail, metadata, source URL, and document attachment link.',
+        parameters: [
+          { name: 'announcementId', in: 'path', required: true, schema: { type: 'string' } },
+        ],
+        responses: {
+          '200': { description: 'Announcement detail' },
+          '404': { description: 'Announcement not found' },
+        },
+      },
+    },
+    '/api/v1/stocks/{symbol}/announcements': {
+      get: {
+        tags: ['Market News & Corporate Announcements'],
+        summary: 'Company-specific corporate announcements',
+        description: 'Returns official exchange disclosures filed by the company.',
+        parameters: [
+          {
+            name: 'symbol',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', example: 'TCS' },
+          },
+          {
+            name: 'exchange',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['NSE', 'BSE'], default: 'NSE' },
+          },
+          { name: 'category', in: 'query', required: false, schema: { type: 'string' } },
+          { name: 'limit', in: 'query', required: false, schema: { type: 'integer', default: 10 } },
+        ],
+        responses: {
+          '200': { description: 'Company announcements feed' },
+        },
+      },
+    },
+    '/api/v1/users/me/watchlist-news': {
+      get: {
+        tags: ['Market News & Corporate Announcements'],
+        summary: 'Authenticated user watchlist news intelligence',
+        description:
+          'Returns deduplicated news for companies present in the authenticated user watchlists.',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'limit', in: 'query', required: false, schema: { type: 'integer', default: 20 } },
+        ],
+        responses: {
+          '200': { description: 'Watchlist intelligence news items' },
+          '401': { description: 'Unauthorized' },
         },
       },
     },

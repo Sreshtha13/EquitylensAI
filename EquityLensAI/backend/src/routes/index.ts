@@ -8,6 +8,8 @@ import { watchlistsRouter } from './watchlistsRoutes.js';
 import { authRouter } from './authRoutes.js';
 import { userRouter } from './userRoutes.js';
 import { favoritesRouter } from './favoritesRoutes.js';
+import { newsRouter } from './newsRoutes.js';
+import { announcementsRouter } from './announcementsRoutes.js';
 import { sendSuccess } from '../utils/response.js';
 
 export const v1Router = Router();
@@ -33,6 +35,7 @@ v1Router.get('/', (_req, res) => {
         profile: 'GET, PATCH /api/v1/users/me',
         deleteAccount: 'DELETE /api/v1/users/me',
         preferences: 'GET, PATCH /api/v1/users/me/preferences',
+        watchlistNews: 'GET /api/v1/users/me/watchlist-news',
       },
       watchlists: {
         list: 'GET /api/v1/watchlists',
@@ -49,11 +52,25 @@ v1Router.get('/', (_req, res) => {
         add: 'POST /api/v1/favorites',
         remove: 'DELETE /api/v1/favorites/:symbol',
       },
+      news: {
+        marketNews: 'GET /api/v1/news?category=&limit=&page=',
+        newsDetail: 'GET /api/v1/news/:newsId',
+        summarize: 'GET /api/v1/news/:newsId/summarize',
+        status: 'GET /api/v1/news/status',
+        ingest: 'POST /api/v1/news/ingest',
+      },
+      announcements: {
+        feed: 'GET /api/v1/announcements?category=&exchange=&limit=&page=',
+        detail: 'GET /api/v1/announcements/:announcementId',
+        summarize: 'GET /api/v1/announcements/:announcementId/summarize',
+      },
       stocks: {
         search: '/api/v1/stocks/search?q={query}',
         quote: '/api/v1/stocks/{symbol}/quote',
         profile: '/api/v1/stocks/{symbol}/profile?exchange={exchange}',
         performance: '/api/v1/stocks/{symbol}/performance?exchange={exchange}',
+        news: '/api/v1/stocks/{symbol}/news?exchange={exchange}',
+        announcements: '/api/v1/stocks/{symbol}/announcements?exchange={exchange}',
         resolve: '/api/v1/stocks/{symbol}/resolve?exchange={exchange}',
         history: '/api/v1/stocks/{symbol}/history?interval={interval}&from={from}&to={to}',
         ingest: '/api/v1/stocks/ingest',
@@ -88,4 +105,5 @@ v1Router.use('/financial', financialRouter);
 v1Router.use('/ai', aiRouter);
 v1Router.use('/watchlists', watchlistsRouter);
 v1Router.use('/favorites', favoritesRouter);
-
+v1Router.use('/news', newsRouter);
+v1Router.use('/announcements', announcementsRouter);

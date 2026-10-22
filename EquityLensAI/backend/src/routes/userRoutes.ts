@@ -14,6 +14,7 @@ import {
   updatePreferences,
   deleteAccount,
 } from '../controllers/userController.js';
+import { getWatchlistNews } from '../controllers/newsController.js';
 
 export const userRouter = Router();
 
@@ -22,6 +23,8 @@ userRouter.use(asyncHandler(requireAuth));
 userRouter.get('/me', asyncHandler(getProfile));
 userRouter.patch('/me', validate({ body: updateProfileSchema }), asyncHandler(updateProfile));
 userRouter.delete('/me', validate({ body: deleteAccountSchema }), asyncHandler(deleteAccount));
+
+userRouter.get('/me/watchlist-news', getWatchlistNews);
 
 userRouter.get('/me/preferences', asyncHandler(getPreferences));
 userRouter.patch(

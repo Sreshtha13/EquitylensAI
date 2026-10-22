@@ -178,4 +178,3 @@ The frontend calls the API through `frontend/services/api/client.ts`:
 - `apiClient.delete`
 
 The client automatically injects the active Supabase JWT Bearer token into outgoing requests when available. Failed HTTP responses throw `ApiClientError` with `status` and `code`.
-
