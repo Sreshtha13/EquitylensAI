@@ -5,6 +5,7 @@ import { logger } from './utils/logger.js';
 import { registerShutdownTask, runShutdownTasks } from './utils/lifecycle.js';
 
 import { initializeInstruments } from './market/instruments/ingestion.js';
+import { alertScheduler } from './alerts/services/alertScheduler.js';
 
 const env = loadEnv();
 const app = createApp();
@@ -13,6 +14,10 @@ let shuttingDown = false;
 
 async function startServer(): Promise<void> {
   await initializeInstruments();
+
+  if (env.NODE_ENV !== 'test') {
+    alertScheduler.start(60_000);
+  }
 
   const listeningServer = app.listen(env.PORT, () => {
     logger.info(

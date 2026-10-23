@@ -62,6 +62,25 @@ export type {
   WatchlistNewsResponse,
   ProviderHealthInfo,
   NewsIngestionStatus,
+  // Phase 9
+  AlertType,
+  PriceCondition,
+  PercentageChangePeriod,
+  PercentageDirection,
+  FinancialAlertMetric,
+  ComparisonOperator,
+  PriceAlertConfig,
+  PercentageChangeAlertConfig,
+  VolumeAlertConfig,
+  FinancialMetricAlertConfig,
+  AnnouncementAlertConfig,
+  NewsAlertConfig,
+  AlertRuleConfig,
+  AlertRule,
+  AlertEvent,
+  NotificationCategory,
+  AppNotification,
+  UserAlertPreferences,
 } from './domain.js';
 export {
   SUPPORTED_EXCHANGES,
@@ -74,4 +93,12 @@ export {
   // Phase 8
   SOURCE_TYPES,
   ANNOUNCEMENT_CATEGORIES,
+  // Phase 9
+  ALERT_TYPES,
+  PRICE_CONDITIONS,
+  PERCENTAGE_CHANGE_PERIODS,
+  PERCENTAGE_DIRECTIONS,
+  FINANCIAL_ALERT_METRICS,
+  COMPARISON_OPERATORS,
+  NOTIFICATION_CATEGORIES,
 } from './domain.js';

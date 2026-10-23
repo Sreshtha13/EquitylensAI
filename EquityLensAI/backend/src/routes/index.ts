@@ -10,6 +10,8 @@ import { userRouter } from './userRoutes.js';
 import { favoritesRouter } from './favoritesRoutes.js';
 import { newsRouter } from './newsRoutes.js';
 import { announcementsRouter } from './announcementsRoutes.js';
+import { alertsRouter } from './alertsRoutes.js';
+import { notificationsRouter } from './notificationsRoutes.js';
 import { sendSuccess } from '../utils/response.js';
 
 export const v1Router = Router();
@@ -36,6 +38,26 @@ v1Router.get('/', (_req, res) => {
         deleteAccount: 'DELETE /api/v1/users/me',
         preferences: 'GET, PATCH /api/v1/users/me/preferences',
         watchlistNews: 'GET /api/v1/users/me/watchlist-news',
+      },
+      alerts: {
+        list: 'GET /api/v1/alerts',
+        create: 'POST /api/v1/alerts',
+        supportedTypes: 'GET /api/v1/alerts/supported-types',
+        preview: 'POST /api/v1/alerts/preview',
+        evaluate: 'POST /api/v1/alerts/evaluate',
+        schedulerStatus: 'GET /api/v1/alerts/scheduler-status',
+        detail: 'GET, PATCH, DELETE /api/v1/alerts/:alertId',
+        enable: 'POST /api/v1/alerts/:alertId/enable',
+        disable: 'POST /api/v1/alerts/:alertId/disable',
+        events: 'GET /api/v1/alerts/:alertId/events',
+      },
+      notifications: {
+        list: 'GET /api/v1/notifications',
+        unreadCount: 'GET /api/v1/notifications/unread-count',
+        markRead: 'PATCH /api/v1/notifications/:notificationId/read',
+        markAllRead: 'PATCH /api/v1/notifications/read-all',
+        delete: 'DELETE /api/v1/notifications/:notificationId',
+        preferences: 'GET, PATCH /api/v1/notifications/preferences',
       },
       watchlists: {
         list: 'GET /api/v1/watchlists',
@@ -99,6 +121,8 @@ v1Router.get('/', (_req, res) => {
 v1Router.use('/health', healthRouter);
 v1Router.use('/auth', authRouter);
 v1Router.use('/users', userRouter);
+v1Router.use('/alerts', alertsRouter);
+v1Router.use('/notifications', notificationsRouter);
 v1Router.use('/stocks', stocksRouter);
 v1Router.use('/market', marketRouter);
 v1Router.use('/financial', financialRouter);

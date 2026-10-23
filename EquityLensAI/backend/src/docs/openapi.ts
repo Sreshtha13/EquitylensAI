@@ -74,6 +74,16 @@ export const openApiSpec = {
       description:
         'Official exchange corporate announcements, market news, and grounded intelligence without fabrication',
     },
+    {
+      name: 'Alerts & Monitoring',
+      description:
+        'Customizable rule-based stock price, percentage change, volume, and financial metric alerts',
+    },
+    {
+      name: 'Notification Center',
+      description:
+        'In-app notification delivery, unread counter badges, and alert preferences',
+    },
   ],
   paths: {
     '/': {

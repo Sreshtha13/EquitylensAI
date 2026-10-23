@@ -137,7 +137,7 @@ export class BseAnnouncementsProvider implements AnnouncementsProvider {
         }
 
         const publishedAt = item.DT_TM
-          ? new Date(item.DT_TM).toISOString()
+          ? new Date(String(item.DT_TM)).toISOString()
           : new Date().toISOString();
         const docFile = item.ATTACHMENTNAME ? String(item.ATTACHMENTNAME).trim() : null;
         const documentUrl = docFile

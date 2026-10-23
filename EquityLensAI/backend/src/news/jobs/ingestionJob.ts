@@ -131,6 +131,13 @@ class IngestionManager {
       this.lastDuplicatesCount = totalDuplicates;
       this.lastSuccessAt = new Date().toISOString();
 
+      // Phase 9: Event-driven trigger for announcement and news alert rules
+      if (totalInserted > 0) {
+        import('../../alerts/services/alertScheduler.js')
+          .then(({ alertScheduler }) => alertScheduler.runEvaluation())
+          .catch((err) => logger.debug({ err }, 'Alert evaluation trigger after ingestion skipped'));
+      }
+
       return {
         success: true,
         newsRetrieved,
