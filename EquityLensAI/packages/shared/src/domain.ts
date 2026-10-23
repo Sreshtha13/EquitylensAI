@@ -837,3 +837,163 @@ export type UserAlertPreferences = {
   digestFrequency: 'realtime' | 'daily' | 'off';
   updatedAt: string;
 };
+
+// ─── Phase 10: Portfolio Tracking & Investment Performance Analytics ─────────
+
+export const PORTFOLIO_TRANSACTION_TYPES = [
+  'BUY',
+  'SELL',
+  'DIVIDEND',
+  'FEE',
+  'DEPOSIT',
+  'WITHDRAWAL',
+  'SPLIT',
+] as const;
+export type PortfolioTransactionType = (typeof PORTFOLIO_TRANSACTION_TYPES)[number];
+
+export const PORTFOLIO_PERFORMANCE_RANGES = ['1M', '3M', '6M', '1Y', '3Y', 'ALL'] as const;
+export type PortfolioPerformanceRange = (typeof PORTFOLIO_PERFORMANCE_RANGES)[number];
+
+export type Portfolio = {
+  id: string;
+  userId: string;
+  name: string;
+  description: string | null;
+  baseCurrency: SupportedCurrency;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PortfolioTransaction = {
+  id: string;
+  portfolioId: string;
+  type: PortfolioTransactionType;
+  symbol: string | null;
+  exchange: SupportedExchange | null;
+  quantity: number;
+  price: number;
+  currency: SupportedCurrency;
+  fees: number;
+  taxes: number;
+  totalAmount: number;
+  tradeDate: string;
+  settlementDate?: string | null;
+  notes?: string | null;
+  splitRatio?: number | null;
+  externalReference?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PortfolioHolding = {
+  symbol: string;
+  exchange: SupportedExchange;
+  name: string;
+  assetType: AssetType;
+  quantity: number;
+  averageBuyPrice: number;
+  totalCostBasis: number;
+  currentPrice: number | null;
+  currency: string;
+  marketValue: number | null;
+  unrealizedPnL: number | null;
+  unrealizedPnLPercent: number | null;
+  realizedPnL: number;
+  dividendIncome: number;
+  allocationPercent: number | null;
+  quoteFreshness: DataFreshness;
+  quoteSource: string | null;
+  quoteObservedAt: string | null;
+  isStale: boolean;
+  unpriced: boolean;
+};
+
+export type PortfolioSummary = {
+  portfolioId: string;
+  name: string;
+  baseCurrency: SupportedCurrency;
+  holdingsCount: number;
+  totalCostBasis: number;
+  currentHoldingsValue: number | null;
+  cashBalance: number;
+  totalPortfolioValue: number | null;
+  unrealizedPnL: number | null;
+  unrealizedPnLPercent: number | null;
+  realizedPnL: number;
+  totalDividends: number;
+  totalFees: number;
+  totalReturn: number | null;
+  totalReturnPercent: number | null;
+  netDeposits: number;
+  valuationStatus: 'complete' | 'partial' | 'empty' | 'unavailable';
+  valuationCoveragePercent: number;
+  unpricedHoldingsCount: number;
+  lastValuationAt: string;
+};
+
+export type PortfolioAllocation = {
+  portfolioId: string;
+  assetAllocation: Array<{
+    category: string;
+    marketValue: number;
+    percentage: number;
+  }>;
+  sectorAllocation: Array<{
+    sector: string;
+    marketValue: number;
+    percentage: number;
+  }>;
+  concentration: {
+    topHoldingWeight: number | null;
+    top5HoldingsWeight: number | null;
+    totalHoldings: number;
+  };
+  sectorCoveragePercent: number;
+  unclassifiedValue: number;
+};
+
+export type PortfolioPerformancePoint = {
+  date: string;
+  portfolioValue: number;
+  investedCapital: number;
+  benchmarkValue?: number | null;
+  benchmarkReturnPercent?: number | null;
+  portfolioReturnPercent?: number | null;
+};
+
+export type PortfolioPerformance = {
+  portfolioId: string;
+  timeRange: PortfolioPerformanceRange;
+  history: PortfolioPerformancePoint[];
+  metrics: {
+    startValue: number;
+    endValue: number;
+    netCashFlow: number;
+    totalReturn: number;
+    totalReturnPercent: number;
+    annualizedReturnPercent?: number | null;
+    benchmarkSymbol: string;
+    benchmarkName: string;
+    benchmarkReturnPercent?: number | null;
+    alpha?: number | null;
+  };
+  valuationCoveragePercent: number;
+  calculationNotes: string[];
+};
+
+export type PortfolioSnapshot = {
+  id: string;
+  portfolioId: string;
+  valuationDate: string;
+  holdingsValue: number;
+  cashBalance: number;
+  totalValue: number;
+  totalCostBasis: number;
+  realizedPnL: number;
+  unrealizedPnL: number;
+  currency: SupportedCurrency;
+  coveragePercent: number;
+  createdAt: string;
+};
+

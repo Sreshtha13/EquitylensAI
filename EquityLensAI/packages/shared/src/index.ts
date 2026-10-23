@@ -81,6 +81,17 @@ export type {
   NotificationCategory,
   AppNotification,
   UserAlertPreferences,
+  // Phase 10
+  PortfolioTransactionType,
+  PortfolioPerformanceRange,
+  Portfolio,
+  PortfolioTransaction,
+  PortfolioHolding,
+  PortfolioSummary,
+  PortfolioAllocation,
+  PortfolioPerformancePoint,
+  PortfolioPerformance,
+  PortfolioSnapshot,
 } from './domain.js';
 export {
   SUPPORTED_EXCHANGES,
@@ -101,4 +112,8 @@ export {
   FINANCIAL_ALERT_METRICS,
   COMPARISON_OPERATORS,
   NOTIFICATION_CATEGORIES,
+  // Phase 10
+  PORTFOLIO_TRANSACTION_TYPES,
+  PORTFOLIO_PERFORMANCE_RANGES,
 } from './domain.js';
+

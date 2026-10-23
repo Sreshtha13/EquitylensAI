@@ -12,6 +12,7 @@ import { newsRouter } from './newsRoutes.js';
 import { announcementsRouter } from './announcementsRoutes.js';
 import { alertsRouter } from './alertsRoutes.js';
 import { notificationsRouter } from './notificationsRoutes.js';
+import { portfolioRouter } from './portfolioRoutes.js';
 import { sendSuccess } from '../utils/response.js';
 
 export const v1Router = Router();
@@ -38,6 +39,20 @@ v1Router.get('/', (_req, res) => {
         deleteAccount: 'DELETE /api/v1/users/me',
         preferences: 'GET, PATCH /api/v1/users/me/preferences',
         watchlistNews: 'GET /api/v1/users/me/watchlist-news',
+      },
+      portfolios: {
+        list: 'GET /api/v1/portfolios',
+        create: 'POST /api/v1/portfolios',
+        detail: 'GET, PATCH, DELETE /api/v1/portfolios/:portfolioId',
+        holdings: 'GET /api/v1/portfolios/:portfolioId/holdings',
+        summary: 'GET /api/v1/portfolios/:portfolioId/summary',
+        allocation: 'GET /api/v1/portfolios/:portfolioId/allocation',
+        performance: 'GET /api/v1/portfolios/:portfolioId/performance?range={1M|3M|6M|1Y|3Y|ALL}',
+        transactions: 'GET, POST /api/v1/portfolios/:portfolioId/transactions',
+        transactionDetail: 'GET, PATCH, DELETE /api/v1/portfolios/:portfolioId/transactions/:transactionId',
+        exportCsv: 'GET /api/v1/portfolios/:portfolioId/transactions/export',
+        previewImport: 'POST /api/v1/portfolios/:portfolioId/import/preview',
+        confirmImport: 'POST /api/v1/portfolios/:portfolioId/import/confirm',
       },
       alerts: {
         list: 'GET /api/v1/alerts',
@@ -121,6 +136,7 @@ v1Router.get('/', (_req, res) => {
 v1Router.use('/health', healthRouter);
 v1Router.use('/auth', authRouter);
 v1Router.use('/users', userRouter);
+v1Router.use('/portfolios', portfolioRouter);
 v1Router.use('/alerts', alertsRouter);
 v1Router.use('/notifications', notificationsRouter);
 v1Router.use('/stocks', stocksRouter);
@@ -131,3 +147,4 @@ v1Router.use('/watchlists', watchlistsRouter);
 v1Router.use('/favorites', favoritesRouter);
 v1Router.use('/news', newsRouter);
 v1Router.use('/announcements', announcementsRouter);
+

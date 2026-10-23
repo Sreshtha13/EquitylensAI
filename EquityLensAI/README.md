@@ -12,6 +12,8 @@ Phase 8 implements Market News, Corporate Announcements & Event Intelligence: re
 
 Phase 9 implements Alerts & Notifications: a production-grade deterministic alert engine with background evaluation scheduler, multi-user isolation, support for price thresholds and crossing conditions (crosses above/below with previous-state transition tracking and cooldowns), intraday percentage change movements, volume surge detection, audited financial metric benchmarks (ROE, ROCE, margins, debt-to-equity, free cash flow across reported periods), real-time corporate disclosure triggers wired directly to the Phase 8 ingestion pipeline, idempotent in-app notification center with read/unread tracking and real-time navbar unread badge, alert creation modal on stock-detail pages, and user delivery preferences.
 
+Phase 10 implements Portfolio Tracking & Investment Performance Analytics: multi-portfolio management, an auditable deterministic transaction ledger (BUY, SELL, DIVIDEND, SPLIT, DEPOSIT, WITHDRAWAL, FEE), weighted-average cost basis accounting, short position rejection, real-time market valuation with genuine quote provenance and coverage reporting, multi-currency conversion (USD/INR via genuine FX provider observations), asset class and sector diversification analytics, historical portfolio trajectory reconstruction, benchmark return and alpha comparison against NIFTY 50 and S&P 500, CSV export with spreadsheet formula injection protection, bulk CSV import with preview validation, and full stock-detail page integration.
+
 ## Architecture
 
 ```text
@@ -100,4 +102,5 @@ The home page verifies frontend/backend connectivity by calling the health endpo
 - [Stock Detail & Company Intelligence](docs/phase7-stock-detail.md)
 - [Market News, Announcements & Event Intelligence](docs/phase8-market-news-announcements.md)
 - [Alerts & Notifications System](docs/phase9-alerts-notifications.md)
+- [Portfolio Tracking & Investment Performance Analytics](docs/phase10-portfolio-tracking.md)
 - [OpenAPI Specification](docs/openapi.json)
