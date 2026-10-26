@@ -997,3 +997,141 @@ export type PortfolioSnapshot = {
   createdAt: string;
 };
 
+// ─── Phase 11: Advanced Stock Screener & Saved Strategies ────────────────────
+
+export const SCREENER_METRIC_DOMAINS = [
+  'profitability',
+  'growth',
+  'valuation',
+  'leverage',
+  'liquidity',
+  'cash_flow',
+  'financial_health',
+] as const;
+export type ScreenerMetricDomain = (typeof SCREENER_METRIC_DOMAINS)[number];
+
+export const SCREENER_SUPPORTED_METRICS = [
+  'roe',
+  'roa',
+  'roce',
+  'gross_margin',
+  'operating_margin',
+  'net_margin',
+  'debt_to_equity',
+  'current_ratio',
+  'quick_ratio',
+  'interest_coverage',
+  'revenue_growth',
+  'net_income_growth',
+  'eps_growth',
+  'free_cash_flow_margin',
+  'pe_ratio',
+  'price_to_book',
+  'financial_health_score',
+] as const;
+export type ScreenerMetric = (typeof SCREENER_SUPPORTED_METRICS)[number];
+
+export const SCREENER_OPERATORS = [
+  'eq',
+  'neq',
+  'gt',
+  'gte',
+  'lt',
+  'lte',
+  'between',
+] as const;
+export type ScreenerOperator = (typeof SCREENER_OPERATORS)[number];
+export type ScreenerPeriod = SupportedPeriod;
+
+export type ScreenerCondition = {
+  id?: string | undefined;
+  field: ScreenerMetric;
+  operator: ScreenerOperator;
+  value: number;
+  upperValue?: number | null | undefined;
+};
+
+export type ScreenerFilterGroup = {
+  id?: string | undefined;
+  logic: 'AND' | 'OR';
+  conditions: Array<ScreenerCondition | ScreenerFilterGroup>;
+};
+
+export type ScreenerStrategyDefinition = {
+  schemaVersion: 1;
+  rootGroup: ScreenerFilterGroup;
+  exchange?: SupportedExchange | null;
+  period: SupportedPeriod;
+  sort: {
+    field: string | null;
+    direction: 'asc' | 'desc';
+  };
+  selectedColumns?: string[];
+};
+
+export type SavedScreen = {
+  id: string;
+  userId: string;
+  name: string;
+  description: string | null;
+  definition: ScreenerStrategyDefinition;
+  lastRunAt: string | null;
+  lastResultCount: number | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ScreenerTemplateCategory =
+  | 'quality'
+  | 'value'
+  | 'growth'
+  | 'conservative'
+  | 'cash_flow'
+  | 'health';
+
+export type ScreenerTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  category: ScreenerTemplateCategory;
+  definition: ScreenerStrategyDefinition;
+  highlights: string[];
+  assumptions: string;
+};
+
+export type ScreenerRunRecord = {
+  id: string;
+  userId: string;
+  savedScreenId?: string | null;
+  definition: ScreenerStrategyDefinition;
+  resultCount: number;
+  durationMs: number;
+  executedAt: string;
+  coverage: {
+    indexedCompanies: number;
+    staleIndexedCompanies: number;
+    expectedCompanies: number;
+    refreshCompleted: boolean;
+    refreshedAt: string | null;
+    isPartial: boolean;
+  };
+  warnings: string[];
+};
+
+export type ScreenerMetricCatalogItem = {
+  id: ScreenerMetric;
+  label: string;
+  description: string;
+  category: ScreenerMetricDomain;
+  unit: 'percent' | 'ratio' | 'score';
+  aliases: readonly string[];
+  analysisPath: string;
+  periods: readonly SupportedPeriod[];
+  minimum: number;
+  maximum: number;
+  availableInFinancialAnalysis: boolean;
+  availableForScreenerExecution: boolean;
+  statementScope: string;
+  missingDataBehavior: string;
+};
+

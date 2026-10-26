@@ -2,7 +2,12 @@ import { getEnv } from '../../config/index.js';
 import { AppError } from '../../utils/appError.js';
 import { logger } from '../../utils/logger.js';
 import { z } from 'zod';
-import type { ScreenerFilter, ScreenerRequest } from './screenerSchema.js';
+import {
+  flattenConditions,
+  type ScreenerFilter,
+  type ScreenerFilterGroup,
+  type ScreenerRequest,
+} from './screenerSchema.js';
 
 export type ScreenerMetricValue = {
   value: number | null;
@@ -42,6 +47,7 @@ export type ScreenerExecutionResponse = {
   querySummary: string;
   filters: ScreenerFilter[];
   logic: 'AND' | 'OR';
+  rootGroup?: ScreenerFilterGroup;
   exchange: 'NSE' | 'BSE' | null;
   period: 'annual' | 'ttm';
   totalMatches: number;
@@ -181,15 +187,17 @@ export async function updateScreenerCoverage(input: {
   );
 }
 
+
 export async function executeScreenerQuery(
   input: ScreenerRequest,
 ): Promise<ScreenerExecutionResponse> {
+  const filterPayload = input.rootGroup ?? input.filters;
   const data = await databaseRequest<unknown>(
     'rpc/screen_financial_companies',
     {
       method: 'POST',
       body: JSON.stringify({
-        p_filters: input.filters,
+        p_filters: filterPayload,
         p_logic: input.logic,
         p_exchange: input.exchange ?? null,
         p_period: input.period,
@@ -237,10 +245,18 @@ export async function executeScreenerQuery(
     warnings.push('One or more results use stale financial data; check each result timestamp.');
   }
 
+  const effectiveFilters = input.rootGroup
+    ? flattenConditions(input.rootGroup)
+    : (input.filters ?? []);
+
   return {
     querySummary: input.query,
-    filters: input.filters,
-    logic: input.logic,
+    filters: effectiveFilters,
+    logic: input.rootGroup ? input.rootGroup.logic : input.logic,
+    rootGroup: input.rootGroup ?? {
+      logic: input.logic,
+      conditions: input.filters ?? [],
+    },
     exchange: input.exchange ?? null,
     period: input.period,
     totalMatches: result.totalMatches,

@@ -13,6 +13,7 @@ import { announcementsRouter } from './announcementsRoutes.js';
 import { alertsRouter } from './alertsRoutes.js';
 import { notificationsRouter } from './notificationsRoutes.js';
 import { portfolioRouter } from './portfolioRoutes.js';
+import { screenerRouter } from './screenerRoutes.js';
 import { sendSuccess } from '../utils/response.js';
 
 export const v1Router = Router();
@@ -53,6 +54,17 @@ v1Router.get('/', (_req, res) => {
         exportCsv: 'GET /api/v1/portfolios/:portfolioId/transactions/export',
         previewImport: 'POST /api/v1/portfolios/:portfolioId/import/preview',
         confirmImport: 'POST /api/v1/portfolios/:portfolioId/import/confirm',
+      },
+      screener: {
+        run: 'POST /api/v1/screener/run',
+        metrics: 'GET /api/v1/screener/metrics',
+        templates: 'GET /api/v1/screener/templates',
+        saved: 'GET, POST /api/v1/screener/saved',
+        savedDetail: 'GET, PATCH, DELETE /api/v1/screener/saved/:screenId',
+        savedRun: 'POST /api/v1/screener/saved/:screenId/run',
+        savedDuplicate: 'POST /api/v1/screener/saved/:screenId/duplicate',
+        runs: 'GET /api/v1/screener/runs',
+        runDetail: 'GET /api/v1/screener/runs/:runId',
       },
       alerts: {
         list: 'GET /api/v1/alerts',
@@ -137,6 +149,7 @@ v1Router.use('/health', healthRouter);
 v1Router.use('/auth', authRouter);
 v1Router.use('/users', userRouter);
 v1Router.use('/portfolios', portfolioRouter);
+v1Router.use('/screener', screenerRouter);
 v1Router.use('/alerts', alertsRouter);
 v1Router.use('/notifications', notificationsRouter);
 v1Router.use('/stocks', stocksRouter);

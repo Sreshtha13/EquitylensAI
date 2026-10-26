@@ -92,6 +92,19 @@ export type {
   PortfolioPerformancePoint,
   PortfolioPerformance,
   PortfolioSnapshot,
+  // Phase 11
+  ScreenerMetricDomain,
+  ScreenerMetric,
+  ScreenerOperator,
+  ScreenerPeriod,
+  ScreenerCondition,
+  ScreenerFilterGroup,
+  ScreenerStrategyDefinition,
+  SavedScreen,
+  ScreenerTemplateCategory,
+  ScreenerTemplate,
+  ScreenerRunRecord,
+  ScreenerMetricCatalogItem,
 } from './domain.js';
 export {
   SUPPORTED_EXCHANGES,
@@ -115,5 +128,9 @@ export {
   // Phase 10
   PORTFOLIO_TRANSACTION_TYPES,
   PORTFOLIO_PERFORMANCE_RANGES,
+  // Phase 11
+  SCREENER_METRIC_DOMAINS,
+  SCREENER_SUPPORTED_METRICS,
+  SCREENER_OPERATORS,
 } from './domain.js';
 

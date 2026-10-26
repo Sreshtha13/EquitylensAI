@@ -105,12 +105,17 @@ export function buildScreenerRows(
       roe: metric(profitability.returnOnEquity),
       roa: metric(profitability.returnOnAssets),
       roce: metric(profitability.returnOnCapitalEmployed),
+      gross_margin: metric(profitability.grossMargin),
+      operating_margin: metric(profitability.operatingMargin),
       net_margin: metric(profitability.netMargin),
       debt_to_equity: metric(leverage.debtToEquity),
+      current_ratio: metric(liquidity.currentRatio),
+      quick_ratio: metric(liquidity.quickRatio),
+      interest_coverage: metric(leverage.interestCoverageRatio),
       revenue_growth: metric(growth.revenueGrowthYoY),
       net_income_growth: metric(growth.netIncomeGrowthYoY),
+      eps_growth: metric(growth.epsGrowthYoY),
       free_cash_flow_margin: metric(cashFlow.freeCashFlowMargin),
-      current_ratio: metric(liquidity.currentRatio),
       pe_ratio: metric(
         valuationPeriodMatches
           ? analysis.valuation.peRatio

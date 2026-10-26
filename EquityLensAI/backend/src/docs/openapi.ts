@@ -925,6 +925,200 @@ export const openApiSpec = {
       },
     },
 
+    '/api/v1/screener/metrics': {
+      get: {
+        tags: ['Stock Screener'],
+        summary: 'List all supported screening metrics with metadata',
+        description:
+          'Returns the complete metric registry including identifiers, categories, units, formulas, supported operators, and period availability.',
+        responses: {
+          '200': { description: 'Metric catalog with units, periods, bounds, and descriptions' },
+        },
+      },
+    },
+
+    '/api/v1/screener/templates': {
+      get: {
+        tags: ['Stock Screener'],
+        summary: 'List verified prebuilt screening strategy templates',
+        description:
+          'Returns curated starter strategies (Quality, Value, Growth, Conservative Balance Sheet, Cash Flow) using allowlisted metrics.',
+        responses: {
+          '200': { description: 'List of screening templates' },
+        },
+      },
+    },
+
+    '/api/v1/screener/run': {
+      post: {
+        tags: ['Stock Screener'],
+        summary: 'Execute a structured or nested filter stock screen',
+        description:
+          'Evaluates allowlisted conditions with AND/OR logic and nested groups against the financial-metrics index.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  query: { type: 'string' },
+                  exchange: { type: 'string', enum: ['NSE', 'BSE'] },
+                  period: { type: 'string', enum: ['annual', 'ttm'], default: 'annual' },
+                  rootGroup: { type: 'object' },
+                  sort: {
+                    type: 'object',
+                    properties: {
+                      field: { type: 'string' },
+                      direction: { type: 'string', enum: ['asc', 'desc'] },
+                    },
+                  },
+                  limit: { type: 'integer', default: 25 },
+                  offset: { type: 'integer', default: 0 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Screen results with matches, pagination, and data coverage' },
+          '400': { description: 'Invalid filter or query complexity exceeded' },
+          '502': { description: 'Database execution error' },
+          '503': { description: 'Financial-metrics database unavailable' },
+        },
+      },
+    },
+
+    '/api/v1/screener/saved': {
+      get: {
+        tags: ['Stock Screener'],
+        summary: 'List authenticated user saved screens',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        responses: {
+          '200': { description: 'List of saved screens' },
+          '401': { description: 'Authentication required' },
+        },
+      },
+      post: {
+        tags: ['Stock Screener'],
+        summary: 'Create a saved screening strategy',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['name', 'definition'],
+                properties: {
+                  name: { type: 'string', minLength: 1, maxLength: 120 },
+                  description: { type: 'string', maxLength: 500, nullable: true },
+                  definition: { type: 'object' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Saved screen created successfully' },
+          '400': { description: 'Invalid strategy definition or name' },
+          '401': { description: 'Authentication required' },
+          '409': { description: 'Duplicate strategy name' },
+        },
+      },
+    },
+
+    '/api/v1/screener/saved/{screenId}': {
+      get: {
+        tags: ['Stock Screener'],
+        summary: 'Get saved screening strategy by ID',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        parameters: [{ name: 'screenId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          '200': { description: 'Saved screen details' },
+          '401': { description: 'Authentication required' },
+          '404': { description: 'Saved screen not found' },
+        },
+      },
+      patch: {
+        tags: ['Stock Screener'],
+        summary: 'Update saved screening strategy',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        parameters: [{ name: 'screenId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          '200': { description: 'Saved screen updated successfully' },
+          '400': { description: 'Validation error' },
+          '401': { description: 'Authentication required' },
+          '404': { description: 'Saved screen not found' },
+        },
+      },
+      delete: {
+        tags: ['Stock Screener'],
+        summary: 'Delete saved screening strategy',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        parameters: [{ name: 'screenId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          '200': { description: 'Saved screen deleted' },
+          '401': { description: 'Authentication required' },
+          '404': { description: 'Saved screen not found' },
+        },
+      },
+    },
+
+    '/api/v1/screener/saved/{screenId}/run': {
+      post: {
+        tags: ['Stock Screener'],
+        summary: 'Run saved strategy against current eligible market data',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        parameters: [{ name: 'screenId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          '200': { description: 'Screen results and updated run metadata' },
+          '401': { description: 'Authentication required' },
+          '404': { description: 'Saved screen not found' },
+        },
+      },
+    },
+
+    '/api/v1/screener/saved/{screenId}/duplicate': {
+      post: {
+        tags: ['Stock Screener'],
+        summary: 'Duplicate an existing saved strategy',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        parameters: [{ name: 'screenId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          '201': { description: 'Duplicated saved screen' },
+          '401': { description: 'Authentication required' },
+          '404': { description: 'Saved screen not found' },
+        },
+      },
+    },
+
+    '/api/v1/screener/runs': {
+      get: {
+        tags: ['Stock Screener'],
+        summary: 'List user screening run history',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        responses: {
+          '200': { description: 'List of executed screening runs' },
+          '401': { description: 'Authentication required' },
+        },
+      },
+    },
+
+    '/api/v1/screener/runs/{runId}': {
+      get: {
+        tags: ['Stock Screener'],
+        summary: 'Get run execution record by ID',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        parameters: [{ name: 'runId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          '200': { description: 'Run record details' },
+          '401': { description: 'Authentication required' },
+          '404': { description: 'Run record not found' },
+        },
+      },
+    },
+
     '/api/v1/financial/{symbol}/analysis': {
       get: {
         tags: ['Financial Intelligence'],
