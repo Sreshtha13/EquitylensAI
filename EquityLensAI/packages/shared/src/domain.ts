@@ -674,3 +674,326 @@ export type NewsIngestionStatus = {
   duplicatesCount: number;
   providers: ProviderHealthInfo[];
 };
+
+// ==========================================
+// Phase 9: Alerts & Notifications System
+// ==========================================
+
+export const ALERT_TYPES = [
+  'price',
+  'percentage_change',
+  'volume',
+  'financial_metric',
+  'announcement',
+  'news',
+] as const;
+export type AlertType = (typeof ALERT_TYPES)[number];
+
+export const PRICE_CONDITIONS = [
+  'rises_above',
+  'falls_below',
+  'crosses_above',
+  'crosses_below',
+] as const;
+export type PriceCondition = (typeof PRICE_CONDITIONS)[number];
+
+export const PERCENTAGE_CHANGE_PERIODS = ['1d', '1w', '1m'] as const;
+export type PercentageChangePeriod = (typeof PERCENTAGE_CHANGE_PERIODS)[number];
+
+export const PERCENTAGE_DIRECTIONS = ['up', 'down', 'any'] as const;
+export type PercentageDirection = (typeof PERCENTAGE_DIRECTIONS)[number];
+
+export const FINANCIAL_ALERT_METRICS = [
+  'roe',
+  'roce',
+  'debtToEquity',
+  'operatingMargin',
+  'netMargin',
+  'freeCashFlow',
+  'peRatio',
+  'pbRatio',
+  'currentRatio',
+] as const;
+export type FinancialAlertMetric = (typeof FINANCIAL_ALERT_METRICS)[number];
+
+export const COMPARISON_OPERATORS = ['gt', 'lt', 'gte', 'lte'] as const;
+export type ComparisonOperator = (typeof COMPARISON_OPERATORS)[number];
+
+export type PriceAlertConfig = {
+  condition: PriceCondition;
+  targetPrice: number;
+  currency?: string | undefined;
+};
+
+export type PercentageChangeAlertConfig = {
+  period: PercentageChangePeriod;
+  targetPercent: number;
+  direction: PercentageDirection;
+};
+
+export type VolumeAlertConfig = {
+  condition: 'exceeds';
+  targetVolume: number;
+};
+
+export type FinancialMetricAlertConfig = {
+  metric: FinancialAlertMetric;
+  operator: ComparisonOperator;
+  thresholdValue: number;
+  periodType?: 'annual' | 'quarterly' | 'ttm' | undefined;
+};
+
+export type AnnouncementAlertConfig = {
+  scope: 'stock' | 'watchlist';
+  categories?: AnnouncementCategory[] | undefined;
+};
+
+export type NewsAlertConfig = {
+  scope: 'stock' | 'watchlist';
+  keywords?: string[] | undefined;
+};
+
+export type AlertRuleConfig =
+  | ({ type: 'price' } & PriceAlertConfig)
+  | ({ type: 'percentage_change' } & PercentageChangeAlertConfig)
+  | ({ type: 'volume' } & VolumeAlertConfig)
+  | ({ type: 'financial_metric' } & FinancialMetricAlertConfig)
+  | ({ type: 'announcement' } & AnnouncementAlertConfig)
+  | ({ type: 'news' } & NewsAlertConfig);
+
+export type AlertRule = {
+  id: string;
+  userId: string;
+  name: string;
+  alertType: AlertType;
+  symbol: string | null;
+  exchange: SupportedExchange | null;
+  ruleConfig: AlertRuleConfig;
+  enabled: boolean;
+  cooldownMinutes: number;
+  lastEvaluatedAt: string | null;
+  lastObservationAt: string | null;
+  lastObservedValue: number | null;
+  lastTriggeredAt: string | null;
+  lastState: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AlertEvent = {
+  id: string;
+  ruleId: string;
+  userId: string;
+  alertType: AlertType;
+  symbol: string | null;
+  exchange: SupportedExchange | null;
+  triggerTimestamp: string;
+  observedValue: number | null;
+  thresholdContext: Record<string, unknown>;
+  source: string;
+  deduplicationKey: string;
+  status: 'triggered' | 'acknowledged' | 'failed';
+  createdAt: string;
+};
+
+export const NOTIFICATION_CATEGORIES = [
+  'price_alert',
+  'percentage_alert',
+  'volume_alert',
+  'financial_alert',
+  'announcement_alert',
+  'news_alert',
+  'system',
+] as const;
+export type NotificationCategory = (typeof NOTIFICATION_CATEGORIES)[number];
+
+export type AppNotification = {
+  id: string;
+  userId: string;
+  alertEventId?: string | null;
+  category: NotificationCategory;
+  title: string;
+  message: string;
+  read: boolean;
+  readAt?: string | null;
+  symbol?: string | null;
+  exchange?: SupportedExchange | null;
+  sourceUrl?: string | null;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+};
+
+export type UserAlertPreferences = {
+  userId: string;
+  inAppEnabled: boolean;
+  emailEnabled: boolean;
+  emailAddress?: string | null;
+  priceAlerts: boolean;
+  percentageAlerts: boolean;
+  volumeAlerts: boolean;
+  financialAlerts: boolean;
+  announcementAlerts: boolean;
+  newsAlerts: boolean;
+  digestFrequency: 'realtime' | 'daily' | 'off';
+  updatedAt: string;
+};
+
+// ─── Phase 10: Portfolio Tracking & Investment Performance Analytics ─────────
+
+export const PORTFOLIO_TRANSACTION_TYPES = [
+  'BUY',
+  'SELL',
+  'DIVIDEND',
+  'FEE',
+  'DEPOSIT',
+  'WITHDRAWAL',
+  'SPLIT',
+] as const;
+export type PortfolioTransactionType = (typeof PORTFOLIO_TRANSACTION_TYPES)[number];
+
+export const PORTFOLIO_PERFORMANCE_RANGES = ['1M', '3M', '6M', '1Y', '3Y', 'ALL'] as const;
+export type PortfolioPerformanceRange = (typeof PORTFOLIO_PERFORMANCE_RANGES)[number];
+
+export type Portfolio = {
+  id: string;
+  userId: string;
+  name: string;
+  description: string | null;
+  baseCurrency: SupportedCurrency;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PortfolioTransaction = {
+  id: string;
+  portfolioId: string;
+  type: PortfolioTransactionType;
+  symbol: string | null;
+  exchange: SupportedExchange | null;
+  quantity: number;
+  price: number;
+  currency: SupportedCurrency;
+  fees: number;
+  taxes: number;
+  totalAmount: number;
+  tradeDate: string;
+  settlementDate?: string | null;
+  notes?: string | null;
+  splitRatio?: number | null;
+  externalReference?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PortfolioHolding = {
+  symbol: string;
+  exchange: SupportedExchange;
+  name: string;
+  assetType: AssetType;
+  quantity: number;
+  averageBuyPrice: number;
+  totalCostBasis: number;
+  currentPrice: number | null;
+  currency: string;
+  marketValue: number | null;
+  unrealizedPnL: number | null;
+  unrealizedPnLPercent: number | null;
+  realizedPnL: number;
+  dividendIncome: number;
+  allocationPercent: number | null;
+  quoteFreshness: DataFreshness;
+  quoteSource: string | null;
+  quoteObservedAt: string | null;
+  isStale: boolean;
+  unpriced: boolean;
+};
+
+export type PortfolioSummary = {
+  portfolioId: string;
+  name: string;
+  baseCurrency: SupportedCurrency;
+  holdingsCount: number;
+  totalCostBasis: number;
+  currentHoldingsValue: number | null;
+  cashBalance: number;
+  totalPortfolioValue: number | null;
+  unrealizedPnL: number | null;
+  unrealizedPnLPercent: number | null;
+  realizedPnL: number;
+  totalDividends: number;
+  totalFees: number;
+  totalReturn: number | null;
+  totalReturnPercent: number | null;
+  netDeposits: number;
+  valuationStatus: 'complete' | 'partial' | 'empty' | 'unavailable';
+  valuationCoveragePercent: number;
+  unpricedHoldingsCount: number;
+  lastValuationAt: string;
+};
+
+export type PortfolioAllocation = {
+  portfolioId: string;
+  assetAllocation: Array<{
+    category: string;
+    marketValue: number;
+    percentage: number;
+  }>;
+  sectorAllocation: Array<{
+    sector: string;
+    marketValue: number;
+    percentage: number;
+  }>;
+  concentration: {
+    topHoldingWeight: number | null;
+    top5HoldingsWeight: number | null;
+    totalHoldings: number;
+  };
+  sectorCoveragePercent: number;
+  unclassifiedValue: number;
+};
+
+export type PortfolioPerformancePoint = {
+  date: string;
+  portfolioValue: number;
+  investedCapital: number;
+  benchmarkValue?: number | null;
+  benchmarkReturnPercent?: number | null;
+  portfolioReturnPercent?: number | null;
+};
+
+export type PortfolioPerformance = {
+  portfolioId: string;
+  timeRange: PortfolioPerformanceRange;
+  history: PortfolioPerformancePoint[];
+  metrics: {
+    startValue: number;
+    endValue: number;
+    netCashFlow: number;
+    totalReturn: number;
+    totalReturnPercent: number;
+    annualizedReturnPercent?: number | null;
+    benchmarkSymbol: string;
+    benchmarkName: string;
+    benchmarkReturnPercent?: number | null;
+    alpha?: number | null;
+  };
+  valuationCoveragePercent: number;
+  calculationNotes: string[];
+};
+
+export type PortfolioSnapshot = {
+  id: string;
+  portfolioId: string;
+  valuationDate: string;
+  holdingsValue: number;
+  cashBalance: number;
+  totalValue: number;
+  totalCostBasis: number;
+  realizedPnL: number;
+  unrealizedPnL: number;
+  currency: SupportedCurrency;
+  coveragePercent: number;
+  createdAt: string;
+};
+

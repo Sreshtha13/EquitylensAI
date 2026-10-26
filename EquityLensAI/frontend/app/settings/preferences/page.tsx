@@ -218,6 +218,50 @@ export default function PreferencesPage() {
             </button>
           </div>
         </form>
+
+        {/* Phase 9: Notification & Alert Preferences Section */}
+        <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-6 sm:p-8 backdrop-blur-xl">
+          <div className="border-b border-white/10 pb-4">
+            <h2 className="text-base font-bold text-white">Alert Delivery &amp; Notifications</h2>
+            <p className="mt-1 text-xs text-slate-400">
+              Configure in-app notification channels and manage alert category subscriptions.
+            </p>
+          </div>
+
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center justify-between p-3.5 rounded-xl border border-white/5 bg-slate-950/40">
+              <div>
+                <p className="text-xs font-semibold text-white">In-App Notification Center</p>
+                <p className="text-[11px] text-slate-400">Receive in-app alerts and unread badge counters.</p>
+              </div>
+              <span className="rounded-md bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold text-emerald-400 border border-emerald-500/20">
+                Enabled
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between p-3.5 rounded-xl border border-white/5 bg-slate-950/40">
+              <div>
+                <p className="text-xs font-semibold text-white">Email Digest / Alerts</p>
+                <p className="text-[11px] text-slate-400">
+                  External delivery via verified SMTP/SES provider. Requires configured email transport.
+                </p>
+              </div>
+              <span className="rounded-md bg-slate-800 px-2.5 py-1 text-[10px] font-bold text-slate-400 border border-white/10">
+                Config Dependent (Disabled)
+              </span>
+            </div>
+
+            <div className="pt-2">
+              <Link
+                href="/alerts"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-400 hover:underline"
+              >
+                <span>Manage your active stock alert rules in Alerts Dashboard</span>
+                <span>→</span>
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
