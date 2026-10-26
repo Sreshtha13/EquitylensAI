@@ -8,10 +8,17 @@ import {
   SCREENER_METRICS,
   screenerModelJsonSchema,
   screenerFilterSchema,
+  screenerFilterGroupSchema,
+  screenerStrategyDefinitionSchema,
   screenerInterpretationRequestSchema,
   screenerModelResponseSchema,
   screenerRequestSchema,
+  flattenConditions,
+  countConditions,
+  getGroupDepth,
   type ScreenerFilter,
+  type ScreenerFilterGroup,
+  type ScreenerStrategyDefinition,
   type ScreenerInterpretationRequest,
   type NormalizedScreenerInterpretationRequest,
   type ScreenerModelResponse,
@@ -24,11 +31,18 @@ export {
   getScreenerMetricCatalog,
   SCREENER_METRICS,
   screenerFilterSchema,
+  screenerFilterGroupSchema,
+  screenerStrategyDefinitionSchema,
   screenerInterpretationRequestSchema,
   screenerRequestSchema,
+  flattenConditions,
+  countConditions,
+  getGroupDepth,
 };
 export type {
   ScreenerFilter,
+  ScreenerFilterGroup,
+  ScreenerStrategyDefinition,
   ScreenerInterpretationRequest,
   ScreenerRequest,
   ScreenerExecutionResponse,
@@ -350,10 +364,15 @@ export async function interpretScreenerQuery(
 export async function runScreener(_input: ScreenerRequest): Promise<ScreenerExecutionResponse> {
   const request = screenerRequestSchema.parse(_input);
   const result = await executeScreenerQuery(request);
+  const filterCount = request.filters
+    ? request.filters.length
+    : request.rootGroup
+      ? countConditions(request.rootGroup)
+      : 0;
   logger.info(
     {
       exchange: request.exchange,
-      filterCount: request.filters.length,
+      filterCount,
       period: request.period,
       resultCount: result.results.length,
       totalMatches: result.totalMatches,

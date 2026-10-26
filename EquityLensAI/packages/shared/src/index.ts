@@ -92,6 +92,35 @@ export type {
   PortfolioPerformancePoint,
   PortfolioPerformance,
   PortfolioSnapshot,
+  // Phase 11
+  ScreenerMetricDomain,
+  ScreenerMetric,
+  ScreenerOperator,
+  ScreenerPeriod,
+  ScreenerCondition,
+  ScreenerFilterGroup,
+  ScreenerStrategyDefinition,
+  SavedScreen,
+  ScreenerTemplateCategory,
+  ScreenerTemplate,
+  ScreenerRunRecord,
+  ScreenerMetricCatalogItem,
+  // Phase 12
+  ComparisonCompanyTarget,
+  ComparisonCompanySummary,
+  CompanyComparisonMetricRow,
+  CompanyComparisonRequest,
+  CompanyComparisonResult,
+  SuggestedPeer,
+  PeerDiscoveryResult,
+  BenchmarkMetricStat,
+  PeerBenchmarkResponse,
+  HistoricalFinancialPoint,
+  NormalizedPricePoint,
+  HistoricalComparisonResult,
+  AiComparisonSection,
+  AiComparisonAnalysis,
+  SavedComparison,
 } from './domain.js';
 export {
   SUPPORTED_EXCHANGES,
@@ -115,5 +144,9 @@ export {
   // Phase 10
   PORTFOLIO_TRANSACTION_TYPES,
   PORTFOLIO_PERFORMANCE_RANGES,
+  // Phase 11
+  SCREENER_METRIC_DOMAINS,
+  SCREENER_SUPPORTED_METRICS,
+  SCREENER_OPERATORS,
 } from './domain.js';
 

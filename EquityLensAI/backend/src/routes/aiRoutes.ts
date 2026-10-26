@@ -12,8 +12,17 @@ import {
   screenerInterpretationRequestSchema,
   screenerRequestSchema,
 } from '../ai/screener/index.js';
+import { aiComparisonRequestSchema } from '../validation/compareSchemas.js';
+import { analyzeComparisonAi } from '../controllers/compareController.js';
 
 export const aiRouter = Router();
+
+aiRouter.post(
+  '/comparison-analysis',
+  aiRateLimit,
+  validate({ body: aiComparisonRequestSchema }),
+  asyncHandler(analyzeComparisonAi),
+);
 
 aiRouter.post(
   '/research',
