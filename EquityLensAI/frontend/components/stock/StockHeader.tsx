@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -202,6 +203,15 @@ export function StockHeader({
               </svg>
               <span>Add to Portfolio</span>
             </button>
+
+            <Link
+              href={`/compare?symbols=${encodeURIComponent(`${symbol}:${exchange || 'NSE'}`)}`}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-slate-800/80 px-3.5 py-2 text-xs font-semibold text-slate-200 shadow hover:bg-slate-700 hover:text-white transition"
+              title="Compare with peers on Workbench"
+            >
+              <span className="text-sky-400 font-bold">⚖️</span>
+              <span>Compare</span>
+            </Link>
 
             {onRefreshQuote && (
               <button

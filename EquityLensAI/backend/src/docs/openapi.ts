@@ -41,6 +41,11 @@ export const openApiSpec = {
       description: 'Broad market indices, breadth metrics, and sector performance',
     },
     {
+      name: 'Company Comparison & Peer Benchmarking',
+      description:
+        'Side-by-side financial comparison, peer discovery, statistical benchmarks, and historical trends',
+    },
+    {
       name: 'AI Research',
       description:
         'Automated equity research, fundamental synthesis, and earnings review powered by Gemini',
@@ -1825,6 +1830,220 @@ export const openApiSpec = {
         ],
         responses: {
           '200': { description: 'Watchlist intelligence news items' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/api/v1/compare': {
+      post: {
+        tags: ['Company Comparison & Peer Benchmarking'],
+        summary: 'Compare multiple companies side-by-side',
+        description: 'Retrieves verified financial, valuation, profitability, growth, and leverage metrics across 2 to 5 companies.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  symbols: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        symbol: { type: 'string', example: 'TCS' },
+                        exchange: { type: 'string', example: 'NSE' },
+                      },
+                      required: ['symbol', 'exchange'],
+                    },
+                    minItems: 2,
+                    maxItems: 5,
+                  },
+                  period: { type: 'string', enum: ['annual', 'quarterly', 'ttm'], default: 'annual' },
+                  scope: { type: 'string', enum: ['consolidated', 'standalone'], default: 'consolidated' },
+                },
+                required: ['symbols'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Side-by-side company comparison result' },
+          '400': { description: 'Validation error' },
+        },
+      },
+    },
+    '/api/v1/compare/peers/{symbol}': {
+      get: {
+        tags: ['Company Comparison & Peer Benchmarking'],
+        summary: 'Discover verified peer companies',
+        description: 'Discovers comparable companies sharing the same verified industry or sector classification with transparent match rationales.',
+        parameters: [
+          { name: 'symbol', in: 'path', required: true, schema: { type: 'string', example: 'INFY' } },
+          { name: 'exchange', in: 'query', required: false, schema: { type: 'string', default: 'NSE' } },
+        ],
+        responses: {
+          '200': { description: 'Suggested peers with match score and classification metadata' },
+          '404': { description: 'Company not found' },
+        },
+      },
+    },
+    '/api/v1/compare/benchmarks': {
+      post: {
+        tags: ['Company Comparison & Peer Benchmarking'],
+        summary: 'Compute statistical peer group benchmarks',
+        description: 'Calculates deterministic peer mean, median, min, max, percentile, and company ranks within the comparison set.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  symbols: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        symbol: { type: 'string' },
+                        exchange: { type: 'string' },
+                      },
+                      required: ['symbol', 'exchange'],
+                    },
+                    minItems: 2,
+                  },
+                  period: { type: 'string', enum: ['annual', 'quarterly', 'ttm'] },
+                },
+                required: ['symbols'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Statistical benchmarks and company percentile rankings' },
+        },
+      },
+    },
+    '/api/v1/compare/history': {
+      post: {
+        tags: ['Company Comparison & Peer Benchmarking'],
+        summary: 'Multi-company historical trends and normalized price performance',
+        description: 'Extracts historical financial statement trends and normalized price performance series (base=100) across selected companies.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  symbols: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        symbol: { type: 'string' },
+                        exchange: { type: 'string' },
+                      },
+                      required: ['symbol', 'exchange'],
+                    },
+                    minItems: 1,
+                    maxItems: 5,
+                  },
+                  period: { type: 'string', enum: ['annual', 'quarterly', 'ttm'] },
+                  interval: { type: 'string', enum: ['1M', '3M', '6M', '1Y', '5Y'] },
+                },
+                required: ['symbols'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Historical financial trends and normalized performance points' },
+        },
+      },
+    },
+    '/api/v1/ai/comparison-analysis': {
+      post: {
+        tags: ['Company Comparison & Peer Benchmarking'],
+        summary: 'AI-grounded comparative company analysis',
+        description: 'Generates evidence-grounded comparative synthesis explaining differences in profitability, leverage, growth, and valuation.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  symbols: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        symbol: { type: 'string' },
+                        exchange: { type: 'string' },
+                      },
+                      required: ['symbol', 'exchange'],
+                    },
+                    minItems: 2,
+                    maxItems: 5,
+                  },
+                  period: { type: 'string', enum: ['annual', 'quarterly', 'ttm'] },
+                },
+                required: ['symbols'],
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Evidence-backed comparative synthesis' },
+        },
+      },
+    },
+    '/api/v1/compare/saved': {
+      get: {
+        tags: ['Company Comparison & Peer Benchmarking'],
+        summary: 'List user saved comparisons',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          '200': { description: 'User saved comparisons list' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+      post: {
+        tags: ['Company Comparison & Peer Benchmarking'],
+        summary: 'Save a company comparison configuration',
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', example: 'IT Giants Comparison' },
+                  description: { type: 'string' },
+                  symbols: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        symbol: { type: 'string' },
+                        exchange: { type: 'string' },
+                      },
+                      required: ['symbol', 'exchange'],
+                    },
+                    minItems: 2,
+                    maxItems: 5,
+                  },
+                  period: { type: 'string', enum: ['annual', 'quarterly', 'ttm'] },
+                },
+                required: ['name', 'symbols'],
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Saved comparison created' },
           '401': { description: 'Unauthorized' },
         },
       },

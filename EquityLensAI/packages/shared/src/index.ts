@@ -105,6 +105,22 @@ export type {
   ScreenerTemplate,
   ScreenerRunRecord,
   ScreenerMetricCatalogItem,
+  // Phase 12
+  ComparisonCompanyTarget,
+  ComparisonCompanySummary,
+  CompanyComparisonMetricRow,
+  CompanyComparisonRequest,
+  CompanyComparisonResult,
+  SuggestedPeer,
+  PeerDiscoveryResult,
+  BenchmarkMetricStat,
+  PeerBenchmarkResponse,
+  HistoricalFinancialPoint,
+  NormalizedPricePoint,
+  HistoricalComparisonResult,
+  AiComparisonSection,
+  AiComparisonAnalysis,
+  SavedComparison,
 } from './domain.js';
 export {
   SUPPORTED_EXCHANGES,
