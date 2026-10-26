@@ -30,6 +30,7 @@ export function SiteHeader() {
     { href: '/news', label: 'News' },
     { href: '/announcements', label: 'Announcements' },
     { href: '/screener', label: 'Screener' },
+    { href: '/compare', label: 'Compare' },
     { href: '/research', label: 'Research' },
     ...(isAuthenticated
       ? [

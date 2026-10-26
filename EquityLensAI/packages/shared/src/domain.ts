@@ -1135,3 +1135,158 @@ export type ScreenerMetricCatalogItem = {
   missingDataBehavior: string;
 };
 
+// ─── Phase 12: Comparative Company Analysis & Peer Benchmarking ─────────────
+
+export type ComparisonCompanyTarget = {
+  symbol: string;
+  exchange: string;
+};
+
+export type ComparisonCompanySummary = {
+  symbol: string;
+  exchange: string;
+  name: string;
+  currency: string;
+  marketCap: number | null;
+  price: number | null;
+  quoteObservedAt: string | null;
+  sector: string | null;
+  industry: string | null;
+  description: string | null;
+  isStale: boolean;
+};
+
+export type CompanyComparisonMetricRow = {
+  metricId: string;
+  label: string;
+  category: string;
+  unit: 'percent' | 'ratio' | 'score' | 'currency' | 'number';
+  description: string;
+  values: Record<string, number | null>;
+};
+
+export type CompanyComparisonRequest = {
+  symbols: ComparisonCompanyTarget[];
+  period?: SupportedPeriod | undefined;
+  scope?: 'consolidated' | 'standalone' | undefined;
+  metrics?: string[] | undefined;
+};
+
+export type CompanyComparisonResult = {
+  companies: ComparisonCompanySummary[];
+  period: SupportedPeriod;
+  scope: 'consolidated' | 'standalone';
+  metricsRows: CompanyComparisonMetricRow[];
+  retrievedAt: string;
+  warnings: string[];
+};
+
+export type SuggestedPeer = {
+  symbol: string;
+  exchange: string;
+  name: string;
+  sector: string | null;
+  industry: string | null;
+  marketCap: number | null;
+  matchScore: number;
+  matchRationale: string;
+};
+
+export type PeerDiscoveryResult = {
+  baseCompany: {
+    symbol: string;
+    exchange: string;
+    name: string;
+    sector: string | null;
+    industry: string | null;
+  };
+  peers: SuggestedPeer[];
+  matchingMethod: 'industry_exact' | 'sector_match' | 'market_cap_tier' | 'manual';
+  warnings: string[];
+};
+
+export type BenchmarkMetricStat = {
+  metricId: string;
+  label: string;
+  unit: string;
+  sampleSize: number;
+  mean: number | null;
+  median: number | null;
+  min: number | null;
+  max: number | null;
+  ranks: Record<
+    string,
+    {
+      value: number | null;
+      rank: number | null;
+      percentile: number | null;
+      diffFromMedian: number | null;
+      diffFromMean: number | null;
+    }
+  >;
+};
+
+export type PeerBenchmarkResponse = {
+  symbols: string[];
+  period: SupportedPeriod;
+  benchmarks: BenchmarkMetricStat[];
+  calculatedAt: string;
+  warnings: string[];
+};
+
+export type HistoricalFinancialPoint = {
+  periodEndDate: string;
+  fiscalYear?: string | undefined;
+  revenue: number | null;
+  netIncome: number | null;
+  operatingMargin: number | null;
+  roe: number | null;
+  debtToEquity: number | null;
+  freeCashFlow: number | null;
+};
+
+export type NormalizedPricePoint = {
+  date: string;
+  values: Record<string, number | null>;
+};
+
+export type HistoricalComparisonResult = {
+  period: SupportedPeriod;
+  financialTrends: Record<string, HistoricalFinancialPoint[]>;
+  pricePerformance: {
+    interval: '1M' | '3M' | '6M' | '1Y' | '5Y';
+    startDate: string;
+    endDate: string;
+    points: NormalizedPricePoint[];
+    summaryReturns: Record<string, number | null>;
+  };
+};
+
+export type AiComparisonSection = {
+  title: string;
+  content: string;
+  evidenceIds: string[];
+};
+
+export type AiComparisonAnalysis = {
+  summary: string;
+  sections: AiComparisonSection[];
+  disclaimer: string;
+  model: string;
+  generatedAt: string;
+};
+
+export type SavedComparison = {
+  id: string;
+  userId: string;
+  name: string;
+  description: string | null;
+  symbols: ComparisonCompanyTarget[];
+  metrics?: string[] | undefined;
+  period: SupportedPeriod;
+  scope: 'consolidated' | 'standalone';
+  schemaVersion: 1;
+  createdAt: string;
+  updatedAt: string;
+};
+

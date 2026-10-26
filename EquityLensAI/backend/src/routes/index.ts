@@ -14,6 +14,7 @@ import { alertsRouter } from './alertsRoutes.js';
 import { notificationsRouter } from './notificationsRoutes.js';
 import { portfolioRouter } from './portfolioRoutes.js';
 import { screenerRouter } from './screenerRoutes.js';
+import { compareRouter } from './compareRoutes.js';
 import { sendSuccess } from '../utils/response.js';
 
 export const v1Router = Router();
@@ -135,8 +136,19 @@ v1Router.get('/', (_req, res) => {
         healthScore: '/api/v1/financial/{symbol}/health-score',
         cacheStats: '/api/v1/financial/cache-stats',
       },
+      compare: {
+        compareCompanies: 'POST /api/v1/compare',
+        peers: 'GET /api/v1/compare/peers/:symbol',
+        benchmarks: 'POST /api/v1/compare/benchmarks',
+        history: 'POST /api/v1/compare/history',
+        aiAnalysis: 'POST /api/v1/compare/ai-analysis (or /api/v1/ai/comparison-analysis)',
+        saved: 'GET, POST /api/v1/compare/saved',
+        savedDetail: 'GET, PATCH, DELETE /api/v1/compare/saved/:id',
+        savedDuplicate: 'POST /api/v1/compare/saved/:id/duplicate',
+      },
       ai: {
         research: 'POST /api/v1/ai/research',
+        comparisonAnalysis: 'POST /api/v1/ai/comparison-analysis',
         screenerMetrics: 'GET /api/v1/ai/screener/metrics',
         screenerInterpret: 'POST /api/v1/ai/screener/interpret',
         screenerExecute: 'POST /api/v1/ai/screener',
@@ -150,6 +162,7 @@ v1Router.use('/auth', authRouter);
 v1Router.use('/users', userRouter);
 v1Router.use('/portfolios', portfolioRouter);
 v1Router.use('/screener', screenerRouter);
+v1Router.use('/compare', compareRouter);
 v1Router.use('/alerts', alertsRouter);
 v1Router.use('/notifications', notificationsRouter);
 v1Router.use('/stocks', stocksRouter);
