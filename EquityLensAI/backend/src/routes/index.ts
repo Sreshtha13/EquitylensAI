@@ -15,6 +15,7 @@ import { notificationsRouter } from './notificationsRoutes.js';
 import { portfolioRouter } from './portfolioRoutes.js';
 import { screenerRouter } from './screenerRoutes.js';
 import { compareRouter } from './compareRoutes.js';
+import { researchRouter } from './researchRoutes.js';
 import { sendSuccess } from '../utils/response.js';
 
 export const v1Router = Router();
@@ -160,6 +161,7 @@ v1Router.get('/', (_req, res) => {
 v1Router.use('/health', healthRouter);
 v1Router.use('/auth', authRouter);
 v1Router.use('/users', userRouter);
+v1Router.use('/research', researchRouter);
 v1Router.use('/portfolios', portfolioRouter);
 v1Router.use('/screener', screenerRouter);
 v1Router.use('/compare', compareRouter);

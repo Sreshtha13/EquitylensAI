@@ -1290,3 +1290,191 @@ export type SavedComparison = {
   updatedAt: string;
 };
 
+// ─── Phase 13: Research Workbench, Investment Reports & Exportable Analysis ──
+
+export const RESEARCH_PROJECT_STATUSES = [
+  'draft',
+  'in_progress',
+  'ready_for_review',
+  'finalized',
+  'archived',
+] as const;
+export type ResearchProjectStatus = (typeof RESEARCH_PROJECT_STATUSES)[number];
+
+export const RESEARCH_REPORT_STATUSES = [
+  'draft',
+  'in_progress',
+  'ready_for_review',
+  'finalized',
+  'archived',
+] as const;
+export type ResearchReportStatus = (typeof RESEARCH_REPORT_STATUSES)[number];
+
+export const REPORT_TEMPLATE_IDS = [
+  'fundamental_analysis',
+  'financial_statement_review',
+  'valuation_multiples',
+  'peer_comparison',
+  'growth_profitability',
+  'financial_risk',
+  'announcement_impact',
+  'comprehensive_research',
+] as const;
+export type ReportTemplateId = (typeof REPORT_TEMPLATE_IDS)[number];
+
+export const REPORT_SECTION_TYPES = [
+  'cover_metadata',
+  'executive_summary',
+  'company_profile',
+  'market_overview',
+  'financial_analysis',
+  'comparative_analysis',
+  'news_and_developments',
+  'risks_and_uncertainties',
+  'research_notes',
+  'conclusion_open_questions',
+  'sources_and_methodology',
+  'custom',
+] as const;
+export type ReportSectionType = (typeof REPORT_SECTION_TYPES)[number];
+
+export const NOTE_TAGS = ['observation', 'assumption', 'question', 'risk'] as const;
+export type NoteTag = (typeof NOTE_TAGS)[number];
+
+export const EVIDENCE_TYPES = [
+  'quote',
+  'financial_statement',
+  'financial_ratio',
+  'health_score',
+  'company_profile',
+  'peer_benchmark',
+  'corporate_announcement',
+  'news_item',
+  'user_note',
+] as const;
+export type EvidenceType = (typeof EVIDENCE_TYPES)[number];
+
+export type ResearchEvidenceItem = {
+  id: string;
+  evidenceType: EvidenceType;
+  title: string;
+  sourceReference: string;
+  sourceUrl?: string | null | undefined;
+  observedAt?: string | null | undefined;
+  reportingPeriod?: string | null | undefined;
+  currency?: string | null | undefined;
+  units?: string | null | undefined;
+  value?: string | number | boolean | null | undefined;
+  metadata?: Record<string, unknown> | undefined;
+};
+
+export type ResearchReportSection = {
+  id: string;
+  sectionType: ReportSectionType;
+  title: string;
+  content: string;
+  structuredData?: Record<string, unknown> | undefined;
+  position: number;
+  status: 'draft' | 'reviewed' | 'final';
+  generatedBy: 'system' | 'ai' | 'user';
+  evidenceIds: string[];
+  updatedAt: string;
+};
+
+export type ResearchNote = {
+  id: string;
+  researchProjectId: string;
+  reportId?: string | null | undefined;
+  sectionId?: string | null | undefined;
+  userId: string;
+  tag: NoteTag;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ResearchReport = {
+  id: string;
+  researchProjectId: string;
+  userId: string;
+  title: string;
+  templateId: ReportTemplateId | string;
+  status: ResearchReportStatus;
+  schemaVersion: number;
+  sections: ResearchReportSection[];
+  evidence: ResearchEvidenceItem[];
+  notes: ResearchNote[];
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+  generatedAt?: string | null | undefined;
+  lastRefreshedAt?: string | null | undefined;
+};
+
+export type ResearchReportVersion = {
+  id: string;
+  reportId: string;
+  versionNumber: number;
+  contentSnapshot: {
+    title: string;
+    templateId: string;
+    sections: ResearchReportSection[];
+    evidence: ResearchEvidenceItem[];
+    notes: ResearchNote[];
+  };
+  summaryNotes?: string | null | undefined;
+  createdAt: string;
+  createdBy: string;
+};
+
+export type ResearchProject = {
+  id: string;
+  userId: string;
+  title: string;
+  description: string | null;
+  symbol: string;
+  exchange: string;
+  companyName: string;
+  status: ResearchProjectStatus;
+  reportsCount?: number | undefined;
+  notesCount?: number | undefined;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null | undefined;
+};
+
+export type ReportTemplateDefinition = {
+  id: ReportTemplateId;
+  name: string;
+  description: string;
+  recommendedFor: string;
+  defaultSections: Array<{
+    sectionType: ReportSectionType;
+    title: string;
+    description: string;
+    required: boolean;
+  }>;
+  supportedDataSources: string[];
+  limitations: string[];
+};
+
+export type RefreshReportDiff = {
+  reportId: string;
+  generatedAt: string;
+  refreshedAt: string;
+  hasChanges: boolean;
+  changesSummary: {
+    priceChanged: boolean;
+    oldPrice: number | null;
+    newPrice: number | null;
+    priceChangePct: number | null;
+    newFinancialsAvailable: boolean;
+    latestPeriod: string | null;
+    newAnnouncementsCount: number;
+    newNewsCount: number;
+  };
+  affectedSections: ReportSectionType[];
+  disclaimer: string;
+};
+
+
