@@ -4,7 +4,7 @@ import type {
   PeerBenchmarkResponse,
   SupportedPeriod,
 } from '../types.js';
-import { comparisonService, COMPARISON_METRIC_DEFINITIONS } from './comparisonService.js';
+import { comparisonService } from './comparisonService.js';
 import { AppError } from '../../utils/appError.js';
 
 export class BenchmarkService {

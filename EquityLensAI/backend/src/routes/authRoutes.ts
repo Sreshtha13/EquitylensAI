@@ -17,19 +17,23 @@ import {
   resetPassword,
 } from '../controllers/authController.js';
 
+import { authEndpointLimiter } from '../middleware/rateLimit.js';
+
 export const authRouter = Router();
 
-authRouter.post('/register', validate({ body: registerSchema }), asyncHandler(register));
-authRouter.post('/login', validate({ body: loginSchema }), asyncHandler(login));
+authRouter.post('/register', authEndpointLimiter.middleware(), validate({ body: registerSchema }), asyncHandler(register));
+authRouter.post('/login', authEndpointLimiter.middleware(), validate({ body: loginSchema }), asyncHandler(login));
 authRouter.post('/logout', asyncHandler(logout));
 authRouter.get('/session', requireAuth, asyncHandler(getSession));
 authRouter.post(
   '/forgot-password',
+  authEndpointLimiter.middleware(),
   validate({ body: forgotPasswordSchema }),
   asyncHandler(forgotPassword),
 );
 authRouter.post(
   '/reset-password',
+  authEndpointLimiter.middleware(),
   validate({ body: resetPasswordSchema }),
   asyncHandler(resetPassword),
 );

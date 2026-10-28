@@ -22,6 +22,8 @@ import type {
   ValuationMetrics,
 } from '@equitylensai/shared';
 
+export const CALCULATION_VERSION = '1.0.0';
+
 // ─── Helper ────────────────────────────────────────────────────────────────
 
 /** Safe division — returns null if divisor is null, zero, or dividend is null */

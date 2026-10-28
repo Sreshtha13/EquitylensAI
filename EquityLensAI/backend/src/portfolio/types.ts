@@ -1,7 +1,4 @@
 import type {
-  Portfolio,
-  PortfolioTransaction,
-  PortfolioSnapshot,
   PortfolioTransactionType,
   SupportedCurrency,
   SupportedExchange,

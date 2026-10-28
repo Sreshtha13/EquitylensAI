@@ -2,6 +2,9 @@ import type {
   ComparisonCompanyTarget,
   AiComparisonAnalysis,
   SupportedPeriod,
+  CompanyComparisonResult,
+  ComparisonCompanySummary,
+  PeerBenchmarkResponse,
 } from '../types.js';
 import { comparisonService } from './comparisonService.js';
 import { benchmarkService } from './benchmarkService.js';
@@ -130,8 +133,11 @@ RULES:
     }
   }
 
-  private generateDeterministicSummary(comparison: any, benchmarks: any): AiComparisonAnalysis {
-    const companyNames = comparison.companies.map((c: any) => `${c.name} (${c.symbol})`).join(', ');
+  private generateDeterministicSummary(
+    comparison: CompanyComparisonResult,
+    _benchmarks?: PeerBenchmarkResponse,
+  ): AiComparisonAnalysis {
+    const companyNames = comparison.companies.map((c: ComparisonCompanySummary) => `${c.name} (${c.symbol})`).join(', ');
     const summary = `Side-by-side fundamental comparison for ${companyNames} evaluated against reporting period ${comparison.period.toUpperCase()}.`;
 
     const sections = [

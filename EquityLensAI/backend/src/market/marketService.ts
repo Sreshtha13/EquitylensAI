@@ -17,6 +17,8 @@ import { angelProvider } from './providers/angel/index.js';
 import { yahooProvider } from './providers/yahoo/index.js';
 import { instrumentRepository } from './instruments/repository.js';
 import { marketCache } from './cache/memoryCache.js';
+import { CacheManager } from './cache/cacheManager.js';
+import { observationRepository } from './observations/observationRepository.js';
 import { calculateStockPerformance } from './performanceCalculator.js';
 import { yf } from './providers/yahoo/client.js';
 import { AppError } from '../utils/appError.js';
@@ -27,6 +29,9 @@ export class MarketService {
     angel: angelProvider,
     yahoo: yahooProvider,
   };
+  private readonly inFlightQuotes = new Map<string, Promise<NormalizedQuote>>();
+  private readonly inFlightHistory = new Map<string, Promise<HistoricalPrices>>();
+  private readonly inFlightOverview = new Map<string, Promise<MarketOverview>>();
 
   getProvider(id: string): MarketProvider {
     const provider = this.providers[id];
@@ -74,64 +79,79 @@ export class MarketService {
       return cached.value;
     }
 
-    const instrument = instrumentRepository.getBySymbol(cleanSym, exchange);
-    const isNSE = exchange === 'NSE' || instrument?.market === 'nse';
+    // Coalesce in-flight requests for the same instrument to prevent cache stampedes
+    const inFlight = this.inFlightQuotes.get(cacheKey);
+    if (inFlight) {
+      return inFlight;
+    }
 
-    let lastError: unknown = null;
+    const fetchPromise: Promise<NormalizedQuote> = (async (): Promise<NormalizedQuote> => {
+      const instrument = instrumentRepository.getBySymbol(cleanSym, exchange);
+      const isNSE = exchange === 'NSE' || instrument?.market === 'nse';
 
-    // 1. If NSE and Angel is configured, attempt Angel first
-    if (isNSE && angelProvider.isConfigured()) {
+      let lastError: unknown = null;
+
+      // 1. If NSE and Angel is configured, attempt Angel first
+      if (isNSE && angelProvider.isConfigured()) {
+        try {
+          const quote = await angelProvider.getQuote({
+            symbol: cleanSym,
+            exchange,
+            token: request.token || instrument?.providerToken,
+          });
+
+          marketCache.set(cacheKey, quote, { ttlSeconds: 10, staleTtlSeconds: 60 });
+          return quote;
+        } catch (err) {
+          lastError = err;
+          logger.warn(
+            { err, symbol: cleanSym },
+            'Angel One quote failed; attempting Yahoo Finance fallback',
+          );
+        }
+      }
+
+      // 2. Fallback to Yahoo Finance
       try {
-        const quote = await angelProvider.getQuote({
+        const quote = await yahooProvider.getQuote({
           symbol: cleanSym,
-          exchange,
-          token: request.token || instrument?.providerToken,
+          exchange: instrument?.exchange || exchange,
         });
 
-        marketCache.set(cacheKey, quote, { ttlSeconds: 10, staleTtlSeconds: 60 });
+        marketCache.set(cacheKey, quote, { ttlSeconds: 15, staleTtlSeconds: 90 });
         return quote;
       } catch (err) {
         lastError = err;
-        logger.warn(
-          { err, symbol: cleanSym },
-          'Angel One quote failed; attempting Yahoo Finance fallback',
-        );
+        logger.warn({ err, symbol: cleanSym }, 'Yahoo Finance quote failed');
       }
-    }
 
-    // 2. Fallback to Yahoo Finance
+      // 3. If stale cache exists, serve it marked as stale
+      if (cached) {
+        logger.warn({ symbol: cleanSym }, 'Serving stale cached quote as all providers failed');
+        return {
+          ...cached.value,
+          isStale: true,
+          freshness: 'stale' as const,
+        };
+      }
+
+      if (lastError instanceof AppError) {
+        throw lastError;
+      }
+
+      throw new AppError(
+        'MARKET_DATA_UNAVAILABLE',
+        `Unable to retrieve quote for ${request.symbol} from any active provider`,
+        502,
+      );
+    })();
+
+    this.inFlightQuotes.set(cacheKey, fetchPromise);
     try {
-      const quote = await yahooProvider.getQuote({
-        symbol: cleanSym,
-        exchange: instrument?.exchange || exchange,
-      });
-
-      marketCache.set(cacheKey, quote, { ttlSeconds: 15, staleTtlSeconds: 90 });
-      return quote;
-    } catch (err) {
-      lastError = err;
-      logger.warn({ err, symbol: cleanSym }, 'Yahoo Finance quote failed');
+      return await fetchPromise;
+    } finally {
+      this.inFlightQuotes.delete(cacheKey);
     }
-
-    // 3. If stale cache exists, serve it marked as stale
-    if (cached) {
-      logger.warn({ symbol: cleanSym }, 'Serving stale cached quote as all providers failed');
-      return {
-        ...cached.value,
-        isStale: true,
-        freshness: 'stale',
-      };
-    }
-
-    if (lastError instanceof AppError) {
-      throw lastError;
-    }
-
-    throw new AppError(
-      'MARKET_DATA_UNAVAILABLE',
-      `Unable to retrieve quote for ${request.symbol} from any active provider`,
-      502,
-    );
   }
 
   async getHistoricalPrices(request: HistoricalRequest): Promise<HistoricalPrices> {
@@ -147,63 +167,119 @@ export class MarketService {
       return cached.value;
     }
 
-    const instrument = instrumentRepository.getBySymbol(cleanSym, exchange);
-    const isNSE = exchange === 'NSE' || instrument?.market === 'nse';
-    const requestsFullHistory =
-      request.interval === 'ONE_DAY' && request.from.startsWith('1900-01-01');
+    const inFlight = this.inFlightHistory.get(cacheKey);
+    if (inFlight) {
+      return inFlight;
+    }
 
-    let lastError: unknown = null;
+    const fetchPromise = (async () => {
+      const instrument = instrumentRepository.getBySymbol(cleanSym, exchange);
+      const isNSE = exchange === 'NSE' || instrument?.market === 'nse';
+      const requestsFullHistory =
+        request.interval === 'ONE_DAY' && request.from.startsWith('1900-01-01');
 
-    // Angel's NSE history endpoint is intended for bounded ranges; use Yahoo for MAX.
-    if (!requestsFullHistory && isNSE && angelProvider.isConfigured()) {
+      // Check canonical persistence store for daily candles
+      if (request.interval === 'ONE_DAY' && !requestsFullHistory) {
+        try {
+          const persisted = await observationRepository.getDailySeries(
+            exchange,
+            cleanSym,
+            request.from,
+            request.to,
+          );
+          if (persisted.length > 0) {
+            const history: HistoricalPrices = {
+              symbol: cleanSym,
+              exchange,
+              interval: 'ONE_DAY',
+              candles: persisted,
+              retrievedAt: new Date().toISOString(),
+              source: 'canonical_db',
+              fromDate: request.from,
+              toDate: request.to,
+            };
+            marketCache.set(cacheKey, history, { ttlSeconds: 60, staleTtlSeconds: 300 });
+            return history;
+          }
+        } catch (err) {
+          logger.debug({ err, symbol: cleanSym }, 'Could not read historical observations from DB');
+        }
+      }
+
+      let lastError: unknown = null;
+
+      // Angel's NSE history endpoint is intended for bounded ranges; use Yahoo for MAX.
+      if (!requestsFullHistory && isNSE && angelProvider.isConfigured()) {
+        try {
+          const history = await angelProvider.getHistoricalPrices({
+            ...request,
+            symbol: cleanSym,
+            exchange,
+            token: request.token || instrument?.providerToken,
+          });
+
+          marketCache.set(cacheKey, history, { ttlSeconds: 60, staleTtlSeconds: 300 });
+
+          if (request.interval === 'ONE_DAY' && history.candles.length > 0) {
+            void observationRepository
+              .upsertDailyObservations(exchange, cleanSym, history.candles, history.source)
+              .catch(() => {});
+          }
+
+          return history;
+        } catch (err) {
+          lastError = err;
+          logger.warn(
+            { err, symbol: cleanSym },
+            'Angel One historical data failed; attempting Yahoo Finance fallback',
+          );
+        }
+      }
+
+      // 2. Fallback to Yahoo Finance
       try {
-        const history = await angelProvider.getHistoricalPrices({
+        const history = await yahooProvider.getHistoricalPrices({
           ...request,
           symbol: cleanSym,
-          exchange,
-          token: request.token || instrument?.providerToken,
+          exchange: instrument?.exchange || exchange,
         });
 
         marketCache.set(cacheKey, history, { ttlSeconds: 60, staleTtlSeconds: 300 });
+
+        if (request.interval === 'ONE_DAY' && history.candles.length > 0) {
+          void observationRepository
+            .upsertDailyObservations(exchange, cleanSym, history.candles, history.source)
+            .catch(() => {});
+        }
+
         return history;
       } catch (err) {
         lastError = err;
-        logger.warn(
-          { err, symbol: cleanSym },
-          'Angel One historical data failed; attempting Yahoo Finance fallback',
-        );
+        logger.warn({ err, symbol: cleanSym }, 'Yahoo Finance historical data failed');
       }
-    }
 
-    // 2. Fallback to Yahoo Finance
+      // 3. Check stale cache
+      if (cached) {
+        return cached.value;
+      }
+
+      if (lastError instanceof AppError) {
+        throw lastError;
+      }
+
+      throw new AppError(
+        'MARKET_DATA_UNAVAILABLE',
+        `Unable to retrieve historical prices for ${request.symbol} from any active provider`,
+        502,
+      );
+    })();
+
+    this.inFlightHistory.set(cacheKey, fetchPromise);
     try {
-      const history = await yahooProvider.getHistoricalPrices({
-        ...request,
-        symbol: cleanSym,
-        exchange: instrument?.exchange || exchange,
-      });
-
-      marketCache.set(cacheKey, history, { ttlSeconds: 60, staleTtlSeconds: 300 });
-      return history;
-    } catch (err) {
-      lastError = err;
-      logger.warn({ err, symbol: cleanSym }, 'Yahoo Finance historical data failed');
+      return await fetchPromise;
+    } finally {
+      this.inFlightHistory.delete(cacheKey);
     }
-
-    // 3. Check stale cache
-    if (cached) {
-      return cached.value;
-    }
-
-    if (lastError instanceof AppError) {
-      throw lastError;
-    }
-
-    throw new AppError(
-      'MARKET_DATA_UNAVAILABLE',
-      `Unable to retrieve historical prices for ${request.symbol} from any active provider`,
-      502,
-    );
   }
 
   async getMarketOverview(market: Market = 'nse'): Promise<MarketOverview> {
@@ -214,46 +290,60 @@ export class MarketService {
       return cached.value;
     }
 
-    let indices: MarketOverview['indices'] = [];
-    let source = 'yahoo';
-    let freshness: MarketOverview['freshness'] = 'delayed';
+    const inFlight = this.inFlightOverview.get(cacheKey);
+    if (inFlight) {
+      return inFlight;
+    }
 
-    if (market === 'nse') {
-      if (angelProvider.isConfigured()) {
-        try {
-          indices = await angelProvider.getIndices();
-          if (indices.length > 0) {
-            source = 'angel';
-            freshness = 'live';
+    const fetchPromise = (async () => {
+      let indices: MarketOverview['indices'] = [];
+      let source = 'yahoo';
+      let freshness: MarketOverview['freshness'] = 'delayed';
+
+      if (market === 'nse') {
+        if (angelProvider.isConfigured()) {
+          try {
+            indices = await angelProvider.getIndices();
+            if (indices.length > 0) {
+              source = 'angel';
+              freshness = 'live';
+            }
+          } catch {
+            // fallback
           }
-        } catch {
-          // fallback
         }
-      }
 
-      if (indices.length === 0) {
-        indices = await yahooProvider.getIndices(['NIFTY', 'BANKNIFTY', 'SENSEX']);
+        if (indices.length === 0) {
+          indices = await yahooProvider.getIndices(['NIFTY', 'BANKNIFTY', 'SENSEX']);
+          source = 'yahoo';
+          freshness = 'delayed';
+        }
+      } else {
+        // US or global
+        indices = await yahooProvider.getIndices(['SP500']);
         source = 'yahoo';
         freshness = 'delayed';
       }
-    } else {
-      // US or global
-      indices = await yahooProvider.getIndices(['SP500']);
-      source = 'yahoo';
-      freshness = 'delayed';
+
+      const overview: MarketOverview = {
+        market,
+        indices,
+        retrievedAt: new Date().toISOString(),
+        source,
+        freshness,
+        isStale: false,
+      };
+
+      marketCache.set(cacheKey, overview, { ttlSeconds: 15, staleTtlSeconds: 60 });
+      return overview;
+    })();
+
+    this.inFlightOverview.set(cacheKey, fetchPromise);
+    try {
+      return await fetchPromise;
+    } finally {
+      this.inFlightOverview.delete(cacheKey);
     }
-
-    const overview: MarketOverview = {
-      market,
-      indices,
-      retrievedAt: new Date().toISOString(),
-      source,
-      freshness,
-      isStale: false,
-    };
-
-    marketCache.set(cacheKey, overview, { ttlSeconds: 15, staleTtlSeconds: 60 });
-    return overview;
   }
 
   /**
@@ -434,7 +524,7 @@ export class MarketService {
       .toUpperCase()
       .replace(/\.(NS|BO)$/i, '');
     const exchange = (request.exchange || 'NSE').toUpperCase();
-    const cacheKey = `performance:${exchange}:${cleanSym}`;
+    const cacheKey = CacheManager.performanceKey(exchange, cleanSym);
 
     const cached = marketCache.get<StockPerformanceResponse>(cacheKey);
     if (cached && !cached.isStale) {

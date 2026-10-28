@@ -4,7 +4,6 @@ import { createApp } from '../src/app.js';
 import { alertConditionEvaluator } from '../src/alerts/evaluators/alertConditionEvaluator.js';
 import { memoryAlertStore, alertRepository } from '../src/alerts/repositories/alertRepository.js';
 import { memoryNotificationStore, notificationRepository } from '../src/notifications/repositories/notificationRepository.js';
-import { alertEvaluationService } from '../src/alerts/services/alertEvaluationService.js';
 import type {
   AlertRule,
   NormalizedQuote,

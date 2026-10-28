@@ -10,15 +10,15 @@ export class PeerDiscoveryService {
     const cleanExch = exchange.trim().toUpperCase();
 
     // 1. Resolve base company profile & quote
-    let profile: any = null;
-    let quote: any = null;
+    let profile: Awaited<ReturnType<typeof marketService.getCompanyProfile>> | null = null;
+    let quote: Awaited<ReturnType<typeof marketService.getQuote>> | null = null;
 
     try {
       [profile, quote] = await Promise.all([
         marketService.getCompanyProfile({ symbol: cleanSym, exchange: cleanExch }),
         marketService.getQuote({ symbol: cleanSym, exchange: cleanExch }).catch(() => null),
       ]);
-    } catch (err: unknown) {
+    } catch {
       throw new AppError(
         'INSTRUMENT_NOT_FOUND',
         `Could not resolve company ${cleanSym} on ${cleanExch}.`,

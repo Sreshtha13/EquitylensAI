@@ -121,6 +121,21 @@ export type {
   AiComparisonSection,
   AiComparisonAnalysis,
   SavedComparison,
+  // Phase 13
+  ResearchProjectStatus,
+  ResearchReportStatus,
+  ReportTemplateId,
+  ReportSectionType,
+  NoteTag,
+  EvidenceType,
+  ResearchEvidenceItem,
+  ResearchReportSection,
+  ResearchNote,
+  ResearchReport,
+  ResearchReportVersion,
+  ResearchProject,
+  ReportTemplateDefinition,
+  RefreshReportDiff,
 } from './domain.js';
 export {
   SUPPORTED_EXCHANGES,
@@ -148,5 +163,13 @@ export {
   SCREENER_METRIC_DOMAINS,
   SCREENER_SUPPORTED_METRICS,
   SCREENER_OPERATORS,
+  // Phase 13
+  RESEARCH_PROJECT_STATUSES,
+  RESEARCH_REPORT_STATUSES,
+  REPORT_TEMPLATE_IDS,
+  REPORT_SECTION_TYPES,
+  NOTE_TAGS,
+  EVIDENCE_TYPES,
 } from './domain.js';
+
 

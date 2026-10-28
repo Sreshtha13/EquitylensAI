@@ -234,7 +234,7 @@ export class PortfolioImportExportService {
     const combined = [...existingTransactions, ...validCandidateTxs];
     try {
       portfolioAccountingService.reconstructLedger(combined);
-    } catch (err: any) {
+    } catch {
       // Flag sell quantity error
     }
 

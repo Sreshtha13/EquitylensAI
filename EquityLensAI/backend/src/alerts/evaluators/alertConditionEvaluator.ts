@@ -4,7 +4,6 @@ import type {
   FinancialAnalysis,
   CorporateAnnouncement,
   NewsItem,
-  PriceCondition,
   ComparisonOperator,
 } from '@equitylensai/shared';
 
@@ -438,7 +437,7 @@ export class AlertConditionEvaluator {
     rule: AlertRule,
     announcements: CorporateAnnouncement[] | undefined,
     watchlistSymbols: string[] | undefined,
-    now: Date,
+    _now: Date,
   ): EvaluationOutcome {
     if (!announcements || announcements.length === 0) {
       return { triggered: false, skipped: false };
