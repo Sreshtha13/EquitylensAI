@@ -66,7 +66,7 @@ export async function runBenchmark(config: BenchmarkConfig): Promise<BenchmarkRe
         } else {
           errorCount++;
         }
-      } catch (err) {
+      } catch {
         const reqDuration = performance.now() - reqStart;
         latencies.push(reqDuration);
         errorCount++;
@@ -128,11 +128,11 @@ async function main() {
         displayName: 'Benchmark Runner',
       }),
     });
-    const regData = (await regRes.json()) as any;
+    const regData = (await regRes.json()) as { data?: { session?: { accessToken?: string } } };
     authToken = regData?.data?.session?.accessToken || '';
     console.log('Pre-authenticated benchmark user session established:', Boolean(authToken));
-  } catch (err: any) {
-    console.warn('Could not pre-authenticate user:', err.message);
+  } catch (err: unknown) {
+    console.warn('Could not pre-authenticate user:', err instanceof Error ? err.message : String(err));
   }
 
   const testConfigs: BenchmarkConfig[] = [
@@ -258,7 +258,9 @@ async function main() {
     console.log('\n=== APPLICATION METRICS SNAPSHOT ===');
     const relevantLines = metText.split('\n').filter(l => !l.startsWith('#') && l.trim().length > 0);
     console.log(relevantLines.slice(0, 15).join('\n'));
-  } catch {}
+  } catch {
+    // Ignore metrics endpoint read failures during benchmark summary
+  }
 
   console.log('\n=== BASELINE BENCHMARK COMPLETE ===');
 }

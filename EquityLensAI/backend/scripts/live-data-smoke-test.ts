@@ -1,5 +1,3 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { angelProvider } from '../src/market/providers/angel/index.js';
 import { yahooProvider } from '../src/market/providers/yahoo/index.js';
 import { instrumentRepository } from '../src/market/instruments/repository.js';
@@ -38,8 +36,8 @@ async function main() {
         observedAt: q.observedAt,
         freshness: q.freshness,
       });
-    } catch (e: any) {
-      console.log('Angel quote error:', e.message);
+    } catch (e: unknown) {
+      console.log('Angel quote error:', e instanceof Error ? e.message : String(e));
     }
   }
 
@@ -60,8 +58,8 @@ async function main() {
       observedAt: yq.observedAt,
       freshness: yq.freshness,
     });
-  } catch (e: any) {
-    console.log('Yahoo quote error:', e.message);
+  } catch (e: unknown) {
+    console.log('Yahoo quote error:', e instanceof Error ? e.message : String(e));
   }
 
   // 4. Historical Daily OHLCV
@@ -84,8 +82,8 @@ async function main() {
       const readBack = await observationRepository.getDailySeries('NSE', 'RELIANCE', '2026-10-20', '2026-10-28');
       console.log(`Read back ${readBack.length} candles from PostgreSQL for RELIANCE.`);
     }
-  } catch (e: any) {
-    console.log('Historical OHLCV error:', e.message);
+  } catch (e: unknown) {
+    console.log('Historical OHLCV error:', e instanceof Error ? e.message : String(e));
   }
 
   // 5. Financial Statements & Analysis
@@ -102,8 +100,8 @@ async function main() {
     console.log('- Debt to Equity:', analysis.leverage?.debtToEquity);
     console.log('- Health Score (0-100):', analysis.healthScore?.overallScore, `(${analysis.healthScore?.rating})`);
     console.log('- Primary Source:', analysis.source, 'Currency:', analysis.currency);
-  } catch (e: any) {
-    console.log('Financial Analysis error:', e.message);
+  } catch (e: unknown) {
+    console.log('Financial Analysis error:', e instanceof Error ? e.message : String(e));
   }
 
   // 6. Supabase Security Master Synchronization
@@ -113,8 +111,8 @@ async function main() {
       console.log(`Syncing current in-memory instruments (${instrumentRepository.count()}) to Supabase market_instruments...`);
       const synced = await instrumentRepository.syncToDatabase();
       console.log(`Successfully synced ${synced} instruments to Supabase PostgreSQL.`);
-    } catch (e: any) {
-      console.log('Sync error:', e.message);
+    } catch (e: unknown) {
+      console.log('Sync error:', e instanceof Error ? e.message : String(e));
     }
   }
 
