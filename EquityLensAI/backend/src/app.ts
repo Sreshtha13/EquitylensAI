@@ -1,4 +1,5 @@
 import cors from 'cors';
+import compression from 'compression';
 import express from 'express';
 import helmet from 'helmet';
 import hpp from 'hpp';
@@ -78,6 +79,7 @@ export function createApp() {
     }),
   );
   app.use(requestId);
+  app.use(compression({ threshold: 1024 }));
   app.use(express.json({ limit: '100kb' }));
   app.use(express.urlencoded({ extended: false, limit: '100kb' }));
   app.use(hpp());
