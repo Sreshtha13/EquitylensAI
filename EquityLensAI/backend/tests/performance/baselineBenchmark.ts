@@ -1,5 +1,3 @@
-import { performance } from 'node:perf_hooks';
-
 interface BenchmarkConfig {
   name: string;
   url: string;
@@ -29,6 +27,33 @@ export interface BenchmarkResult {
   statusCodes: Record<number, number>;
 }
 
+interface PerformanceLike {
+  now(): number;
+}
+
+interface ProcessLike {
+  stdout: { write(str: string): boolean };
+  exit(code?: number): never;
+}
+
+const perf: PerformanceLike =
+  (globalThis as unknown as { performance?: PerformanceLike }).performance ?? {
+    now: () => Date.now(),
+  };
+
+const proc: ProcessLike =
+  (globalThis as unknown as { process?: ProcessLike }).process ?? {
+    stdout: {
+      write: (str: string) => {
+        console.log(str);
+        return true;
+      },
+    },
+    exit: () => {
+      throw new Error('Process exited');
+    },
+  };
+
 export async function runBenchmark(config: BenchmarkConfig): Promise<BenchmarkResult> {
   const { name, url, method = 'GET', headers = {}, body, totalRequests, concurrency } = config;
   const latencies: number[] = [];
@@ -37,14 +62,14 @@ export async function runBenchmark(config: BenchmarkConfig): Promise<BenchmarkRe
   let errorCount = 0;
 
   let requestIndex = 0;
-  const startTime = performance.now();
+  const startTime = perf.now();
 
   async function worker() {
     while (true) {
       const idx = requestIndex++;
       if (idx >= totalRequests) break;
 
-      const reqStart = performance.now();
+      const reqStart = perf.now();
       try {
         const res = await fetch(url, {
           method,
@@ -57,7 +82,7 @@ export async function runBenchmark(config: BenchmarkConfig): Promise<BenchmarkRe
           signal: AbortSignal.timeout(10_000),
         });
 
-        const reqDuration = performance.now() - reqStart;
+        const reqDuration = perf.now() - reqStart;
         latencies.push(reqDuration);
 
         statusCodes[res.status] = (statusCodes[res.status] || 0) + 1;
@@ -67,7 +92,7 @@ export async function runBenchmark(config: BenchmarkConfig): Promise<BenchmarkRe
           errorCount++;
         }
       } catch {
-        const reqDuration = performance.now() - reqStart;
+        const reqDuration = perf.now() - reqStart;
         latencies.push(reqDuration);
         errorCount++;
         statusCodes[0] = (statusCodes[0] || 0) + 1; // 0 for network/timeout error
@@ -78,7 +103,7 @@ export async function runBenchmark(config: BenchmarkConfig): Promise<BenchmarkRe
   const workers = Array.from({ length: Math.min(concurrency, totalRequests) }, () => worker());
   await Promise.all(workers);
 
-  const durationMs = performance.now() - startTime;
+  const durationMs = perf.now() - startTime;
   latencies.sort((a, b) => a - b);
 
   const getPercentile = (p: number) => {
@@ -237,7 +262,7 @@ async function main() {
   const results: BenchmarkResult[] = [];
 
   for (const config of testConfigs) {
-    process.stdout.write(`Benchmarking: ${config.name} (N=${config.totalRequests}, C=${config.concurrency})... `);
+    proc.stdout.write(`Benchmarking: ${config.name} (N=${config.totalRequests}, C=${config.concurrency})... `);
     const res = await runBenchmark(config);
     results.push(res);
     console.log(`Done! p50: ${res.p50Ms}ms | p95: ${res.p95Ms}ms | p99: ${res.p99Ms}ms | RPS: ${res.rps} | Errors: ${res.errorRatePercent}%`);
@@ -267,5 +292,5 @@ async function main() {
 
 main().catch(err => {
   console.error('Benchmark failed:', err);
-  process.exit(1);
+  proc.exit(1);
 });
