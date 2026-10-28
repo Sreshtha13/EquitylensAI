@@ -1,3 +1,5 @@
+import { metricsService } from '../../services/metricsService.js';
+
 type CacheEntry<T> = {
   value: T;
   storedAt: number;
@@ -22,13 +24,19 @@ export class MemoryCache {
   private readonly store = new Map<string, CacheEntry<unknown>>();
   private readonly defaultTtlMs: number;
   private readonly defaultStaleTtlMs: number;
+  private readonly maxEntries: number;
   private hits = 0;
   private misses = 0;
   private staleHits = 0;
 
-  constructor(options?: { defaultTtlSeconds?: number; defaultStaleTtlSeconds?: number }) {
+  constructor(options?: {
+    defaultTtlSeconds?: number;
+    defaultStaleTtlSeconds?: number;
+    maxEntries?: number;
+  }) {
     this.defaultTtlMs = (options?.defaultTtlSeconds ?? 15) * 1000;
     this.defaultStaleTtlMs = (options?.defaultStaleTtlSeconds ?? 60) * 1000;
+    this.maxEntries = options?.maxEntries ?? 10_000;
   }
 
   get<T>(key: string): CacheResult<T> | null {
@@ -36,6 +44,7 @@ export class MemoryCache {
 
     if (!entry) {
       this.misses += 1;
+      metricsService.recordCacheMiss();
       return null;
     }
 
@@ -45,12 +54,14 @@ export class MemoryCache {
       // Completely expired beyond stale window
       this.store.delete(key);
       this.misses += 1;
+      metricsService.recordCacheMiss();
       return null;
     }
 
     if (ageMs > entry.ttlMs) {
       // Stale hit (served as stale data with provenance flagged)
       this.staleHits += 1;
+      metricsService.recordCacheHit(true);
       return {
         value: entry.value,
         isStale: true,
@@ -60,6 +71,7 @@ export class MemoryCache {
 
     // Fresh hit
     this.hits += 1;
+    metricsService.recordCacheHit(false);
     return {
       value: entry.value,
       isStale: false,
@@ -73,6 +85,17 @@ export class MemoryCache {
       options?.staleTtlSeconds !== undefined
         ? options.staleTtlSeconds * 1000
         : Math.max(ttlMs, this.defaultStaleTtlMs);
+
+    // Eviction if capacity exceeded
+    if (this.store.size >= this.maxEntries) {
+      this.cleanup();
+      if (this.store.size >= this.maxEntries) {
+        const oldestKey = this.store.keys().next().value;
+        if (oldestKey) {
+          this.store.delete(oldestKey);
+        }
+      }
+    }
 
     this.store.set(key, {
       value,
@@ -120,4 +143,5 @@ export class MemoryCache {
 export const marketCache = new MemoryCache({
   defaultTtlSeconds: 15,
   defaultStaleTtlSeconds: 90,
+  maxEntries: 10_000,
 });

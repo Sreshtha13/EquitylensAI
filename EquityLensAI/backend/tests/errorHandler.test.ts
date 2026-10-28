@@ -24,6 +24,8 @@ describe('error handling', () => {
       error: {
         code: 'VALIDATION_ERROR',
         message: 'Invalid request',
+        requestId: expect.any(String),
+        retryable: false,
       },
     });
     expect(response.body.error.stack).toBeUndefined();
@@ -45,6 +47,8 @@ describe('error handling', () => {
       error: {
         code: 'INTERNAL_SERVER_ERROR',
         message: 'An unexpected error occurred',
+        requestId: expect.any(String),
+        retryable: true,
       },
     });
     expect(JSON.stringify(response.body)).not.toContain('super secret internals');

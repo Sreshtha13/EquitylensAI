@@ -38,7 +38,10 @@ describe('Phase 12: Comparative Company Analysis & Peer Benchmarking', () => {
       expect(res.body.data.scope).toBe('consolidated');
       expect(Array.isArray(res.body.data.metricsRows)).toBe(true);
 
-      const roeRow = res.body.data.metricsRows.find((r: any) => r.metricId === 'roe');
+      const roeRow = res.body.data.metricsRows.find(
+        (r: { metricId: string; unit: string; category: string; values: Record<string, unknown> }) =>
+          r.metricId === 'roe',
+      );
       expect(roeRow).toBeDefined();
       expect(roeRow.unit).toBe('percent');
       expect(roeRow.category).toBe('Profitability');
@@ -121,7 +124,7 @@ describe('Phase 12: Comparative Company Analysis & Peer Benchmarking', () => {
       expect(Array.isArray(res.body.data.peers)).toBe(true);
 
       // Verify self-exclusion: TCS must not be its own peer
-      const selfIncluded = res.body.data.peers.some((p: any) => p.symbol === 'TCS');
+      const selfIncluded = res.body.data.peers.some((p: { symbol: string }) => p.symbol === 'TCS');
       expect(selfIncluded).toBe(false);
 
       if (res.body.data.peers.length > 0) {
@@ -155,7 +158,7 @@ describe('Phase 12: Comparative Company Analysis & Peer Benchmarking', () => {
       expect(res.body.success).toBe(true);
       expect(Array.isArray(res.body.data.benchmarks)).toBe(true);
 
-      const roeBenchmark = res.body.data.benchmarks.find((b: any) => b.metricId === 'roe');
+      const roeBenchmark = res.body.data.benchmarks.find((b: { metricId: string }) => b.metricId === 'roe');
       expect(roeBenchmark).toBeDefined();
       expect(roeBenchmark.sampleSize).toBeGreaterThanOrEqual(1);
 

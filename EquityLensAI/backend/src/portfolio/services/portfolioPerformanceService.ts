@@ -179,7 +179,7 @@ export class PortfolioPerformanceService {
       const ledger = portfolioAccountingService.reconstructLedger(txsUpToDate);
 
       let holdingsVal = 0;
-      for (const [key, pos] of ledger.positions.entries()) {
+      for (const [_key, pos] of ledger.positions.entries()) {
         if (pos.quantity <= 0.000001) continue;
         const prices = stockPriceHistory.get(pos.symbol);
         // Find close price on this date or latest prior date

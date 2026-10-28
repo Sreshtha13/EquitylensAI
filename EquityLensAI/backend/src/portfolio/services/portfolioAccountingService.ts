@@ -2,6 +2,7 @@ import type {
   PortfolioTransaction,
   PortfolioHolding,
   SupportedExchange,
+  DataFreshness,
 } from '@equitylensai/shared';
 import { AppError } from '../../utils/appError.js';
 
@@ -265,7 +266,7 @@ export class PortfolioAccountingService {
    */
   buildHoldings(
     positions: Map<string, ComputedPosition>,
-    quotesMap: Map<string, { price: number | null; freshness: string; source: string; observedAt: string; isStale: boolean }>,
+    quotesMap: Map<string, { price: number | null; freshness: DataFreshness; source: string; observedAt: string; isStale: boolean }>,
     ratesMap: Map<string, number>, // quote currency -> base currency rate
     baseCurrency: string,
   ): { holdings: PortfolioHolding[]; unpricedCount: number; totalHoldingsMarketValue: number } {
@@ -319,7 +320,7 @@ export class PortfolioAccountingService {
         realizedPnL: Number((pos.realizedPnL * fxRate).toFixed(2)),
         dividendIncome: Number((pos.dividendIncome * fxRate).toFixed(2)),
         allocationPercent: null, // calculated in second pass once total is known
-        quoteFreshness: (quote?.freshness as any) || 'unavailable',
+        quoteFreshness: quote?.freshness ?? 'unavailable',
         quoteSource: quote?.source ?? null,
         quoteObservedAt: quote?.observedAt ?? null,
         isStale: quote?.isStale ?? false,

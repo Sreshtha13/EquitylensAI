@@ -5,6 +5,7 @@ import type {
   CompanyComparisonMetricRow,
   SupportedPeriod,
 } from '../types.js';
+import type { FinancialAnalysis } from '@equitylensai/shared';
 import { marketService } from '../../market/marketService.js';
 import { financialService } from '../../financial/financialService.js';
 import { AppError } from '../../utils/appError.js';
@@ -16,7 +17,7 @@ export const COMPARISON_METRIC_DEFINITIONS: Array<{
   category: 'Valuation' | 'Profitability' | 'Growth' | 'Financial Strength' | 'Cash Flow' | 'Health';
   unit: 'percent' | 'ratio' | 'score' | 'currency' | 'number';
   description: string;
-  extract: (analysis: any) => number | null;
+  extract: (analysis: FinancialAnalysis) => number | null;
 }> = [
   // Valuation
   {
@@ -57,7 +58,7 @@ export const COMPARISON_METRIC_DEFINITIONS: Array<{
     category: 'Valuation',
     unit: 'percent',
     description: 'Annual dividend payments divided by current stock price.',
-    extract: (a) => a.valuation?.dividendYield?.value ?? null,
+    extract: () => null,
   },
 
   // Profitability
@@ -99,7 +100,7 @@ export const COMPARISON_METRIC_DEFINITIONS: Array<{
     category: 'Profitability',
     unit: 'percent',
     description: 'Net profit after taxes as a percentage of revenue.',
-    extract: (a) => a.profitability?.netProfitMargin?.value ?? null,
+    extract: (a) => a.profitability?.netMargin?.value ?? null,
   },
   {
     id: 'gross_margin',
@@ -117,7 +118,7 @@ export const COMPARISON_METRIC_DEFINITIONS: Array<{
     category: 'Growth',
     unit: 'percent',
     description: 'Year-over-year revenue expansion rate.',
-    extract: (a) => a.growth?.revenueGrowthYearOverYear?.value ?? null,
+    extract: (a) => a.growth?.revenueGrowthYoY?.value ?? null,
   },
   {
     id: 'net_income_growth',
@@ -125,7 +126,7 @@ export const COMPARISON_METRIC_DEFINITIONS: Array<{
     category: 'Growth',
     unit: 'percent',
     description: 'Year-over-year net income expansion rate.',
-    extract: (a) => a.growth?.netIncomeGrowthYearOverYear?.value ?? null,
+    extract: (a) => a.growth?.netIncomeGrowthYoY?.value ?? null,
   },
   {
     id: 'eps_growth',
@@ -133,7 +134,7 @@ export const COMPARISON_METRIC_DEFINITIONS: Array<{
     category: 'Growth',
     unit: 'percent',
     description: 'Year-over-year diluted earnings per share growth rate.',
-    extract: (a) => a.growth?.epsGrowthYearOverYear?.value ?? null,
+    extract: (a) => a.growth?.epsGrowthYoY?.value ?? null,
   },
 
   // Financial Strength
@@ -167,7 +168,7 @@ export const COMPARISON_METRIC_DEFINITIONS: Array<{
     category: 'Financial Strength',
     unit: 'ratio',
     description: 'Operating income divided by finance costs.',
-    extract: (a) => a.leverage?.interestCoverage?.value ?? null,
+    extract: (a) => a.leverage?.interestCoverageRatio?.value ?? null,
   },
 
   // Cash Flow
@@ -187,7 +188,7 @@ export const COMPARISON_METRIC_DEFINITIONS: Array<{
     category: 'Health',
     unit: 'score',
     description: 'Deterministic fundamental score from 0 to 100 based on profitability, leverage, liquidity, cash flow, and growth.',
-    extract: (a) => a.healthScore?.overallScore?.value ?? null,
+    extract: (a) => a.healthScore?.overallScore ?? null,
   },
 ];
 
@@ -247,7 +248,7 @@ export class ComparisonService {
           }).catch(() => null),
         ]);
 
-        let analysis: any = null;
+        let analysis: FinancialAnalysis | null = null;
         try {
           analysis = await financialService.getFinancialAnalysis(
             {

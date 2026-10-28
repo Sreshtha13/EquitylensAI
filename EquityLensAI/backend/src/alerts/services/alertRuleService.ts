@@ -111,7 +111,7 @@ export class AlertRuleService {
     userId: string,
     input: z.infer<typeof updateAlertRuleSchema>,
   ): Promise<AlertRule> {
-    const existing = await this.getRule(ruleId, userId);
+    await this.getRule(ruleId, userId);
 
     const updates: Partial<AlertRule> = {};
     if (input.name !== undefined) updates.name = input.name;

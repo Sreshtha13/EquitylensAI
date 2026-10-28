@@ -54,7 +54,6 @@ export default function ResearchWorkspacePage({
   const {
     data: analysis,
     isLoading: isAnalysisLoading,
-    refetch: refetchAnalysis,
   } = useFinancialAnalysis(symbol, {
     exchange,
     periods: 4,

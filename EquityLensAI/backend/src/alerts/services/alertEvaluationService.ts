@@ -1,6 +1,5 @@
 import crypto from 'node:crypto';
 import type {
-  AlertRule,
   AlertEvent,
   AppNotification,
   NormalizedQuote,

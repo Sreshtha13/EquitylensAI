@@ -1,12 +1,9 @@
 import type {
-  ResearchProject,
   ResearchProjectStatus,
-  ResearchReport,
   ResearchReportStatus,
   ResearchReportSection,
   ResearchEvidenceItem,
   ResearchNote,
-  ResearchReportVersion,
   NoteTag,
 } from '@equitylensai/shared';
 

@@ -5,12 +5,16 @@ import { getEnv } from '../config/index.js';
 import { AppError } from '../utils/appError.js';
 import { logger } from '../utils/logger.js';
 
-function toPublicError(error: unknown): {
+function toPublicError(
+  error: unknown,
+  reqRequestId?: string,
+): {
   statusCode: number;
   body: ApiError;
   logLevel: 'warn' | 'error';
 } {
   if (error instanceof AppError) {
+    const retryable = error.retryable ?? (error.statusCode >= 500 || error.statusCode === 429);
     return {
       statusCode: error.statusCode,
       logLevel: error.statusCode >= 500 ? 'error' : 'warn',
@@ -20,6 +24,8 @@ function toPublicError(error: unknown): {
           code: error.code,
           message: error.message,
           ...(error.details !== undefined ? { details: error.details } : {}),
+          ...(reqRequestId ? { requestId: reqRequestId } : {}),
+          retryable,
         },
       },
     };
@@ -35,6 +41,8 @@ function toPublicError(error: unknown): {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request',
           details: error.flatten(),
+          ...(reqRequestId ? { requestId: reqRequestId } : {}),
+          retryable: false,
         },
       },
     };
@@ -49,6 +57,8 @@ function toPublicError(error: unknown): {
         error: {
           code: 'REQUEST_TOO_LARGE',
           message: 'Request body exceeds the supported size limit.',
+          ...(reqRequestId ? { requestId: reqRequestId } : {}),
+          retryable: false,
         },
       },
     };
@@ -70,6 +80,8 @@ function toPublicError(error: unknown): {
         error: {
           code: 'VALIDATION_ERROR',
           message: 'Request body must contain valid JSON.',
+          ...(reqRequestId ? { requestId: reqRequestId } : {}),
+          retryable: false,
         },
       },
     };
@@ -83,6 +95,8 @@ function toPublicError(error: unknown): {
       error: {
         code: 'INTERNAL_SERVER_ERROR',
         message: 'An unexpected error occurred',
+        ...(reqRequestId ? { requestId: reqRequestId } : {}),
+        retryable: true,
       },
     },
   };
@@ -94,7 +108,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ): void {
-  const mapped = toPublicError(error);
+  const mapped = toPublicError(error, req.requestId);
   const env = getEnv();
 
   logger[mapped.logLevel](

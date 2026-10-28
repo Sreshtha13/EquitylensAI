@@ -76,7 +76,7 @@ export async function updatePreferences(
   return apiClient.patch<UserPreferences>('/api/v1/users/me/preferences', body);
 }
 
-export async function deleteAccount(_confirm?: string): Promise<{ message: string }> {
+export async function deleteAccount(): Promise<{ message: string }> {
   const res = await apiClient.delete<{ message: string }>('/api/v1/users/me', {
     headers: { 'Content-Type': 'application/json' },
   });

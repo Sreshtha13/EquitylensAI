@@ -1,0 +1,62 @@
+# ==============================================================================
+# EquityLensAI Backend Service — Production Multi-stage Dockerfile
+# ==============================================================================
+
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install curl for healthcheck in runner stage
+RUN apk add --no-cache libc6-compat
+
+# Copy package manifests
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY backend/package.json ./backend/
+
+# Install all dependencies including devDependencies for build
+RUN npm ci
+
+# Copy source trees
+COPY packages/shared/ ./packages/shared/
+COPY backend/ ./backend/
+
+# Build shared package and backend TypeScript code
+RUN npm run build -w @equitylensai/shared
+RUN npm run build -w @equitylensai/backend
+
+# Production runner stage
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+RUN apk add --no-cache curl
+
+ENV NODE_ENV=production
+ENV PORT=4000
+
+# Create non-privileged user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 backenduser
+
+# Copy package manifests and production dependencies
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY backend/package.json ./backend/
+
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Copy built artifacts from builder stage
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/backend/dist ./backend/dist
+COPY --from=builder /app/backend/scripts ./backend/scripts
+COPY --from=builder /app/supabase ./supabase
+
+USER backenduser
+
+EXPOSE 4000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:4000/api/v1/health || exit 1
+
+CMD ["node", "backend/dist/server.js"]

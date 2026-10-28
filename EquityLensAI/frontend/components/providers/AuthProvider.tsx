@@ -153,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteAccount = async () => {
-    await deleteAccountApi('DELETE_ACCOUNT');
+    await deleteAccountApi();
     setAuthToken(null);
     setUser(null);
     setProfile(null);

@@ -1,8 +1,5 @@
 import { z } from 'zod';
 import type {
-  ScreenerMetric as SharedScreenerMetric,
-  ScreenerOperator as SharedScreenerOperator,
-  ScreenerPeriod as SharedScreenerPeriod,
   ScreenerMetricDomain,
 } from '@equitylensai/shared';
 

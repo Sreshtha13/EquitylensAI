@@ -14,6 +14,8 @@ import { v1Router } from './routes/index.js';
 import { asyncHandler } from './utils/asyncHandler.js';
 import { sendSuccess } from './utils/response.js';
 
+import { generalApiLimiter } from './middleware/rateLimit.js';
+
 export function createApp() {
   const env = getEnv();
   const app = express();
@@ -57,9 +59,22 @@ export function createApp() {
   );
   app.use(
     cors({
-      origin: env.FRONTEND_URL,
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const allowed = env.FRONTEND_URL.split(',').map((u) => u.trim());
+        if (allowed.includes(origin) || allowed.includes('*')) {
+          return callback(null, true);
+        }
+        return callback(null, false);
+      },
       credentials: true,
-      exposedHeaders: ['X-Request-ID'],
+      exposedHeaders: [
+        'X-Request-ID',
+        'RateLimit-Limit',
+        'RateLimit-Remaining',
+        'RateLimit-Reset',
+        'Retry-After',
+      ],
     }),
   );
   app.use(requestId);
@@ -68,6 +83,7 @@ export function createApp() {
   app.use(hpp());
   app.use(sanitizeRequest);
   app.use(requestLogger);
+  app.use(generalApiLimiter.middleware());
 
   app.get(['/', '/api'], (_req, res) => {
     sendSuccess(res, {
