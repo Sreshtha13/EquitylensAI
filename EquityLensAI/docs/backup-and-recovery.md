@@ -55,3 +55,33 @@ If the `AlertScheduler` or `newsIngestionJob` fails or stalls:
    ```bash
    npm run ingest:instruments -w @equitylensai/backend
    ```
+
+---
+
+## 6. Secret Rotation Runbook
+
+When rotating production credentials:
+1. **Supabase Service Role Key & JWT Secret:**
+   - Generate new keys in the Supabase Dashboard.
+   - Update `SUPABASE_SERVICE_ROLE_KEY` and `JWT_SECRET` in production secret management (e.g. AWS Secrets Manager, Doppler, or OCI Vault).
+   - Perform a rolling restart of the backend service to pick up new keys without downtime.
+   - Validate `/api/v1/health/ready` to ensure database connectivity is re-established.
+2. **Angel One SmartAPI Credentials:**
+   - Update `ANGEL_PASSWORD` or `ANGEL_TOTP_SECRET` in secret manager.
+   - Restart backend to force `AngelClient` to clear cached session tokens and authenticate anew.
+3. **Google Gemini API Key:**
+   - Update `GEMINI_API_KEY` in environment; verify via `npx tsx scripts/gemini-smoke-test.ts`.
+
+---
+
+## 7. Deployment Rollback Strategy
+
+1. **Frontend / Backend Container Rollback:**
+   - Docker images are tagged with git commit SHA (`equitylensai-backend:${COMMIT_SHA}`).
+   - If a deployment defect is detected, rollback is performed instantaneously by repointing the container or reverse proxy to the previous verified container image:
+     ```bash
+     docker-compose up -d --no-deps backend
+     ```
+2. **Database Schema Backward Compatibility:**
+   - All migrations are strictly additive (new tables, nullable columns, or columns with safe defaults).
+   - Rolling back backend code does not require rolling back database schema, avoiding risky DDL rollback operations.
