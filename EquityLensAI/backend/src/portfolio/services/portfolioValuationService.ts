@@ -3,6 +3,8 @@ import type {
   PortfolioHolding,
   PortfolioSummary,
   PortfolioTransaction,
+  SupportedCurrency,
+  DataFreshness,
 } from '@equitylensai/shared';
 import { MarketService } from '../../market/marketService.js';
 import { instrumentRepository } from '../../market/instruments/repository.js';
@@ -33,7 +35,7 @@ export class PortfolioValuationService {
       string,
       {
         price: number | null;
-        freshness: string;
+        freshness: DataFreshness;
         source: string;
         observedAt: string;
         isStale: boolean;
@@ -75,7 +77,7 @@ export class PortfolioValuationService {
       if (pos.currency !== portfolio.baseCurrency) {
         try {
           const rateObs = await currencyService.getExchangeRate(
-            pos.currency as any,
+            pos.currency as SupportedCurrency,
             portfolio.baseCurrency,
           );
           ratesMap.set(`${pos.currency}_${portfolio.baseCurrency}`, rateObs.rate);

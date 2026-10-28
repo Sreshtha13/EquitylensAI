@@ -91,16 +91,29 @@ export function normalizeYahooChart(
   const now = new Date().toISOString();
 
   const candles: PriceCandle[] = quotes
-    .filter((q) => q.close !== null && q.close !== undefined)
-    .map((q) => ({
-      timestamp: new Date(q.date).toISOString(),
-      open: q.open ?? q.close ?? 0,
-      high: q.high ?? q.close ?? 0,
-      low: q.low ?? q.close ?? 0,
-      close: q.close ?? 0,
-      volume: typeof q.volume === 'number' ? q.volume : null,
-      adjustedClose: typeof q.adjclose === 'number' ? q.adjclose : null,
-    }));
+    .filter((q) => {
+      if (typeof q.close !== 'number' || !Number.isFinite(q.close) || q.close <= 0) {
+        return false;
+      }
+      const time = new Date(q.date).getTime();
+      return !Number.isNaN(time);
+    })
+    .map((q) => {
+      const close = q.close as number;
+      const open = typeof q.open === 'number' && Number.isFinite(q.open) && q.open > 0 ? q.open : close;
+      const high = typeof q.high === 'number' && Number.isFinite(q.high) && q.high > 0 ? Math.max(q.high, open, close) : Math.max(open, close);
+      const low = typeof q.low === 'number' && Number.isFinite(q.low) && q.low > 0 ? Math.min(q.low, open, close) : Math.min(open, close);
+
+      return {
+        timestamp: new Date(q.date).toISOString(),
+        open,
+        high,
+        low,
+        close,
+        volume: typeof q.volume === 'number' && Number.isFinite(q.volume) && q.volume >= 0 ? Math.floor(q.volume) : null,
+        adjustedClose: typeof q.adjclose === 'number' && Number.isFinite(q.adjclose) && q.adjclose > 0 ? q.adjclose : null,
+      };
+    });
 
   return {
     symbol,

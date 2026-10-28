@@ -3,20 +3,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from '../src/app.js';
 import {
   getScreenerMetricCatalog,
-  SCREENER_METRICS,
   screenerFilterSchema,
   screenerFilterGroupSchema,
   screenerStrategyDefinitionSchema,
-  screenerRequestSchema,
-  interpretScreenerQuery,
   type ScreenerFilterGroup,
 } from '../src/ai/screener/index.js';
-import type { AiClient } from '../src/ai/common/types.js';
 import { loadEnv, resetEnvCache } from '../src/config/index.js';
 import { resetAiRateLimitForTests } from '../src/middleware/aiRateLimit.js';
 import { memorySavedScreenStore } from '../src/screener/repositories/savedScreenRepository.js';
 import { memoryScreenerRunStore } from '../src/screener/repositories/screenerRunRepository.js';
-import { authService } from '../src/services/authService.js';
 
 const app = createApp();
 

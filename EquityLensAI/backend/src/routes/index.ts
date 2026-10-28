@@ -18,6 +18,8 @@ import { compareRouter } from './compareRoutes.js';
 import { researchRouter } from './researchRoutes.js';
 import { sendSuccess } from '../utils/response.js';
 
+import { getMetrics } from '../controllers/healthController.js';
+
 export const v1Router = Router();
 
 v1Router.get('/', (_req, res) => {
@@ -27,6 +29,9 @@ v1Router.get('/', (_req, res) => {
     version: 'v1',
     endpoints: {
       health: '/api/v1/health',
+      healthReady: '/api/v1/health/ready',
+      healthDependencies: '/api/v1/health/dependencies',
+      metrics: '/api/v1/metrics',
       docs: '/docs',
       openapi: '/api/v1/openapi.json',
       auth: {
@@ -159,6 +164,7 @@ v1Router.get('/', (_req, res) => {
 });
 
 v1Router.use('/health', healthRouter);
+v1Router.get('/metrics', getMetrics);
 v1Router.use('/auth', authRouter);
 v1Router.use('/users', userRouter);
 v1Router.use('/research', researchRouter);

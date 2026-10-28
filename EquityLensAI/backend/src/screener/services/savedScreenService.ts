@@ -183,7 +183,7 @@ export class SavedScreenService {
       updatedAt: runTimestamp,
     });
 
-    // Record the run history
+    // Record the run history with reproducibility audit snapshot
     await screenerRunRepository.recordRun({
       id: randomUUID(),
       userId,
@@ -194,6 +194,14 @@ export class SavedScreenService {
       coverage: result.coverage,
       warnings: result.warnings,
       executedAt: runTimestamp,
+      calculationVersion: '1.0.0',
+      universeVersion: 'current',
+      resultSnapshot: result.results.slice(0, 50).map((r) => ({
+        symbol: r.symbol,
+        exchange: r.exchange,
+        period: r.period,
+        metrics: r.metrics,
+      })),
     });
 
     return result;

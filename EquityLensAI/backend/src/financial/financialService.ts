@@ -20,6 +20,7 @@ import {
 import { calcHealthScore } from './healthScore/healthScoreEngine.js';
 import type { FinancialDataRequest, RawFinancialData } from './types.js';
 import { MemoryCache } from '../market/cache/memoryCache.js';
+import { CacheManager } from '../market/cache/cacheManager.js';
 import { AppError } from '../utils/appError.js';
 import { logger } from '../utils/logger.js';
 import { marketService } from '../market/marketService.js';
@@ -31,6 +32,8 @@ const financialCache = new MemoryCache({
 });
 
 class FinancialService {
+  private readonly inFlightAnalysis = new Map<string, Promise<FinancialAnalysis>>();
+
   /**
    * Retrieve and calculate full financial analysis for a symbol.
    * livePrice is fetched from the market service if not provided.
@@ -39,7 +42,10 @@ class FinancialService {
     request: FinancialDataRequest,
     livePrice?: number | null,
   ): Promise<FinancialAnalysis> {
-    const cacheKey = `financial:${(request.exchange ?? 'default').toUpperCase()}:${request.symbol.toUpperCase()}`;
+    const cacheKey = CacheManager.financialKey(
+      request.exchange ?? 'default',
+      request.symbol,
+    );
 
     const cached = financialCache.get<FinancialAnalysis>(cacheKey);
     if (cached && !cached.isStale) {
@@ -47,17 +53,23 @@ class FinancialService {
       return cached.value;
     }
 
-    let raw: RawFinancialData;
-    try {
-      raw = await yahooFinancialProvider.getFinancialData(request);
-    } catch (err) {
-      // If stale cache exists, serve it with flag
-      if (cached) {
-        logger.warn({ symbol: request.symbol }, 'Serving stale financial data; provider failed');
-        return { ...cached.value, isStale: true };
-      }
-      throw err;
+    const inFlight = this.inFlightAnalysis.get(cacheKey);
+    if (inFlight) {
+      return inFlight;
     }
+
+    const fetchPromise = (async () => {
+      let raw: RawFinancialData;
+      try {
+        raw = await yahooFinancialProvider.getFinancialData(request);
+      } catch (err) {
+        // If stale cache exists, serve it with flag
+        if (cached) {
+          logger.warn({ symbol: request.symbol }, 'Serving stale financial data; provider failed');
+          return { ...cached.value, isStale: true };
+        }
+        throw err;
+      }
 
     // ── Resolve live price ───────────────────────────────────────────────────
     let price: number | null = livePrice ?? null;
@@ -165,7 +177,15 @@ class FinancialService {
 
     financialCache.set(cacheKey, analysis);
     return analysis;
-  }
+  })();
+
+      this.inFlightAnalysis.set(cacheKey, fetchPromise);
+      try {
+        return await fetchPromise;
+      } finally {
+        this.inFlightAnalysis.delete(cacheKey);
+      }
+    }
 
   /**
    * Returns just the raw financial statements (no ratio calculation).

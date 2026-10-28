@@ -59,6 +59,9 @@ function mapRowToDomain(row: ScreenerRunDbRow): ScreenerRunRecord {
     coverage: row.coverage,
     warnings: row.warnings ?? [],
     executedAt: row.executed_at,
+    calculationVersion: row.calculation_version ?? '1.0.0',
+    universeVersion: row.universe_version ?? 'current',
+    resultSnapshot: row.result_snapshot ?? null,
   };
 }
 
@@ -77,6 +80,9 @@ export class ScreenerRunRepository {
         coverage: run.coverage,
         warnings: run.warnings,
         executed_at: run.executedAt,
+        calculation_version: run.calculationVersion ?? '1.0.0',
+        universe_version: run.universeVersion ?? 'current',
+        result_snapshot: run.resultSnapshot ?? null,
       }),
     });
 

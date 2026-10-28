@@ -26,7 +26,7 @@ function ResearchContent() {
   const urlSymbol = searchParams.get('symbol');
   const urlExchange = searchParams.get('exchange') || 'NSE';
 
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [includeArchived, setIncludeArchived] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [projectSearchTerm, setProjectSearchTerm] = useState('');
@@ -303,6 +303,25 @@ function ResearchContent() {
             symbol={selectedStock.symbol}
             exchange={selectedStock.exchange ?? 'NSE'}
           />
+
+          {analysisError && (
+            <div className="flex items-center justify-between rounded-2xl border border-rose-500/30 bg-rose-950/20 p-4 text-xs text-rose-300">
+              <div className="flex items-center gap-3">
+                <svg className="h-5 w-5 text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>
+                  Unable to load fundamental statements for {selectedStock.symbol}. Market provider may be experiencing delays or missing filing data.
+                </span>
+              </div>
+              <button
+                onClick={() => refetchAnalysis()}
+                className="shrink-0 rounded-lg border border-rose-500/40 bg-rose-500/20 px-3 py-1 font-semibold text-rose-200 hover:bg-rose-500/30 transition"
+              >
+                Retry
+              </button>
+            </div>
+          )}
 
           {!isAnalysisLoading && analysis && (
             <div className="flex flex-col gap-8">

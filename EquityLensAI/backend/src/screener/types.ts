@@ -1,8 +1,5 @@
 import type {
-  SavedScreen,
-  ScreenerRunRecord,
   ScreenerStrategyDefinition,
-  ScreenerTemplate,
 } from '@equitylensai/shared';
 
 export interface SavedScreenDbRow {
@@ -34,6 +31,9 @@ export interface ScreenerRunDbRow {
   };
   warnings: string[];
   executed_at: string;
+  calculation_version?: string | null;
+  universe_version?: string | null;
+  result_snapshot?: unknown;
 }
 
 export type CreateSavedScreenInput = {

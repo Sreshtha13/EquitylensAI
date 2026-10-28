@@ -1,0 +1,59 @@
+name: EquityLensAI CI
+
+on:
+  push:
+    branches: [main, master, develop, 'phase*']
+  pull_request:
+    branches: [main, master, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, Typecheck & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck shared, backend, and frontend
+        run: npm run typecheck
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Vitest Unit & Integration Tests
+        run: npm run test -w @equitylensai/backend
+        env:
+          NODE_ENV: test
+          SUPABASE_URL: http://localhost:54321
+          SUPABASE_ANON_KEY: dummy-anon-key-for-test-pipeline-only
+          SUPABASE_SERVICE_ROLE_KEY: dummy-service-role-key-for-test-pipeline-only
+          JWT_SECRET: test-super-secret-ci-jwt-token-at-least-32-chars-long
+          ANGEL_API_KEY: ci_angel_key
+          ANGEL_CLIENT_CODE: ci_angel_client
+          ANGEL_PIN: 0000
+          ANGEL_TOTP_KEY: ci_totp_key
+          GEMINI_API_KEY: ci_gemini_key
+
+      - name: Build Backend Service
+        run: npm run build -w @equitylensai/backend
+
+      - name: Build Next.js Frontend Application
+        run: npm run build -w @equitylensai/frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+          NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key-for-frontend-build

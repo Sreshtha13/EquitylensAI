@@ -312,7 +312,7 @@ export class PortfolioService {
 
     try {
       const ledger = portfolioAccountingService.reconstructLedger(withoutDeleted);
-      for (const [key, pos] of ledger.positions.entries()) {
+      for (const [_key, pos] of ledger.positions.entries()) {
         if (pos.quantity < -0.000001) {
           throw new AppError(
             'CANNOT_DELETE_TRANSACTION',

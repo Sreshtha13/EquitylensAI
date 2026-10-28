@@ -37,7 +37,7 @@ describe('Phase 13: Research Workbench, Investment Reports & Exportable Analysis
       expect(Array.isArray(res.body.data.templates)).toBe(true);
       expect(res.body.data.templates).toHaveLength(8);
 
-      const templateIds = res.body.data.templates.map((t: any) => t.id);
+      const templateIds = res.body.data.templates.map((t: { id: string }) => t.id);
       expect(templateIds).toContain('fundamental_analysis');
       expect(templateIds).toContain('financial_statement_review');
       expect(templateIds).toContain('valuation_multiples');
@@ -47,7 +47,10 @@ describe('Phase 13: Research Workbench, Investment Reports & Exportable Analysis
       expect(templateIds).toContain('announcement_impact');
       expect(templateIds).toContain('comprehensive_research');
 
-      const fundamental = res.body.data.templates.find((t: any) => t.id === 'fundamental_analysis');
+      const fundamental = res.body.data.templates.find(
+        (t: { id: string; name: string; defaultSections: unknown[]; supportedDataSources: unknown[] }) =>
+          t.id === 'fundamental_analysis',
+      );
       expect(fundamental.name).toBe('Company Fundamental Analysis');
       expect(fundamental.defaultSections.length).toBeGreaterThan(3);
       expect(fundamental.supportedDataSources.length).toBeGreaterThan(0);
@@ -220,13 +223,13 @@ describe('Phase 13: Research Workbench, Investment Reports & Exportable Analysis
       expect(Array.isArray(report.sections)).toBe(true);
       expect(report.sections.length).toBeGreaterThan(4);
 
-      const coverSec = report.sections.find((s: any) => s.sectionType === 'cover_metadata');
+      const coverSec = report.sections.find((s: { sectionType: string }) => s.sectionType === 'cover_metadata');
       expect(coverSec).toBeDefined();
 
-      const execSec = report.sections.find((s: any) => s.sectionType === 'executive_summary');
+      const execSec = report.sections.find((s: { sectionType: string }) => s.sectionType === 'executive_summary');
       expect(execSec).toBeDefined();
 
-      const finSec = report.sections.find((s: any) => s.sectionType === 'financial_analysis');
+      const finSec = report.sections.find((s: { sectionType: string }) => s.sectionType === 'financial_analysis');
       expect(finSec).toBeDefined();
 
       // Verify Evidence Provenance Register
@@ -307,10 +310,11 @@ describe('Phase 13: Research Workbench, Investment Reports & Exportable Analysis
         .set('x-test-user-id', userAId);
 
       expect(versionsRes.status).toBe(200);
-      expect(Array.isArray(resToVersions(versionsRes))).toBe(true);
-      expect(resToVersions(versionsRes).length).toBeGreaterThanOrEqual(1);
+      const versionsList = versionsRes.body.data.versions;
+      expect(Array.isArray(versionsList)).toBe(true);
+      expect(versionsList.length).toBeGreaterThanOrEqual(1);
 
-      const latestVersion = resToVersions(versionsRes)[0];
+      const latestVersion = versionsList[0];
       expect(latestVersion.versionNumber).toBe(1);
       expect(latestVersion.contentSnapshot).toBeDefined();
       expect(latestVersion.contentSnapshot.title).toBe('INFY Versioned Report');
@@ -555,6 +559,6 @@ describe('Phase 13: Research Workbench, Investment Reports & Exportable Analysis
   });
 });
 
-function resToVersions(res: any) {
+function _resToVersions(res: { body: { data: { versions: unknown[] } } }) {
   return res.body.data.versions;
 }

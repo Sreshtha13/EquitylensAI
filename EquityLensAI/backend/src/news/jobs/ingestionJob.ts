@@ -4,6 +4,8 @@ import { newsRepository } from '../repositories/newsRepository.js';
 import { logger } from '../../utils/logger.js';
 import type { NewsIngestionStatus } from '@equitylensai/shared';
 
+import { metricsService } from '../../services/metricsService.js';
+
 class IngestionManager {
   private isIngesting = false;
   private lastRunAt: string | null = null;
@@ -32,6 +34,7 @@ class IngestionManager {
       };
     }
 
+    const startedAt = Date.now();
     this.isIngesting = true;
     this.lastRunAt = new Date().toISOString();
     let totalRetrieved = 0;
@@ -131,6 +134,9 @@ class IngestionManager {
       this.lastDuplicatesCount = totalDuplicates;
       this.lastSuccessAt = new Date().toISOString();
 
+      const durationMs = Date.now() - startedAt;
+      metricsService.recordJobExecution('newsIngestion', true, durationMs);
+
       // Phase 9: Event-driven trigger for announcement and news alert rules
       if (totalInserted > 0) {
         import('../../alerts/services/alertScheduler.js')
@@ -146,6 +152,12 @@ class IngestionManager {
         announcementsInserted,
         duplicates: totalDuplicates,
       };
+    } catch (err) {
+      const durationMs = Date.now() - startedAt;
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      metricsService.recordJobExecution('newsIngestion', false, durationMs, errorMsg);
+      logger.error({ err }, 'Fatal error during news ingestion pipeline execution');
+      throw err;
     } finally {
       this.isIngesting = false;
     }

@@ -6,9 +6,13 @@ import { logger } from '../../utils/logger.js';
 
 export class InstrumentRepository {
   private instruments: InstrumentRecord[] = [];
+  private normalizedIndex: { record: InstrumentRecord; symUpper: string; nameUpper: string }[] = [];
   private symbolIndex = new Map<string, InstrumentRecord>();
   private tokenIndex = new Map<string, InstrumentRecord>();
   private exchangeSymbolIndex = new Map<string, InstrumentRecord>();
+  private positionMap = new Map<string, number>();
+  private searchCache = new Map<string, { result: InstrumentSummary[]; expiresAt: number }>();
+  private readonly MAX_SEARCH_CACHE = 1000;
   private isLoaded = false;
 
   constructor() {
@@ -21,6 +25,7 @@ export class InstrumentRepository {
       this.upsert(record);
     }
     this.isLoaded = true;
+    this.searchCache.clear();
   }
 
   upsert(record: InstrumentRecord): void {
@@ -34,18 +39,27 @@ export class InstrumentRepository {
       this.tokenIndex.set(record.providerToken, record);
     }
 
-    // Replace if existing or append
-    const existingIndex = this.instruments.findIndex(
-      (i) =>
-        i.symbol.toUpperCase() === symKey &&
-        i.exchange.toUpperCase() === record.exchange.toUpperCase(),
-    );
+    const existingIndex = this.positionMap.get(exchSymKey);
 
-    if (existingIndex >= 0) {
+    if (existingIndex !== undefined && existingIndex < this.instruments.length) {
       this.instruments[existingIndex] = record;
+      this.normalizedIndex[existingIndex] = {
+        record,
+        symUpper: symKey,
+        nameUpper: record.name.toUpperCase(),
+      };
     } else {
+      const newIndex = this.instruments.length;
       this.instruments.push(record);
+      this.normalizedIndex.push({
+        record,
+        symUpper: symKey,
+        nameUpper: record.name.toUpperCase(),
+      });
+      this.positionMap.set(exchSymKey, newIndex);
     }
+
+    this.searchCache.clear();
   }
 
   getBySymbol(symbol: string, exchange?: string): InstrumentRecord | undefined {
@@ -95,14 +109,25 @@ export class InstrumentRepository {
     if (!q) return [];
 
     const limit = options?.limit ?? 20;
+    const cacheKey = `${q}:${options?.market || 'all'}:${options?.assetType || 'all'}:${limit}`;
+
+    const now = Date.now();
+    const cached = this.searchCache.get(cacheKey);
+    if (cached && cached.expiresAt > now) {
+      return cached.result;
+    }
+
     const scored: { item: InstrumentRecord; score: number }[] = [];
 
-    for (const item of this.instruments) {
+    for (let i = 0; i < this.normalizedIndex.length; i++) {
+      const entry = this.normalizedIndex[i]!;
+      const item = entry.record;
+
       if (options?.market && item.market !== options.market) continue;
       if (options?.assetType && item.assetType !== options.assetType) continue;
 
-      const sym = item.symbol.toUpperCase();
-      const name = item.name.toUpperCase();
+      const sym = entry.symUpper;
+      const name = entry.nameUpper;
 
       let score = 0;
 
@@ -128,7 +153,7 @@ export class InstrumentRepository {
       return a.item.symbol.localeCompare(b.item.symbol);
     });
 
-    return scored.slice(0, limit).map((s) => ({
+    const result = scored.slice(0, limit).map((s) => ({
       symbol: s.item.symbol,
       name: s.item.name,
       exchange: s.item.exchange,
@@ -138,6 +163,15 @@ export class InstrumentRepository {
       providerToken: s.item.providerToken,
       isin: s.item.isin,
     }));
+
+    // Maintain search cache bounded size
+    if (this.searchCache.size >= this.MAX_SEARCH_CACHE) {
+      const oldestKey = this.searchCache.keys().next().value;
+      if (oldestKey) this.searchCache.delete(oldestKey);
+    }
+    this.searchCache.set(cacheKey, { result, expiresAt: now + 300_000 }); // 5m TTL
+
+    return result;
   }
 
   count(): number {
@@ -184,6 +218,119 @@ export class InstrumentRepository {
       }
     } catch {
       // File does not exist yet; normal on fresh run
+    }
+    return false;
+  }
+
+  /**
+   * Syncs the canonical security universe to Supabase PostgreSQL idempotently.
+   */
+  async syncToDatabase(): Promise<number> {
+    const { getEnv } = await import('../../config/index.js');
+    const env = getEnv();
+    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+      logger.warn('Supabase credentials not configured; skipping instrument DB sync');
+      return 0;
+    }
+
+    const rows = this.instruments.map((inst) => ({
+      exchange: inst.exchange.toUpperCase(),
+      symbol: inst.symbol.toUpperCase(),
+      name: inst.name,
+      isin: inst.isin ?? null,
+      asset_type: inst.assetType || 'equity',
+      currency: inst.currency || 'INR',
+      provider_token: inst.providerToken ?? null,
+      tick_size: inst.tickSize ?? 0.05,
+      lot_size: inst.lotSize ?? 1,
+      is_active: true,
+      source: 'angel_scrip_master',
+      updated_at: new Date().toISOString(),
+    }));
+
+    const BATCH_SIZE = 100;
+    let synced = 0;
+    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+      const batch = rows.slice(i, i + BATCH_SIZE);
+      const url = `${env.SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/market_instruments?on_conflict=exchange,symbol`;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+            Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates,return=minimal',
+          },
+          body: JSON.stringify(batch),
+          signal: AbortSignal.timeout(15_000),
+        });
+        if (res.ok) {
+          synced += batch.length;
+        }
+      } catch (err) {
+        logger.warn({ err, batchIndex: i }, 'Failed to sync instrument batch to Supabase');
+      }
+    }
+
+    logger.info({ synced, total: this.instruments.length }, 'Synced security master to PostgreSQL');
+    return synced;
+  }
+
+  /**
+   * Hydrates the in-memory repository from the canonical PostgreSQL security master.
+   */
+  async syncFromDatabase(): Promise<boolean> {
+    const { getEnv } = await import('../../config/index.js');
+    const env = getEnv();
+    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+      return false;
+    }
+
+    try {
+      const url = `${env.SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/market_instruments?is_active=eq.true&order=symbol.asc&limit=5000`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(15_000),
+      });
+
+      if (!res.ok) return false;
+      const data = (await res.json()) as Array<{
+        symbol: string;
+        name: string;
+        exchange: string;
+        asset_type: AssetType;
+        currency: string;
+        provider_token?: string | null;
+        isin?: string | null;
+        tick_size?: number;
+        lot_size?: number;
+      }>;
+
+      if (Array.isArray(data) && data.length > 0) {
+        const records: InstrumentRecord[] = data.map((d) => ({
+          symbol: d.symbol,
+          name: d.name,
+          exchange: d.exchange as 'NSE' | 'BSE',
+          market: d.exchange.toLowerCase() as Market,
+          assetType: d.asset_type,
+          currency: d.currency,
+          providerToken: d.provider_token ?? undefined,
+          isin: d.isin ?? undefined,
+          tickSize: d.tick_size !== undefined ? Number(d.tick_size) : undefined,
+          lotSize: d.lot_size !== undefined ? Number(d.lot_size) : undefined,
+        }));
+
+        this.load(records);
+        logger.info({ count: records.length }, 'Loaded instruments from canonical PostgreSQL master');
+        return true;
+      }
+    } catch (err) {
+      logger.debug({ err }, 'Could not sync instruments from PostgreSQL, using local universe');
     }
     return false;
   }

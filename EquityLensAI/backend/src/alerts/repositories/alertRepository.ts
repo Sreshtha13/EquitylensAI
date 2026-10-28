@@ -1,6 +1,6 @@
 import { getEnv } from '../../config/index.js';
 import { logger } from '../../utils/logger.js';
-import type { AlertRule, AlertEvent, AlertRuleConfig, SupportedExchange } from '@equitylensai/shared';
+import type { AlertRule, AlertEvent } from '@equitylensai/shared';
 import type { AlertRuleDbRow, AlertEventDbRow } from '../types.js';
 
 class MemoryAlertStore {

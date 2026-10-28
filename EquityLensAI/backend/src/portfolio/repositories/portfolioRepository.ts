@@ -4,7 +4,6 @@ import type {
   Portfolio,
   PortfolioTransaction,
   PortfolioSnapshot,
-  SupportedCurrency,
   SupportedExchange,
 } from '@equitylensai/shared';
 import type {

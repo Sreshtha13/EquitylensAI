@@ -1,9 +1,8 @@
 import type {
-  AlertRule,
-  AlertEvent,
   AlertType,
   AlertRuleConfig,
   SupportedExchange,
+  AlertEvent,
 } from '@equitylensai/shared';
 
 export interface AlertRuleDbRow {
