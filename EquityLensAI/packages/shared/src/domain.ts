@@ -1107,6 +1107,9 @@ export type ScreenerRunRecord = {
   resultCount: number;
   durationMs: number;
   executedAt: string;
+  calculationVersion?: string;
+  universeVersion?: string;
+  resultSnapshot?: unknown;
   coverage: {
     indexedCompanies: number;
     staleIndexedCompanies: number;

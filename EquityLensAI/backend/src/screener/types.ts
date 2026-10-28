@@ -31,6 +31,9 @@ export interface ScreenerRunDbRow {
   };
   warnings: string[];
   executed_at: string;
+  calculation_version?: string | null;
+  universe_version?: string | null;
+  result_snapshot?: unknown;
 }
 
 export type CreateSavedScreenInput = {

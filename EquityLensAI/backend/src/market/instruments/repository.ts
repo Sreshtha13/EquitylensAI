@@ -187,6 +187,119 @@ export class InstrumentRepository {
     }
     return false;
   }
+
+  /**
+   * Syncs the canonical security universe to Supabase PostgreSQL idempotently.
+   */
+  async syncToDatabase(): Promise<number> {
+    const { getEnv } = await import('../../config/index.js');
+    const env = getEnv();
+    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+      logger.warn('Supabase credentials not configured; skipping instrument DB sync');
+      return 0;
+    }
+
+    const rows = this.instruments.map((inst) => ({
+      exchange: inst.exchange.toUpperCase(),
+      symbol: inst.symbol.toUpperCase(),
+      name: inst.name,
+      isin: inst.isin ?? null,
+      asset_type: inst.assetType || 'equity',
+      currency: inst.currency || 'INR',
+      provider_token: inst.providerToken ?? null,
+      tick_size: inst.tickSize ?? 0.05,
+      lot_size: inst.lotSize ?? 1,
+      is_active: true,
+      source: 'angel_scrip_master',
+      updated_at: new Date().toISOString(),
+    }));
+
+    const BATCH_SIZE = 100;
+    let synced = 0;
+    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+      const batch = rows.slice(i, i + BATCH_SIZE);
+      const url = `${env.SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/market_instruments?on_conflict=exchange,symbol`;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+            Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates,return=minimal',
+          },
+          body: JSON.stringify(batch),
+          signal: AbortSignal.timeout(15_000),
+        });
+        if (res.ok) {
+          synced += batch.length;
+        }
+      } catch (err) {
+        logger.warn({ err, batchIndex: i }, 'Failed to sync instrument batch to Supabase');
+      }
+    }
+
+    logger.info({ synced, total: this.instruments.length }, 'Synced security master to PostgreSQL');
+    return synced;
+  }
+
+  /**
+   * Hydrates the in-memory repository from the canonical PostgreSQL security master.
+   */
+  async syncFromDatabase(): Promise<boolean> {
+    const { getEnv } = await import('../../config/index.js');
+    const env = getEnv();
+    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+      return false;
+    }
+
+    try {
+      const url = `${env.SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/market_instruments?is_active=eq.true&order=symbol.asc&limit=5000`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(15_000),
+      });
+
+      if (!res.ok) return false;
+      const data = (await res.json()) as Array<{
+        symbol: string;
+        name: string;
+        exchange: string;
+        asset_type: AssetType;
+        currency: string;
+        provider_token?: string | null;
+        isin?: string | null;
+        tick_size?: number;
+        lot_size?: number;
+      }>;
+
+      if (Array.isArray(data) && data.length > 0) {
+        const records: InstrumentRecord[] = data.map((d) => ({
+          symbol: d.symbol,
+          name: d.name,
+          exchange: d.exchange as 'NSE' | 'BSE',
+          market: d.exchange.toLowerCase() as Market,
+          assetType: d.asset_type,
+          currency: d.currency,
+          providerToken: d.provider_token ?? undefined,
+          isin: d.isin ?? undefined,
+          tickSize: d.tick_size !== undefined ? Number(d.tick_size) : undefined,
+          lotSize: d.lot_size !== undefined ? Number(d.lot_size) : undefined,
+        }));
+
+        this.load(records);
+        logger.info({ count: records.length }, 'Loaded instruments from canonical PostgreSQL master');
+        return true;
+      }
+    } catch (err) {
+      logger.debug({ err }, 'Could not sync instruments from PostgreSQL, using local universe');
+    }
+    return false;
+  }
 }
 
 export const instrumentRepository = new InstrumentRepository();

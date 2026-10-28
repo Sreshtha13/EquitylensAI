@@ -17,6 +17,8 @@ import { angelProvider } from './providers/angel/index.js';
 import { yahooProvider } from './providers/yahoo/index.js';
 import { instrumentRepository } from './instruments/repository.js';
 import { marketCache } from './cache/memoryCache.js';
+import { CacheManager } from './cache/cacheManager.js';
+import { observationRepository } from './observations/observationRepository.js';
 import { calculateStockPerformance } from './performanceCalculator.js';
 import { yf } from './providers/yahoo/client.js';
 import { AppError } from '../utils/appError.js';
@@ -152,6 +154,34 @@ export class MarketService {
     const requestsFullHistory =
       request.interval === 'ONE_DAY' && request.from.startsWith('1900-01-01');
 
+    // Check canonical persistence store for daily candles
+    if (request.interval === 'ONE_DAY' && !requestsFullHistory) {
+      try {
+        const persisted = await observationRepository.getDailySeries(
+          exchange,
+          cleanSym,
+          request.from,
+          request.to,
+        );
+        if (persisted.length > 0) {
+          const history: HistoricalPrices = {
+            symbol: cleanSym,
+            exchange,
+            interval: 'ONE_DAY',
+            candles: persisted,
+            retrievedAt: new Date().toISOString(),
+            source: 'canonical_db',
+            fromDate: request.from,
+            toDate: request.to,
+          };
+          marketCache.set(cacheKey, history, { ttlSeconds: 60, staleTtlSeconds: 300 });
+          return history;
+        }
+      } catch (err) {
+        logger.debug({ err, symbol: cleanSym }, 'Could not read historical observations from DB');
+      }
+    }
+
     let lastError: unknown = null;
 
     // Angel's NSE history endpoint is intended for bounded ranges; use Yahoo for MAX.
@@ -165,6 +195,13 @@ export class MarketService {
         });
 
         marketCache.set(cacheKey, history, { ttlSeconds: 60, staleTtlSeconds: 300 });
+
+        if (request.interval === 'ONE_DAY' && history.candles.length > 0) {
+          void observationRepository
+            .upsertDailyObservations(exchange, cleanSym, history.candles, history.source)
+            .catch(() => {});
+        }
+
         return history;
       } catch (err) {
         lastError = err;
@@ -184,6 +221,13 @@ export class MarketService {
       });
 
       marketCache.set(cacheKey, history, { ttlSeconds: 60, staleTtlSeconds: 300 });
+
+      if (request.interval === 'ONE_DAY' && history.candles.length > 0) {
+        void observationRepository
+          .upsertDailyObservations(exchange, cleanSym, history.candles, history.source)
+          .catch(() => {});
+      }
+
       return history;
     } catch (err) {
       lastError = err;
@@ -434,7 +478,7 @@ export class MarketService {
       .toUpperCase()
       .replace(/\.(NS|BO)$/i, '');
     const exchange = (request.exchange || 'NSE').toUpperCase();
-    const cacheKey = `performance:${exchange}:${cleanSym}`;
+    const cacheKey = CacheManager.performanceKey(exchange, cleanSym);
 
     const cached = marketCache.get<StockPerformanceResponse>(cacheKey);
     if (cached && !cached.isStale) {

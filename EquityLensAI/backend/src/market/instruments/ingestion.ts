@@ -124,6 +124,13 @@ export async function ingestInstruments(cachePath: string = DEFAULT_CACHE_PATH):
     instrumentRepository.load(normalizedRecords);
     await instrumentRepository.saveToDisk(cachePath);
 
+    // Synchronize to canonical PostgreSQL security master if configured
+    try {
+      await instrumentRepository.syncToDatabase();
+    } catch (dbErr) {
+      logger.warn({ dbErr }, 'Non-fatal: could not synchronize instruments to PostgreSQL');
+    }
+
     lastIngestedAt = new Date().toISOString();
     const durationMs = Date.now() - startTime;
 
@@ -148,11 +155,18 @@ export async function ingestInstruments(cachePath: string = DEFAULT_CACHE_PATH):
 
 /**
  * Initializes the repository on startup:
- * Attempts to load from disk cache if present; otherwise keeps seed data.
+ * 1. Attempts to hydrate from canonical PostgreSQL database.
+ * 2. Attempts to load from disk cache if present.
+ * 3. Otherwise keeps seed data.
  */
 export async function initializeInstruments(
   cachePath: string = DEFAULT_CACHE_PATH,
 ): Promise<boolean> {
+  const dbLoaded = await instrumentRepository.syncFromDatabase().catch(() => false);
+  if (dbLoaded) {
+    return true;
+  }
+
   const loaded = await instrumentRepository.loadFromDisk(cachePath);
   if (!loaded) {
     logger.info(

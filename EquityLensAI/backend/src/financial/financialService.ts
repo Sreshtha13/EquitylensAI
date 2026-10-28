@@ -20,6 +20,7 @@ import {
 import { calcHealthScore } from './healthScore/healthScoreEngine.js';
 import type { FinancialDataRequest, RawFinancialData } from './types.js';
 import { MemoryCache } from '../market/cache/memoryCache.js';
+import { CacheManager } from '../market/cache/cacheManager.js';
 import { AppError } from '../utils/appError.js';
 import { logger } from '../utils/logger.js';
 import { marketService } from '../market/marketService.js';
@@ -39,7 +40,10 @@ class FinancialService {
     request: FinancialDataRequest,
     livePrice?: number | null,
   ): Promise<FinancialAnalysis> {
-    const cacheKey = `financial:${(request.exchange ?? 'default').toUpperCase()}:${request.symbol.toUpperCase()}`;
+    const cacheKey = CacheManager.financialKey(
+      request.exchange ?? 'default',
+      request.symbol,
+    );
 
     const cached = financialCache.get<FinancialAnalysis>(cacheKey);
     if (cached && !cached.isStale) {
