@@ -6,9 +6,13 @@ import { logger } from '../../utils/logger.js';
 
 export class InstrumentRepository {
   private instruments: InstrumentRecord[] = [];
+  private normalizedIndex: { record: InstrumentRecord; symUpper: string; nameUpper: string }[] = [];
   private symbolIndex = new Map<string, InstrumentRecord>();
   private tokenIndex = new Map<string, InstrumentRecord>();
   private exchangeSymbolIndex = new Map<string, InstrumentRecord>();
+  private positionMap = new Map<string, number>();
+  private searchCache = new Map<string, { result: InstrumentSummary[]; expiresAt: number }>();
+  private readonly MAX_SEARCH_CACHE = 1000;
   private isLoaded = false;
 
   constructor() {
@@ -21,6 +25,7 @@ export class InstrumentRepository {
       this.upsert(record);
     }
     this.isLoaded = true;
+    this.searchCache.clear();
   }
 
   upsert(record: InstrumentRecord): void {
@@ -34,18 +39,27 @@ export class InstrumentRepository {
       this.tokenIndex.set(record.providerToken, record);
     }
 
-    // Replace if existing or append
-    const existingIndex = this.instruments.findIndex(
-      (i) =>
-        i.symbol.toUpperCase() === symKey &&
-        i.exchange.toUpperCase() === record.exchange.toUpperCase(),
-    );
+    const existingIndex = this.positionMap.get(exchSymKey);
 
-    if (existingIndex >= 0) {
+    if (existingIndex !== undefined && existingIndex < this.instruments.length) {
       this.instruments[existingIndex] = record;
+      this.normalizedIndex[existingIndex] = {
+        record,
+        symUpper: symKey,
+        nameUpper: record.name.toUpperCase(),
+      };
     } else {
+      const newIndex = this.instruments.length;
       this.instruments.push(record);
+      this.normalizedIndex.push({
+        record,
+        symUpper: symKey,
+        nameUpper: record.name.toUpperCase(),
+      });
+      this.positionMap.set(exchSymKey, newIndex);
     }
+
+    this.searchCache.clear();
   }
 
   getBySymbol(symbol: string, exchange?: string): InstrumentRecord | undefined {
@@ -95,14 +109,25 @@ export class InstrumentRepository {
     if (!q) return [];
 
     const limit = options?.limit ?? 20;
+    const cacheKey = `${q}:${options?.market || 'all'}:${options?.assetType || 'all'}:${limit}`;
+
+    const now = Date.now();
+    const cached = this.searchCache.get(cacheKey);
+    if (cached && cached.expiresAt > now) {
+      return cached.result;
+    }
+
     const scored: { item: InstrumentRecord; score: number }[] = [];
 
-    for (const item of this.instruments) {
+    for (let i = 0; i < this.normalizedIndex.length; i++) {
+      const entry = this.normalizedIndex[i]!;
+      const item = entry.record;
+
       if (options?.market && item.market !== options.market) continue;
       if (options?.assetType && item.assetType !== options.assetType) continue;
 
-      const sym = item.symbol.toUpperCase();
-      const name = item.name.toUpperCase();
+      const sym = entry.symUpper;
+      const name = entry.nameUpper;
 
       let score = 0;
 
@@ -128,7 +153,7 @@ export class InstrumentRepository {
       return a.item.symbol.localeCompare(b.item.symbol);
     });
 
-    return scored.slice(0, limit).map((s) => ({
+    const result = scored.slice(0, limit).map((s) => ({
       symbol: s.item.symbol,
       name: s.item.name,
       exchange: s.item.exchange,
@@ -138,6 +163,15 @@ export class InstrumentRepository {
       providerToken: s.item.providerToken,
       isin: s.item.isin,
     }));
+
+    // Maintain search cache bounded size
+    if (this.searchCache.size >= this.MAX_SEARCH_CACHE) {
+      const oldestKey = this.searchCache.keys().next().value;
+      if (oldestKey) this.searchCache.delete(oldestKey);
+    }
+    this.searchCache.set(cacheKey, { result, expiresAt: now + 300_000 }); // 5m TTL
+
+    return result;
   }
 
   count(): number {
