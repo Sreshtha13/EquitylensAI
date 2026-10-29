@@ -89,16 +89,16 @@ async function main() {
   // 5. Financial Statements & Analysis
   console.log('\n--- 5. Financial Statements & Analysis ---');
   try {
-    const analysis = await financialService.getFinancialAnalysis({ symbol: 'RELIANCE', exchange: 'NSE' });
+    const analysis = await financialService.getFinancialAnalysis({ symbol: 'RELIANCE', exchange: 'NSE', annualPeriods: 4 });
     console.log('RELIANCE Financial Analysis:');
     console.log('- PE Ratio:', analysis.valuation?.peRatio);
     console.log('- PB Ratio:', analysis.valuation?.priceToBook);
-    console.log('- ROE (%):', analysis.profitability?.roe);
+    console.log('- ROE (%):', analysis.profitability?.returnOnEquity);
     console.log('- Net Margin (%):', analysis.profitability?.netMargin);
     console.log('- Operating Margin (%):', analysis.profitability?.operatingMargin);
     console.log('- Current Ratio:', analysis.liquidity?.currentRatio);
     console.log('- Debt to Equity:', analysis.leverage?.debtToEquity);
-    console.log('- Health Score (0-100):', analysis.healthScore?.overallScore, `(${analysis.healthScore?.rating})`);
+    console.log('- Health Score (0-100):', analysis.healthScore?.overallScore, `(${analysis.healthScore?.grade})`);
     console.log('- Primary Source:', analysis.source, 'Currency:', analysis.currency);
   } catch (e: unknown) {
     console.log('Financial Analysis error:', e instanceof Error ? e.message : String(e));
