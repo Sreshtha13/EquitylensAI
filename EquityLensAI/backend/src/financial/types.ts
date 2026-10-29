@@ -39,9 +39,9 @@ export type {
 
 export type FinancialDataRequest = {
   symbol: string;
-  exchange: string | undefined;
+  exchange?: string | undefined;
   /** Number of annual periods to retrieve (default: 4) */
-  annualPeriods: number | undefined;
+  annualPeriods?: number | undefined;
 };
 
 /** Raw financial data returned by a provider before normalisation */
