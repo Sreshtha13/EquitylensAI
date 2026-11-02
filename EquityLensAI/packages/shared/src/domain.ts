@@ -24,6 +24,24 @@ export type Pagination = {
 
 // ─── Phase 2: Shared market data contracts ───────────────────────────────────
 
+/** Security classification categories for canonical reconciliation */
+export const SECURITY_CLASSIFICATIONS = [
+  'MAINBOARD_EQUITY',
+  'SME_EQUITY',
+  'ETF',
+  'PREFERENCE_SHARE',
+  'REIT',
+  'INVIT',
+  'OTHER',
+] as const;
+
+export type SecurityClassification = (typeof SECURITY_CLASSIFICATIONS)[number];
+
+/** Official exchange listing status */
+export const LISTING_STATUSES = ['ACTIVE', 'SUSPENDED', 'DELISTED'] as const;
+
+export type ListingStatus = (typeof LISTING_STATUSES)[number];
+
 /** Freshness level of a market data observation */
 export type DataFreshness = 'live' | 'delayed' | 'eod' | 'historical' | 'stale' | 'unavailable';
 
@@ -39,6 +57,10 @@ export type InstrumentSummary = {
   providerToken?: string | undefined;
   /** ISIN if available */
   isin?: string | undefined;
+  classification?: SecurityClassification | undefined;
+  listingStatus?: ListingStatus | undefined;
+  scripCode?: string | undefined;
+  series?: string | undefined;
 };
 
 /** Normalized quote with explicit provenance */

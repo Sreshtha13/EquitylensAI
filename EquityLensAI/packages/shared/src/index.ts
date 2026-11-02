@@ -1,11 +1,19 @@
 export type { ApiError, ApiResponse, ApiSuccess } from './api.js';
-export { ASSET_TYPES, MARKETS, CANDLE_INTERVALS } from './domain.js';
+export {
+  ASSET_TYPES,
+  MARKETS,
+  CANDLE_INTERVALS,
+  SECURITY_CLASSIFICATIONS,
+  LISTING_STATUSES,
+} from './domain.js';
 
 export type {
   AssetType,
   Market,
   Pagination,
   DataFreshness,
+  SecurityClassification,
+  ListingStatus,
   InstrumentSummary,
   NormalizedQuote,
   PriceCandle,

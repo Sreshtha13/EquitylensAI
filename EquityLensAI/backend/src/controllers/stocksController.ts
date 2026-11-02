@@ -2,19 +2,32 @@ import type { Request, Response, NextFunction } from 'express';
 import { marketService } from '../market/marketService.js';
 import { ingestInstruments, getIngestionStatus } from '../market/instruments/ingestion.js';
 import { sendSuccess } from '../utils/response.js';
-import type { Market, AssetType, CandleInterval } from '../market/types.js';
+import type {
+  Market,
+  AssetType,
+  CandleInterval,
+  SecurityClassification,
+  ListingStatus,
+} from '../market/types.js';
+import type { IngestionMode } from '../market/instruments/ingestion.js';
 
 export async function searchStocks(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const q = (req.query.q as string) || '';
     const market = req.query.market as Market | undefined;
+    const exchange = req.query.exchange as string | undefined;
     const assetType = req.query.assetType as AssetType | undefined;
+    const classification = req.query.classification as SecurityClassification | undefined;
+    const listingStatus = req.query.listingStatus as ListingStatus | undefined;
     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
 
     const items = marketService.searchInstruments({
       query: q,
       market,
+      exchange,
       assetType,
+      classification,
+      listingStatus,
       limit,
     });
 
@@ -75,12 +88,13 @@ export async function getStockHistorical(
 }
 
 export async function triggerIngestion(
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> {
   try {
-    const result = await ingestInstruments();
+    const mode = (req.body?.mode || req.query?.mode || 'full') as IngestionMode;
+    const result = await ingestInstruments({ mode });
     sendSuccess(res, {
       message: 'Instrument master ingestion completed successfully',
       ...result,

@@ -8,6 +8,8 @@ export type {
   HistoricalPrices,
   IndexSnapshot,
   InstrumentSummary,
+  SecurityClassification,
+  ListingStatus,
   Market,
   MarketOverview,
   NormalizedQuote,

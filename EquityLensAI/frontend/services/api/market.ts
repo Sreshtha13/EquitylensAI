@@ -13,14 +13,20 @@ export async function searchStocks(
   query: string,
   options?: {
     market?: Market | undefined;
+    exchange?: string | undefined;
     assetType?: string | undefined;
+    classification?: string | undefined;
+    listingStatus?: string | undefined;
     limit?: number | undefined;
   },
 ): Promise<SearchStocksResponse> {
   const params = new URLSearchParams();
   params.set('q', query);
   if (options?.market) params.set('market', options.market);
+  if (options?.exchange) params.set('exchange', options.exchange);
   if (options?.assetType) params.set('assetType', options.assetType);
+  if (options?.classification) params.set('classification', options.classification);
+  if (options?.listingStatus) params.set('listingStatus', options.listingStatus);
   if (options?.limit) params.set('limit', String(options.limit));
 
   return apiClient.get<SearchStocksResponse>(`/api/v1/stocks/search?${params.toString()}`);
