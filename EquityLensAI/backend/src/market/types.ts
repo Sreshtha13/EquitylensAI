@@ -13,6 +13,14 @@ import type {
   StockPerformanceResponse,
   SecurityClassification,
   ListingStatus,
+  MarketBreadth,
+  StockMoverItem,
+  VolumeShockerItem,
+  MostWatchedStockItem,
+  TrendingStockItem,
+  SectorPerformanceItem,
+  CircuitStockItem,
+  NewListingItem,
 } from '@equitylensai/shared';
 
 export type {
@@ -30,6 +38,14 @@ export type {
   StockPerformanceResponse,
   SecurityClassification,
   ListingStatus,
+  MarketBreadth,
+  StockMoverItem,
+  VolumeShockerItem,
+  MostWatchedStockItem,
+  TrendingStockItem,
+  SectorPerformanceItem,
+  CircuitStockItem,
+  NewListingItem,
 };
 
 export type InstrumentRecord = {

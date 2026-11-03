@@ -143,25 +143,136 @@ export type IndexSnapshot = {
   name: string;
   symbol: string;
   value: number;
+  currentValue?: number;
   change: number;
   changePercent: number;
   source: string;
   observedAt: string;
+  exchange?: string;
+  marketStatus?: 'OPEN' | 'CLOSED' | 'PRE_MARKET' | 'POST_MARKET';
 };
 
 /** Market overview — only verified data, unsupported fields omitted */
 export type MarketOverview = {
   market: Market;
   indices: IndexSnapshot[];
-  /**
-   * Gainers/losers are NOT included in Phase 2.
-   * Angel One does not provide a reliable universe-wide feed.
-   * Included fields represent what the provider actually supports.
-   */
   retrievedAt: string;
   source: string;
   freshness: DataFreshness;
   isStale: boolean;
+};
+
+/** Market breadth analytics and session state */
+export type MarketBreadth = {
+  advances: number;
+  declines: number;
+  unchanged: number;
+  highs52w: number;
+  lows52w: number;
+  new52WeekHighs?: number;
+  new52WeekLows?: number;
+  upperCircuits: number;
+  lowerCircuits: number;
+  marketStatus: 'OPEN' | 'CLOSED' | 'PRE_MARKET' | 'POST_MARKET';
+  coverage: {
+    trackedCount: number;
+    totalUniverseCount: number;
+    coveragePercent: number;
+    status: 'representative_sample' | 'full';
+  };
+  coverageDisclaimed?: boolean;
+  coveragePercent?: number;
+  coverageSummary?: string;
+  observedAt: string;
+};
+
+/** Standard stock mover entry (gainers, losers, active) */
+export type StockMoverItem = {
+  symbol: string;
+  name: string;
+  exchange: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  percentChange?: number;
+  volume: number;
+  turnover?: number;
+  classification?: SecurityClassification;
+  high52w?: number | null;
+  low52w?: number | null;
+  observedAt: string;
+  source: string;
+};
+
+/** Volume shocker entry with historical comparison ratio */
+export type VolumeShockerItem = StockMoverItem & {
+  currentVolume?: number;
+  historicalAvgVolume: number;
+  volumeRatio: number;
+  comparisonDays: 5 | 10 | 20;
+};
+
+/** Platform-level popularity item derived from real user watchlists */
+export type MostWatchedStockItem = {
+  symbol: string;
+  name: string;
+  exchange: string;
+  price: number | null;
+  changePercent: number | null;
+  watchlistCount: number;
+  uniqueUsersCount: number;
+  uniqueWatchersCount?: number;
+  windowDays: number;
+  rank: number;
+};
+
+/** Algorithmic trending item with transparent reasoning */
+export type TrendingStockItem = {
+  symbol: string;
+  name: string;
+  exchange: string;
+  price: number;
+  changePercent: number;
+  volume: number;
+  trendingScore: number;
+  reasons: string[];
+  window: string;
+};
+
+/** Sector performance aggregation */
+export type SectorPerformanceItem = {
+  sector: string;
+  performancePercent: number;
+  averageChangePercent?: number;
+  advances: number;
+  declines: number;
+  totalConstituents: number;
+  topGainer: {
+    symbol: string;
+    changePercent: number;
+  } | null;
+  topLoser: {
+    symbol: string;
+    changePercent: number;
+  } | null;
+};
+
+/** Circuit limit breaker stock */
+export type CircuitStockItem = StockMoverItem & {
+  circuitType: 'UPPER' | 'LOWER';
+  limitPercent: number;
+};
+
+/** Newly listed stock discovery item */
+export type NewListingItem = {
+  symbol: string;
+  name: string;
+  exchange: string;
+  listingDate?: string;
+  firstDiscoveredAt: string;
+  classification: SecurityClassification;
+  price: number | null;
+  changePercent: number | null;
 };
 
 // ─── Phase 3: Financial Data & Deterministic Financial Intelligence ──────────

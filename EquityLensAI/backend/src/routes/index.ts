@@ -175,6 +175,7 @@ v1Router.use('/alerts', alertsRouter);
 v1Router.use('/notifications', notificationsRouter);
 v1Router.use('/stocks', stocksRouter);
 v1Router.use('/market', marketRouter);
+v1Router.use('/markets', marketRouter);
 v1Router.use('/financial', financialRouter);
 v1Router.use('/ai', aiRouter);
 v1Router.use('/watchlists', watchlistsRouter);
