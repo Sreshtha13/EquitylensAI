@@ -136,6 +136,7 @@ export type {
   HistoricalComparisonResult,
   AiComparisonSection,
   AiComparisonAnalysis,
+  AiComparisonCategoryComparison,
   SavedComparison,
   // Phase 13
   ResearchProjectStatus,

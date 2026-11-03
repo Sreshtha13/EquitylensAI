@@ -279,7 +279,7 @@ describe('AI stock screener API', () => {
       .post('/api/v1/ai/screener')
       .send({
         query: 'Companies with a high score.',
-        filters: [{ field: 'market_cap', operator: 'gt', value: 100000 }],
+        filters: [{ field: 'unsupported_metric', operator: 'gt', value: 100000 }],
         logic: 'AND',
       });
     expect(invalid.status).toBe(400);

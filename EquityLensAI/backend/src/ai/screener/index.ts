@@ -6,6 +6,7 @@ import type { AiClient } from '../common/types.js';
 import {
   getScreenerMetricCatalog,
   SCREENER_METRICS,
+  FINANCIAL_ANALYSIS_METRICS,
   screenerModelJsonSchema,
   screenerFilterSchema,
   screenerFilterGroupSchema,
@@ -167,7 +168,7 @@ function validateModelFilters(
 
   return model.filters.map((filter) => {
     const metric = SCREENER_METRICS[filter.field as keyof typeof SCREENER_METRICS];
-    if (!metric) {
+    if (!metric || !FINANCIAL_ANALYSIS_METRICS.has(filter.field)) {
       throw new AppError(
         'SCREENER_UNSUPPORTED_METRIC',
         `The requested metric "${filter.field}" is not supported.`,

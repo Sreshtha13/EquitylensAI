@@ -163,11 +163,12 @@ export class SavedScreenService {
     const start = Date.now();
     const result = await executeScreenerQuery({
       query: `Saved screen: ${screen.name}`,
-      exchange: validatedDefinition.exchange ?? undefined,
+      exchange: validatedDefinition.exchange ?? null,
+      filters: ((validatedDefinition as Record<string, unknown>)['filters'] as any) ?? [],
       assetType: 'equity',
       period: validatedDefinition.period,
-      logic: validatedDefinition.rootGroup.logic,
-      rootGroup: validatedDefinition.rootGroup,
+      logic: validatedDefinition.rootGroup?.logic ?? 'AND',
+      rootGroup: validatedDefinition.rootGroup ?? { logic: 'AND', conditions: [] },
       sort: validatedDefinition.sort,
       limit: overrides?.limit ?? 25,
       offset: overrides?.offset ?? 0,

@@ -890,7 +890,7 @@ export class MarketIntelligenceService {
         symbol: r.symbol,
         name: r.name,
         exchange: r.exchange,
-        listingDate,
+        ...(listingDate ? { listingDate } : {}),
         firstDiscoveredAt: r.firstDiscoveredAt || new Date().toISOString(),
         classification: r.classification || 'MAINBOARD_EQUITY',
         price,

@@ -8,6 +8,7 @@ import { logger } from '../utils/logger.js';
 function toPublicError(
   error: unknown,
   reqRequestId?: string,
+  reqPath?: string,
 ): {
   statusCode: number;
   body: ApiError;
@@ -32,6 +33,12 @@ function toPublicError(
   }
 
   if (error instanceof ZodError) {
+    const isScreener = Boolean(reqPath && reqPath.includes('/screener'));
+    const details = error.issues.map((issue) => ({
+      field: issue.path.join('.') || 'request',
+      message: issue.message,
+    }));
+
     return {
       statusCode: 400,
       logLevel: 'warn',
@@ -39,8 +46,8 @@ function toPublicError(
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'Invalid request',
-          details: error.flatten(),
+          message: isScreener ? 'Invalid screener request' : 'Invalid request',
+          details,
           ...(reqRequestId ? { requestId: reqRequestId } : {}),
           retryable: false,
         },
@@ -108,7 +115,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ): void {
-  const mapped = toPublicError(error, req.requestId);
+  const mapped = toPublicError(error, req.requestId, req.originalUrl || req.url || req.path);
   const env = getEnv();
 
   logger[mapped.logLevel](

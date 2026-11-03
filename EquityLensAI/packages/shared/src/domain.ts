@@ -1156,10 +1156,25 @@ export const SCREENER_SUPPORTED_METRICS = [
   'interest_coverage',
   'revenue_growth',
   'net_income_growth',
+  'profit_growth',
   'eps_growth',
   'free_cash_flow_margin',
   'pe_ratio',
   'price_to_book',
+  'eps',
+  'dividend_yield',
+  'market_cap',
+  'stock_price',
+  'price',
+  'price_change_pct',
+  'change_percent',
+  'volume',
+  'turnover',
+  'fifty_two_week_high',
+  'fifty_two_week_low',
+  'classification',
+  'sector',
+  'industry',
   'financial_health_score',
 ] as const;
 export type ScreenerMetric = (typeof SCREENER_SUPPORTED_METRICS)[number];
@@ -1172,15 +1187,17 @@ export const SCREENER_OPERATORS = [
   'lt',
   'lte',
   'between',
+  'in',
+  'contains',
 ] as const;
 export type ScreenerOperator = (typeof SCREENER_OPERATORS)[number];
 export type ScreenerPeriod = SupportedPeriod;
 
 export type ScreenerCondition = {
   id?: string | undefined;
-  field: ScreenerMetric;
+  field: string;
   operator: ScreenerOperator;
-  value: number;
+  value: number | string;
   upperValue?: number | null | undefined;
 };
 
@@ -1404,12 +1421,54 @@ export type AiComparisonSection = {
   evidenceIds: string[];
 };
 
+export type AiComparisonCategoryComparison = {
+  analysis: string;
+  company_a_metrics: Record<string, unknown>;
+  company_b_metrics: Record<string, unknown>;
+  comparative_conclusion: string;
+  evidence: string[];
+  reporting_period: string;
+  data_availability: 'complete' | 'partial' | 'unavailable';
+};
+
 export type AiComparisonAnalysis = {
   summary: string;
   sections: AiComparisonSection[];
   disclaimer: string;
   model: string;
   generatedAt: string;
+  comparison_summary?: string | undefined;
+  companies?: Array<{
+    symbol: string;
+    exchange: string;
+    name: string;
+    sector: string | null;
+    industry: string | null;
+    marketCap: number | null;
+    price: number | null;
+  }> | undefined;
+  business_comparison?: AiComparisonCategoryComparison | undefined;
+  growth_comparison?: AiComparisonCategoryComparison | undefined;
+  profitability_comparison?: AiComparisonCategoryComparison | undefined;
+  financial_health?: AiComparisonCategoryComparison | undefined;
+  valuation_comparison?: AiComparisonCategoryComparison | undefined;
+  stock_performance?: AiComparisonCategoryComparison | undefined;
+  dividend_comparison?: AiComparisonCategoryComparison | undefined;
+  risk_comparison?: AiComparisonCategoryComparison | undefined;
+  category_winners?: Record<string, { winner: string | null; rationale: string }> | undefined;
+  final_assessment?: {
+    overall_takeaway: string;
+    key_advantages: Record<string, string[]>;
+    key_disadvantages: Record<string, string[]>;
+    trade_offs: string[];
+    inconclusive_areas: string[];
+  } | undefined;
+  data_sources?: Array<{
+    name: string;
+    type: string;
+    retrievedAt: string;
+  }> | undefined;
+  data_limitations?: string[] | undefined;
 };
 
 export type SavedComparison = {
@@ -1462,13 +1521,37 @@ export const REPORT_SECTION_TYPES = [
   'cover_metadata',
   'executive_summary',
   'company_profile',
-  'market_overview',
-  'financial_analysis',
+  'company_overview',
+  'business_model',
+  'industry_overview',
+  'market_position',
+  'competitive_analysis',
   'comparative_analysis',
-  'news_and_developments',
+  'products_and_services',
+  'revenue_analysis',
+  'financial_performance',
+  'financial_analysis',
+  'profitability_analysis',
+  'balance_sheet_analysis',
+  'cash_flow_analysis',
+  'fundamental_analysis',
+  'valuation_analysis',
+  'valuation_multiples',
+  'historical_stock_performance',
+  'management_analysis',
+  'shareholding_analysis',
+  'corporate_governance',
+  'risk_assessment',
   'risks_and_uncertainties',
-  'research_notes',
+  'growth_opportunities',
+  'investment_thesis',
+  'bear_case',
+  'bull_case',
+  'conclusion',
   'conclusion_open_questions',
+  'market_overview',
+  'news_and_developments',
+  'research_notes',
   'sources_and_methodology',
   'custom',
 ] as const;

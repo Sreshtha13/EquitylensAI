@@ -216,6 +216,10 @@ export class InstrumentRepository {
     return undefined;
   }
 
+  findBySymbol(symbol: string, exchange?: string): InstrumentRecord | undefined {
+    return this.getBySymbol(symbol, exchange);
+  }
+
   getByToken(token: string): InstrumentRecord | undefined {
     return this.tokenIndex.get(token);
   }

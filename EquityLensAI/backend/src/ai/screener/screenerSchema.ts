@@ -16,14 +16,38 @@ export type ScreenerMetric =
   | 'interest_coverage'
   | 'revenue_growth'
   | 'net_income_growth'
+  | 'profit_growth'
   | 'eps_growth'
   | 'free_cash_flow_margin'
   | 'pe_ratio'
   | 'price_to_book'
-  | 'financial_health_score';
+  | 'financial_health_score'
+  | 'eps'
+  | 'market_cap'
+  | 'stock_price'
+  | 'price'
+  | 'price_change_pct'
+  | 'change_percent'
+  | 'volume'
+  | 'turnover'
+  | 'dividend_yield'
+  | 'fifty_two_week_high'
+  | 'fifty_two_week_low'
+  | 'classification'
+  | 'sector'
+  | 'industry';
 
 export type ScreenerPeriod = 'annual' | 'ttm';
-export type ScreenerOperator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'between';
+export type ScreenerOperator =
+  | 'eq'
+  | 'neq'
+  | 'gt'
+  | 'gte'
+  | 'lt'
+  | 'lte'
+  | 'between'
+  | 'in'
+  | 'contains';
 
 export type ScreenerMetricDefinition = {
   label: string;
@@ -170,6 +194,17 @@ export const SCREENER_METRICS: Record<ScreenerMetric, ScreenerMetricDefinition> 
     minimum: -10000,
     maximum: 10000,
   },
+  profit_growth: {
+    label: 'Net profit growth year over year',
+    description: 'Annual percentage change in net profit / net income compared to prior year.',
+    category: 'growth',
+    unit: 'percent',
+    aliases: ['profit growth', 'net profit growth', 'pat growth'],
+    analysisPath: 'growth.netIncomeGrowthYoY',
+    periods: ['annual'],
+    minimum: -10000,
+    maximum: 10000,
+  },
   eps_growth: {
     label: 'Diluted EPS growth year over year',
     description: 'Annual percentage change in diluted earnings per share YoY.',
@@ -214,6 +249,160 @@ export const SCREENER_METRICS: Record<ScreenerMetric, ScreenerMetricDefinition> 
     minimum: -10000,
     maximum: 10000,
   },
+  eps: {
+    label: 'Diluted earnings per share (EPS)',
+    description: 'Earnings per share allocated to each outstanding share of common stock.',
+    category: 'profitability',
+    unit: 'ratio',
+    aliases: ['eps', 'earnings per share', 'diluted eps'],
+    analysisPath: 'profitability.eps',
+    periods: ['annual', 'ttm'],
+    minimum: -100000,
+    maximum: 1000000,
+  },
+  market_cap: {
+    label: 'Market capitalization',
+    description: 'Total market value of all outstanding shares in INR.',
+    category: 'valuation',
+    unit: 'ratio',
+    aliases: ['market cap', 'mcap', 'market capitalization', 'market value'],
+    analysisPath: 'valuation.marketCap',
+    periods: ['annual', 'ttm'],
+    minimum: 0,
+    maximum: 1e16,
+  },
+  stock_price: {
+    label: 'Current stock price',
+    description: 'Latest traded equity share price in INR.',
+    category: 'valuation',
+    unit: 'ratio',
+    aliases: ['stock price', 'price', 'cmp', 'ltp'],
+    analysisPath: 'market.price',
+    periods: ['annual', 'ttm'],
+    minimum: 0,
+    maximum: 1e8,
+  },
+  price: {
+    label: 'Current stock price',
+    description: 'Latest traded equity share price in INR.',
+    category: 'valuation',
+    unit: 'ratio',
+    aliases: ['price', 'stock price', 'cmp'],
+    analysisPath: 'market.price',
+    periods: ['annual', 'ttm'],
+    minimum: 0,
+    maximum: 1e8,
+  },
+  price_change_pct: {
+    label: 'Price change percentage',
+    description: 'Day percentage change in stock price.',
+    category: 'growth',
+    unit: 'percent',
+    aliases: ['price change', 'change percent', 'day change'],
+    analysisPath: 'market.changePercent',
+    periods: ['annual', 'ttm'],
+    minimum: -100,
+    maximum: 10000,
+  },
+  change_percent: {
+    label: 'Price change percentage',
+    description: 'Day percentage change in stock price.',
+    category: 'growth',
+    unit: 'percent',
+    aliases: ['change percent', 'price change'],
+    analysisPath: 'market.changePercent',
+    periods: ['annual', 'ttm'],
+    minimum: -100,
+    maximum: 10000,
+  },
+  volume: {
+    label: 'Traded volume',
+    description: 'Total number of shares traded in the latest trading session.',
+    category: 'growth',
+    unit: 'ratio',
+    aliases: ['volume', 'traded volume', 'shares traded'],
+    analysisPath: 'market.volume',
+    periods: ['annual', 'ttm'],
+    minimum: 0,
+    maximum: 1e13,
+  },
+  turnover: {
+    label: 'Traded turnover',
+    description: 'Total value of shares traded in the latest session in INR.',
+    category: 'growth',
+    unit: 'ratio',
+    aliases: ['turnover', 'traded value'],
+    analysisPath: 'market.turnover',
+    periods: ['annual', 'ttm'],
+    minimum: 0,
+    maximum: 1e15,
+  },
+  dividend_yield: {
+    label: 'Dividend yield',
+    description: 'Annual dividend per share as a percentage of current share price.',
+    category: 'valuation',
+    unit: 'percent',
+    aliases: ['dividend yield', 'div yield'],
+    analysisPath: 'valuation.dividendYield',
+    periods: ['annual', 'ttm'],
+    minimum: 0,
+    maximum: 100,
+  },
+  fifty_two_week_high: {
+    label: '52-week high',
+    description: 'Highest traded price during the previous 52 weeks in INR.',
+    category: 'valuation',
+    unit: 'ratio',
+    aliases: ['52 week high', '52w high', 'year high'],
+    analysisPath: 'market.fiftyTwoWeekHigh',
+    periods: ['annual', 'ttm'],
+    minimum: 0,
+    maximum: 1e8,
+  },
+  fifty_two_week_low: {
+    label: '52-week low',
+    description: 'Lowest traded price during the previous 52 weeks in INR.',
+    category: 'valuation',
+    unit: 'ratio',
+    aliases: ['52 week low', '52w low', 'year low'],
+    analysisPath: 'market.fiftyTwoWeekLow',
+    periods: ['annual', 'ttm'],
+    minimum: 0,
+    maximum: 1e8,
+  },
+  classification: {
+    label: 'Security classification',
+    description: 'Exchange classification category (e.g. MAIN, SME).',
+    category: 'valuation',
+    unit: 'score',
+    aliases: ['classification', 'market segment', 'board'],
+    analysisPath: 'market.classification',
+    periods: ['annual', 'ttm'],
+    minimum: 0,
+    maximum: 100,
+  },
+  sector: {
+    label: 'Sector',
+    description: 'Broad economic sector of the enterprise.',
+    category: 'valuation',
+    unit: 'score',
+    aliases: ['sector', 'industry sector'],
+    analysisPath: 'profile.sector',
+    periods: ['annual', 'ttm'],
+    minimum: 0,
+    maximum: 100,
+  },
+  industry: {
+    label: 'Industry',
+    description: 'Specific industry grouping within sector.',
+    category: 'valuation',
+    unit: 'score',
+    aliases: ['industry', 'sub-industry'],
+    analysisPath: 'profile.industry',
+    periods: ['annual', 'ttm'],
+    minimum: 0,
+    maximum: 100,
+  },
   financial_health_score: {
     label: 'Financial health score',
     description: 'Deterministic 0–100 composite financial health score evaluated across profitability, liquidity, leverage, cash flow, and growth.',
@@ -227,18 +416,42 @@ export const SCREENER_METRICS: Record<ScreenerMetric, ScreenerMetricDefinition> 
   },
 };
 
-export const screenerOperatorSchema = z.enum(['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between']);
+export const screenerOperatorSchema = z.enum([
+  'eq',
+  'neq',
+  'gt',
+  'gte',
+  'lt',
+  'lte',
+  'between',
+  'in',
+  'contains',
+]);
 export const screenerPeriodSchema = z.enum(['annual', 'ttm']);
 
-const filterShape = z
-  .object({
-    id: z.string().optional(),
-    field: z.string().min(1).max(60),
-    operator: screenerOperatorSchema,
-    value: z.number().finite(),
-    upperValue: z.number().finite().nullable().optional(),
-  })
-  .strict();
+export const screenerExchangeSchema = z
+  .preprocess((val) => {
+    if (val === undefined) {
+      return undefined;
+    }
+    if (val === 'BOTH' || val === 'ALL' || val === '' || val === null) {
+      return null;
+    }
+    if (typeof val === 'string') {
+      const upper = val.toUpperCase().trim();
+      if (upper === 'NSE' || upper === 'BSE') return upper;
+      if (upper === 'BOTH' || upper === 'ALL') return null;
+    }
+    return val;
+  }, z.enum(['NSE', 'BSE']).nullable().optional());
+
+const filterShape = z.object({
+  id: z.string().optional(),
+  field: z.string().min(1).max(60),
+  operator: screenerOperatorSchema,
+  value: z.union([z.number().finite(), z.string().min(1)]),
+  upperValue: z.union([z.number().finite(), z.string().min(1)]).nullable().optional(),
+});
 
 export const screenerFilterSchema = filterShape.superRefine((filter, context) => {
   const metric = SCREENER_METRICS[filter.field as ScreenerMetric];
@@ -247,6 +460,32 @@ export const screenerFilterSchema = filterShape.superRefine((filter, context) =>
       code: z.ZodIssueCode.custom,
       path: ['field'],
       message: 'This metric is not in the screener allowlist.',
+    });
+    return;
+  }
+
+  const isCategorical =
+    filter.field === 'sector' ||
+    filter.field === 'industry' ||
+    filter.field === 'classification';
+
+  if (isCategorical) {
+    const validCategoricalOps = ['eq', 'neq', 'in', 'contains'];
+    if (!validCategoricalOps.includes(filter.operator)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['operator'],
+        message: `Categorical field "${filter.field}" only supports operators: ${validCategoricalOps.join(', ')}.`,
+      });
+    }
+    return;
+  }
+
+  if (typeof filter.value !== 'number' || !Number.isFinite(filter.value)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['value'],
+      message: `Value for metric "${filter.field}" must be a finite number.`,
     });
     return;
   }
@@ -263,13 +502,15 @@ export const screenerFilterSchema = filterShape.superRefine((filter, context) =>
     if (
       filter.upperValue === undefined ||
       filter.upperValue === null ||
+      typeof filter.upperValue !== 'number' ||
+      !Number.isFinite(filter.upperValue) ||
       filter.upperValue <= filter.value ||
       filter.upperValue > metric.maximum
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['upperValue'],
-        message: 'A between filter requires a greater upper value within the metric range.',
+        message: 'A between filter requires a greater numeric upper value within the metric range.',
       });
     }
   } else if (filter.upperValue !== undefined && filter.upperValue !== null) {
@@ -340,9 +581,8 @@ export const screenerFilterGroupSchema: z.ZodType<ScreenerFilterGroup, z.ZodType
     .object({
       id: z.string().optional(),
       logic: z.enum(['AND', 'OR']),
-      conditions: z.array(z.union([screenerFilterSchema, screenerFilterGroupSchema])).min(1),
+      conditions: z.array(z.union([screenerFilterSchema, screenerFilterGroupSchema])),
     })
-    .strict()
     .superRefine((group, context) => {
       const typedGroup = group as ScreenerFilterGroup;
       const depth = getGroupDepth(typedGroup);
@@ -354,11 +594,11 @@ export const screenerFilterGroupSchema: z.ZodType<ScreenerFilterGroup, z.ZodType
         });
       }
       const totalConditions = countConditions(typedGroup);
-      if (totalConditions > 15) {
+      if (totalConditions > 25) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['conditions'],
-          message: `Total filter conditions exceed limit of 15 (current: ${totalConditions}).`,
+          message: `Total filter conditions exceed limit of 25 (current: ${totalConditions}).`,
         });
       }
     }),
@@ -366,28 +606,29 @@ export const screenerFilterGroupSchema: z.ZodType<ScreenerFilterGroup, z.ZodType
 
 export const screenerStrategyDefinitionSchema = z
   .object({
-    schemaVersion: z.literal(1),
-    rootGroup: screenerFilterGroupSchema,
-    exchange: z.enum(['NSE', 'BSE']).nullable().optional(),
+    schemaVersion: z.number().default(1),
+    rootGroup: screenerFilterGroupSchema.optional(),
+    filters: z.array(screenerFilterSchema).optional(),
+    logic: z.enum(['AND', 'OR']).default('AND'),
+    exchange: screenerExchangeSchema,
     period: screenerPeriodSchema.default('annual'),
     sort: z
       .object({
         field: z.string().max(60).nullable(),
         direction: z.enum(['asc', 'desc']),
       })
-      .strict()
       .default({ field: 'symbol', direction: 'asc' }),
-    selectedColumns: z.array(z.string().max(60)).max(20).optional(),
+    selectedColumns: z.array(z.string().max(60)).max(30).optional(),
   })
-  .strict()
+  .passthrough()
   .superRefine((def, context) => {
-    const conditions = flattenConditions(def.rootGroup);
+    const conditions = def.rootGroup ? flattenConditions(def.rootGroup) : (def.filters ?? []);
     for (const [index, filter] of conditions.entries()) {
       const metric = SCREENER_METRICS[filter.field as ScreenerMetric];
       if (metric && !metric.periods.includes(def.period)) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ['rootGroup', 'conditions', index, 'field'],
+          path: def.rootGroup ? ['rootGroup', 'conditions', index, 'field'] : ['filters', index, 'field'],
           message: `${metric.label} is not available for the ${def.period} period.`,
         });
       }
@@ -408,18 +649,18 @@ export const screenerStrategyDefinitionSchema = z
 export const screenerInterpretationRequestSchema = z
   .object({
     query: z.string().trim().min(1).max(500),
-    exchange: z.enum(['NSE', 'BSE']).optional(),
+    exchange: screenerExchangeSchema,
     period: screenerPeriodSchema.default('annual'),
   })
-  .strict();
+  .passthrough();
 
 export const screenerRequestSchema = z
   .object({
     query: z.string().trim().min(1).max(500).default('Custom stock screen'),
-    exchange: z.enum(['NSE', 'BSE']).nullable().optional(),
+    exchange: screenerExchangeSchema.optional().default(null),
     assetType: z.literal('equity').default('equity'),
     period: screenerPeriodSchema.default('annual'),
-    filters: z.array(screenerFilterSchema).min(1).max(15).optional(),
+    filters: z.array(screenerFilterSchema).max(25).optional().default([]),
     logic: z.enum(['AND', 'OR']).default('AND'),
     rootGroup: screenerFilterGroupSchema.optional(),
     sort: z
@@ -427,22 +668,14 @@ export const screenerRequestSchema = z
         field: z.string().max(60).nullable(),
         direction: z.enum(['asc', 'desc']),
       })
-      .strict()
       .default({ field: 'symbol', direction: 'asc' }),
     limit: z.number().int().min(1).max(100).default(25),
     offset: z.number().int().min(0).max(100000).default(0),
+    schemaVersion: z.number().optional(),
+    selectedColumns: z.array(z.string().max(60)).max(30).optional(),
   })
-  .strict()
+  .passthrough()
   .superRefine((request, context) => {
-    if (!request.rootGroup && (!request.filters || request.filters.length === 0)) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['filters'],
-        message: 'At least one filter condition or a root group must be provided.',
-      });
-      return;
-    }
-
     const conditions: ScreenerCondition[] = request.rootGroup
       ? flattenConditions(request.rootGroup)
       : (request.filters ?? []);
@@ -558,14 +791,37 @@ export type ScreenerPeriodType = z.infer<typeof screenerPeriodSchema>;
 export type ScreenerModelResponse = z.infer<typeof screenerModelResponseSchema>;
 export type ScreenerStrategyDefinition = z.infer<typeof screenerStrategyDefinitionSchema>;
 
+export const FINANCIAL_ANALYSIS_METRICS = new Set([
+  'roe',
+  'roa',
+  'roce',
+  'gross_margin',
+  'operating_margin',
+  'net_margin',
+  'debt_to_equity',
+  'current_ratio',
+  'quick_ratio',
+  'interest_coverage',
+  'revenue_growth',
+  'net_income_growth',
+  'profit_growth',
+  'eps_growth',
+  'free_cash_flow_margin',
+  'pe_ratio',
+  'price_to_book',
+  'financial_health_score',
+]);
+
 export function getScreenerMetricCatalog() {
-  return Object.entries(SCREENER_METRICS).map(([id, metric]) => ({
-    id: id as ScreenerMetric,
-    ...metric,
-    availableInFinancialAnalysis: true,
-    availableForScreenerExecution: true,
-    statementScope:
-      'provider-reported statement scope; not classified as consolidated or standalone',
-    missingDataBehavior: 'excluded; missing values are never treated as zero',
-  }));
+  return Object.entries(SCREENER_METRICS)
+    .filter(([id]) => FINANCIAL_ANALYSIS_METRICS.has(id))
+    .map(([id, metric]) => ({
+      id: id as ScreenerMetric,
+      ...metric,
+      availableInFinancialAnalysis: true,
+      availableForScreenerExecution: true,
+      statementScope:
+        'provider-reported statement scope; not classified as consolidated or standalone',
+      missingDataBehavior: 'excluded; missing values are never treated as zero',
+    }));
 }

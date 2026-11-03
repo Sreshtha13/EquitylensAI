@@ -15,6 +15,7 @@ import type {
   AiComparisonAnalysis,
   SavedComparison,
   SupportedPeriod,
+  AiComparisonCategoryComparison,
 } from '@equitylensai/shared';
 
 export type {
@@ -34,6 +35,7 @@ export type {
   AiComparisonAnalysis,
   SavedComparison,
   SupportedPeriod,
+  AiComparisonCategoryComparison,
 };
 
 export type SavedComparisonRow = {
