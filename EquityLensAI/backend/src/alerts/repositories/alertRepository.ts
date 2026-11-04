@@ -1,6 +1,6 @@
 import { getEnv } from '../../config/index.js';
 import { logger } from '../../utils/logger.js';
-import type { AlertRule, AlertEvent } from '@equitylensai/shared';
+import type { AlertRule, AlertEvent, AlertDashboardStats } from '@equitylensai/shared';
 import type { AlertRuleDbRow, AlertEventDbRow } from '../types.js';
 
 class MemoryAlertStore {
@@ -53,6 +53,11 @@ async function supabaseRest<T>(
 }
 
 function mapRuleRowToDomain(row: AlertRuleDbRow): AlertRule {
+  const isExpired = row.expires_at ? new Date(row.expires_at).getTime() <= Date.now() : false;
+  const status = isExpired
+    ? 'EXPIRED'
+    : (row.status ?? (row.enabled ? 'ACTIVE' : 'PAUSED'));
+
   return {
     id: row.id,
     userId: row.user_id,
@@ -61,7 +66,11 @@ function mapRuleRowToDomain(row: AlertRuleDbRow): AlertRule {
     symbol: row.symbol,
     exchange: row.exchange,
     ruleConfig: row.rule_config,
-    enabled: Boolean(row.enabled),
+    enabled: Boolean(row.enabled) && !isExpired,
+    status,
+    triggerType: row.trigger_type ?? 'recurring',
+    expiresAt: row.expires_at ?? null,
+    deliveryChannels: row.delivery_channels ?? ['in_app'],
     cooldownMinutes: Number(row.cooldown_minutes ?? 60),
     lastEvaluatedAt: row.last_evaluated_at,
     lastObservationAt: row.last_observation_at,
@@ -109,6 +118,10 @@ export const alertRepository = {
           exchange: rule.exchange,
           rule_config: rule.ruleConfig,
           enabled: rule.enabled,
+          status: rule.status ?? (rule.enabled ? 'ACTIVE' : 'PAUSED'),
+          trigger_type: rule.triggerType ?? 'recurring',
+          expires_at: rule.expiresAt ?? null,
+          delivery_channels: rule.deliveryChannels ?? ['in_app'],
           cooldown_minutes: rule.cooldownMinutes,
           last_evaluated_at: rule.lastEvaluatedAt,
           last_observation_at: rule.lastObservationAt,
@@ -226,6 +239,10 @@ export const alertRepository = {
       if (updates.name !== undefined) dbUpdates.name = updates.name;
       if (updates.ruleConfig !== undefined) dbUpdates.rule_config = updates.ruleConfig;
       if (updates.enabled !== undefined) dbUpdates.enabled = updates.enabled;
+      if (updates.status !== undefined) dbUpdates.status = updates.status;
+      if (updates.triggerType !== undefined) dbUpdates.trigger_type = updates.triggerType;
+      if (updates.expiresAt !== undefined) dbUpdates.expires_at = updates.expiresAt;
+      if (updates.deliveryChannels !== undefined) dbUpdates.delivery_channels = updates.deliveryChannels;
       if (updates.cooldownMinutes !== undefined) dbUpdates.cooldown_minutes = updates.cooldownMinutes;
       if (updates.lastEvaluatedAt !== undefined) dbUpdates.last_evaluated_at = updates.lastEvaluatedAt;
       if (updates.lastObservationAt !== undefined) dbUpdates.last_observation_at = updates.lastObservationAt;
@@ -383,5 +400,42 @@ export const alertRepository = {
       .filter((e) => e.userId === userId)
       .sort((a, b) => new Date(b.triggerTimestamp).getTime() - new Date(a.triggerTimestamp).getTime())
       .slice(0, limit);
+  },
+
+  async getStats(userId: string): Promise<AlertDashboardStats> {
+    const { rules } = await this.listRules(userId, { limit: 500 });
+    const now = Date.now();
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayStartTime = todayStart.getTime();
+
+    const total = rules.length;
+    let active = 0;
+    let paused = 0;
+    let expired = 0;
+    let triggeredToday = 0;
+
+    for (const rule of rules) {
+      const isExpired = rule.expiresAt ? new Date(rule.expiresAt).getTime() <= now : false;
+      if (isExpired || rule.status === 'EXPIRED') {
+        expired++;
+      } else if (rule.status === 'PAUSED' || (!rule.enabled && rule.status !== 'TRIGGERED')) {
+        paused++;
+      } else if (rule.enabled && (rule.status === 'ACTIVE' || !rule.status)) {
+        active++;
+      }
+
+      if (rule.lastTriggeredAt && new Date(rule.lastTriggeredAt).getTime() >= todayStartTime) {
+        triggeredToday++;
+      }
+    }
+
+    return { total, active, paused, triggeredToday, expired };
+  },
+
+  async getExpiredRules(): Promise<AlertRule[]> {
+    const now = Date.now();
+    const allEnabled = await this.getAllEnabledRules();
+    return allEnabled.filter((r) => r.expiresAt && new Date(r.expiresAt).getTime() <= now);
   },
 };

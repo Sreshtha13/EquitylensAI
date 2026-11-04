@@ -14,6 +14,10 @@ export interface AlertRuleDbRow {
   exchange: SupportedExchange | null;
   rule_config: AlertRuleConfig;
   enabled: boolean;
+  status?: 'ACTIVE' | 'PAUSED' | 'TRIGGERED' | 'EXPIRED' | 'RESOLVED';
+  trigger_type?: 'one_time' | 'recurring';
+  expires_at?: string | null;
+  delivery_channels?: Array<'in_app' | 'email' | 'push'>;
   cooldown_minutes: number;
   last_evaluated_at: string | null;
   last_observation_at: string | null;

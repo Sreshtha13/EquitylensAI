@@ -12,6 +12,7 @@ import {
   previewAlert,
   getSupportedAlertTypes,
   triggerAlertEvaluation,
+  getAlertStats,
   type ListAlertsParams,
   type CreateAlertInput,
   type UpdateAlertInput,
@@ -23,6 +24,16 @@ export function useAlerts(params: ListAlertsParams = {}) {
     queryKey: ['alerts', params],
     queryFn: () => listAlerts(params),
     enabled: isAuthenticated,
+  });
+}
+
+export function useAlertStats() {
+  const { isAuthenticated } = useAuth();
+  return useQuery({
+    queryKey: ['alertStats'],
+    queryFn: getAlertStats,
+    enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 }
 
@@ -58,6 +69,7 @@ export function useCreateAlert() {
     mutationFn: (input: CreateAlertInput) => createAlert(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['alertStats'] });
     },
   });
 }
@@ -70,6 +82,7 @@ export function useUpdateAlert() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       queryClient.invalidateQueries({ queryKey: ['alert', variables.alertId] });
+      queryClient.invalidateQueries({ queryKey: ['alertStats'] });
     },
   });
 }
@@ -80,6 +93,7 @@ export function useDeleteAlert() {
     mutationFn: (alertId: string) => deleteAlert(alertId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['alertStats'] });
     },
   });
 }
@@ -91,6 +105,7 @@ export function useToggleAlert() {
       enabled ? enableAlert(alertId) : disableAlert(alertId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['alertStats'] });
     },
   });
 }
@@ -107,6 +122,7 @@ export function useTriggerAlertEvaluation() {
     mutationFn: () => triggerAlertEvaluation(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['alertStats'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['unreadNotificationsCount'] });
     },

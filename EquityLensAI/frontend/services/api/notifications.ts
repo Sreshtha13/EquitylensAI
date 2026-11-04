@@ -8,6 +8,8 @@ import type {
 export type ListNotificationsParams = {
   unreadOnly?: boolean | undefined;
   category?: NotificationCategory | undefined;
+  archived?: boolean | undefined;
+  search?: string | undefined;
   limit?: number | undefined;
   offset?: number | undefined;
 };
@@ -26,6 +28,8 @@ export async function listNotifications(
   const query = new URLSearchParams();
   if (params.unreadOnly !== undefined) query.set('unreadOnly', String(params.unreadOnly));
   if (params.category) query.set('category', params.category);
+  if (params.archived !== undefined) query.set('archived', String(params.archived));
+  if (params.search) query.set('search', params.search);
   if (params.limit) query.set('limit', String(params.limit));
   if (params.offset) query.set('offset', String(params.offset));
 
@@ -49,6 +53,22 @@ export async function markAllNotificationsRead(): Promise<{ markedRead: number }
   return apiClient.patch<{ markedRead: number }>('/api/v1/notifications/read-all');
 }
 
+export async function archiveNotification(
+  notificationId: string,
+): Promise<{ archived: boolean; notificationId: string }> {
+  return apiClient.patch<{ archived: boolean; notificationId: string }>(
+    `/api/v1/notifications/${notificationId}/archive`,
+  );
+}
+
+export async function unarchiveNotification(
+  notificationId: string,
+): Promise<{ archived: boolean; notificationId: string }> {
+  return apiClient.patch<{ archived: boolean; notificationId: string }>(
+    `/api/v1/notifications/${notificationId}/unarchive`,
+  );
+}
+
 export async function deleteNotification(
   notificationId: string,
 ): Promise<{ deleted: boolean; notificationId: string }> {
@@ -65,4 +85,31 @@ export async function updateAlertPreferences(
   updates: Partial<UserAlertPreferences>,
 ): Promise<UserAlertPreferences> {
   return apiClient.patch<UserAlertPreferences>('/api/v1/notifications/preferences', updates);
+}
+
+export async function getPushPublicKey(): Promise<{ publicKey: string }> {
+  return apiClient.get<{ publicKey: string }>('/api/v1/notifications/push/public-key');
+}
+
+export async function subscribePush(subscription: {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  userAgent?: string;
+}): Promise<{ subscribed: boolean }> {
+  return apiClient.post<{ subscribed: boolean }>('/api/v1/notifications/push/subscribe', subscription);
+}
+
+export async function unsubscribePush(endpoint: string): Promise<{ unsubscribed: boolean }> {
+  return apiClient.post<{ unsubscribed: boolean }>('/api/v1/notifications/push/unsubscribe', {
+    endpoint,
+  });
+}
+
+export async function listNotificationDeliveries(
+  notificationId: string,
+): Promise<{ deliveries: any[] }> {
+  return apiClient.get<{ deliveries: any[] }>(
+    `/api/v1/notifications/${notificationId}/deliveries`,
+  );
 }

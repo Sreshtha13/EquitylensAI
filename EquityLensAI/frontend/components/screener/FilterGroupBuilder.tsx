@@ -39,7 +39,7 @@ export function FilterGroupBuilder({
   depth = 1,
   maxDepth = 3,
 }: FilterGroupBuilderProps) {
-  const metricMap = new Map(metrics.map((m) => [m.id, m]));
+  const metricMap = new Map<string, ScreenerMetricDefinition>(metrics.map((m) => [m.id, m]));
 
   const toggleLogic = () => {
     onChange({
@@ -257,7 +257,7 @@ export function FilterGroupBuilder({
                         operator: e.target.value as ScreenerOperator,
                         upperValue:
                           e.target.value === 'between'
-                            ? (item.upperValue ?? item.value + 10)
+                            ? (item.upperValue ?? Number(item.value || 0) + 10)
                             : null,
                       })
                     }
@@ -351,7 +351,7 @@ export function formatFilterGroupSummary(
   group: ScreenerFilterGroup,
   metrics: ScreenerMetricDefinition[],
 ): string {
-  const metricMap = new Map(metrics.map((m) => [m.id, m]));
+  const metricMap = new Map<string, ScreenerMetricDefinition>(metrics.map((m) => [m.id, m]));
 
   const formatCondition = (c: ScreenerCondition): string => {
     const def = metricMap.get(c.field);
@@ -368,6 +368,8 @@ export function formatFilterGroupSummary(
       lt: '<',
       lte: '≤',
       between: '↔',
+      in: 'in',
+      contains: 'contains',
     };
     return `${label} ${opSymbols[c.operator]} ${c.value}${unit}`;
   };

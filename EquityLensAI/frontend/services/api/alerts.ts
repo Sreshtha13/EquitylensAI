@@ -3,8 +3,11 @@ import type {
   AlertRule,
   AlertEvent,
   AlertType,
+  AlertStatus,
+  AlertTriggerType,
   AlertRuleConfig,
   SupportedExchange,
+  AlertDashboardStats,
 } from '@equitylensai/shared';
 
 export type CreateAlertInput = {
@@ -12,6 +15,10 @@ export type CreateAlertInput = {
   alertType: AlertType;
   symbol?: string | null | undefined;
   exchange?: SupportedExchange | null | undefined;
+  status?: AlertStatus | undefined;
+  triggerType?: AlertTriggerType | undefined;
+  expiresAt?: string | null | undefined;
+  deliveryChannels?: Array<'in_app' | 'email' | 'push'> | undefined;
   cooldownMinutes?: number | undefined;
   ruleConfig: AlertRuleConfig;
 };
@@ -19,6 +26,10 @@ export type CreateAlertInput = {
 export type UpdateAlertInput = {
   name?: string | undefined;
   enabled?: boolean | undefined;
+  status?: AlertStatus | undefined;
+  triggerType?: AlertTriggerType | undefined;
+  expiresAt?: string | null | undefined;
+  deliveryChannels?: Array<'in_app' | 'email' | 'push'> | undefined;
   cooldownMinutes?: number | undefined;
   ruleConfig?: AlertRuleConfig | undefined;
 };
@@ -47,11 +58,22 @@ export type PreviewAlertResponse = {
 
 export type SupportedTypesResponse = {
   alertTypes: string[];
+  alertStatuses: string[];
+  triggerTypes: string[];
   priceConditions: string[];
   percentagePeriods: string[];
   percentageDirections: string[];
+  rsiConditions: string[];
+  macdConditions: string[];
+  maConditions: string[];
+  highLowConditions: string[];
+  circuitConditions: string[];
+  corporateActionTypes: string[];
+  supportedIndices: string[];
+  watchlistEventTypes: string[];
   financialMetrics: string[];
   comparisonOperators: string[];
+  notificationCategories: string[];
   announcementCategories: string[];
 };
 
@@ -65,6 +87,10 @@ export async function listAlerts(params: ListAlertsParams = {}): Promise<ListAle
 
   const url = `/api/v1/alerts${query.toString() ? `?${query.toString()}` : ''}`;
   return apiClient.get<ListAlertsResponse>(url);
+}
+
+export async function getAlertStats(): Promise<AlertDashboardStats> {
+  return apiClient.get<AlertDashboardStats>('/api/v1/alerts/stats');
 }
 
 export async function getAlert(alertId: string): Promise<AlertRule> {

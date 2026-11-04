@@ -4,6 +4,7 @@ import { sendSuccess } from '../utils/response.js';
 import {
   listNotificationsQuerySchema,
   updateAlertPreferencesSchema,
+  subscribePushSchema,
 } from '../validation/alertSchemas.js';
 
 export const notificationsController = {
@@ -33,11 +34,55 @@ export const notificationsController = {
     sendSuccess(res, result);
   },
 
+  async archiveNotification(req: Request, res: Response): Promise<void> {
+    const userId = req.user!.id;
+    const notificationId = req.params.notificationId!;
+    await notificationService.archiveNotification(notificationId, userId);
+    sendSuccess(res, { archived: true, notificationId });
+  },
+
+  async unarchiveNotification(req: Request, res: Response): Promise<void> {
+    const userId = req.user!.id;
+    const notificationId = req.params.notificationId!;
+    await notificationService.unarchiveNotification(notificationId, userId);
+    sendSuccess(res, { archived: false, notificationId });
+  },
+
   async deleteNotification(req: Request, res: Response): Promise<void> {
     const userId = req.user!.id;
     const notificationId = req.params.notificationId!;
     await notificationService.deleteNotification(notificationId, userId);
     sendSuccess(res, { deleted: true, notificationId });
+  },
+
+  async listDeliveries(req: Request, res: Response): Promise<void> {
+    const notificationId = req.params.notificationId!;
+    const deliveries = await notificationService.listDeliveries(notificationId);
+    sendSuccess(res, { deliveries, count: deliveries.length });
+  },
+
+  async subscribePush(req: Request, res: Response): Promise<void> {
+    const userId = req.user!.id;
+    const input = subscribePushSchema.parse(req.body);
+    const sub = await notificationService.subscribePush(userId, {
+      endpoint: input.endpoint,
+      p256dh: input.p256dh,
+      auth: input.auth,
+      ...(input.userAgent !== undefined ? { userAgent: input.userAgent } : {}),
+    });
+    sendSuccess(res, sub, 201);
+  },
+
+  async unsubscribePush(req: Request, res: Response): Promise<void> {
+    const userId = req.user!.id;
+    const endpoint = req.body?.endpoint as string;
+    const result = await notificationService.unsubscribePush(userId, endpoint || '');
+    sendSuccess(res, result);
+  },
+
+  getPushPublicKey(_req: Request, res: Response): void {
+    const key = notificationService.getPushPublicKey();
+    sendSuccess(res, key);
   },
 
   async getPreferences(req: Request, res: Response): Promise<void> {

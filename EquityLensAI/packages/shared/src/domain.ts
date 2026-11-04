@@ -812,15 +812,35 @@ export type NewsIngestionStatus = {
 // Phase 9: Alerts & Notifications System
 // ==========================================
 
+// ==========================================
+// Phase 9: Alerts & Notifications System
+// ==========================================
+
 export const ALERT_TYPES = [
   'price',
   'percentage_change',
   'volume',
-  'financial_metric',
+  'unusual_volume',
+  'rsi',
+  'macd',
+  'moving_average',
+  '52w_high_low',
+  'circuit',
   'announcement',
+  'corporate_action',
+  'financial_results',
+  'financial_metric',
+  'index_movement',
+  'watchlist_event',
   'news',
 ] as const;
 export type AlertType = (typeof ALERT_TYPES)[number];
+
+export const ALERT_STATUSES = ['ACTIVE', 'PAUSED', 'TRIGGERED', 'EXPIRED', 'RESOLVED'] as const;
+export type AlertStatus = (typeof ALERT_STATUSES)[number];
+
+export const ALERT_TRIGGER_TYPES = ['one_time', 'recurring'] as const;
+export type AlertTriggerType = (typeof ALERT_TRIGGER_TYPES)[number];
 
 export const PRICE_CONDITIONS = [
   'rises_above',
@@ -835,6 +855,46 @@ export type PercentageChangePeriod = (typeof PERCENTAGE_CHANGE_PERIODS)[number];
 
 export const PERCENTAGE_DIRECTIONS = ['up', 'down', 'any'] as const;
 export type PercentageDirection = (typeof PERCENTAGE_DIRECTIONS)[number];
+
+export const RSI_CONDITIONS = ['overbought', 'oversold', 'crosses_above', 'crosses_below'] as const;
+export type RsiCondition = (typeof RSI_CONDITIONS)[number];
+
+export const MACD_CONDITIONS = ['bullish_crossover', 'bearish_crossover'] as const;
+export type MacdCondition = (typeof MACD_CONDITIONS)[number];
+
+export const MA_CONDITIONS = [
+  'price_crosses_above',
+  'price_crosses_below',
+  'golden_cross',
+  'death_cross',
+] as const;
+export type MaCondition = (typeof MA_CONDITIONS)[number];
+
+export const HIGH_LOW_CONDITIONS = [
+  'new_52w_high',
+  'new_52w_low',
+  'within_percent_of_high',
+  'within_percent_of_low',
+] as const;
+export type HighLowCondition = (typeof HIGH_LOW_CONDITIONS)[number];
+
+export const CIRCUIT_CONDITIONS = ['upper_circuit', 'lower_circuit'] as const;
+export type CircuitCondition = (typeof CIRCUIT_CONDITIONS)[number];
+
+export const CORPORATE_ACTION_TYPES = [
+  'dividend',
+  'bonus_issue',
+  'stock_split',
+  'rights_issue',
+  'any',
+] as const;
+export type CorporateActionType = (typeof CORPORATE_ACTION_TYPES)[number];
+
+export const SUPPORTED_INDICES = ['NIFTY 50', 'SENSEX', 'BANKNIFTY'] as const;
+export type SupportedIndex = (typeof SUPPORTED_INDICES)[number];
+
+export const WATCHLIST_EVENT_TYPES = ['price_movement', 'announcement', 'news'] as const;
+export type WatchlistEventType = (typeof WATCHLIST_EVENT_TYPES)[number];
 
 export const FINANCIAL_ALERT_METRICS = [
   'roe',
@@ -869,11 +929,62 @@ export type VolumeAlertConfig = {
   targetVolume: number;
 };
 
+export type UnusualVolumeAlertConfig = {
+  multiplier: number;
+  baselineDays: 5 | 10 | 20;
+};
+
+export type RsiAlertConfig = {
+  condition: RsiCondition;
+  threshold: number;
+  period?: number | undefined;
+};
+
+export type MacdAlertConfig = {
+  condition: MacdCondition;
+  fastPeriod?: number | undefined;
+  slowPeriod?: number | undefined;
+  signalPeriod?: number | undefined;
+};
+
+export type MovingAverageAlertConfig = {
+  condition: MaCondition;
+  period?: 20 | 50 | 200 | undefined;
+};
+
+export type HighLowAlertConfig = {
+  condition: HighLowCondition;
+  tolerancePercent?: number | undefined;
+};
+
+export type CircuitAlertConfig = {
+  condition: CircuitCondition;
+};
+
+export type CorporateActionAlertConfig = {
+  actionType: CorporateActionType;
+};
+
+export type FinancialResultsAlertConfig = {
+  scope: 'stock' | 'watchlist';
+};
+
 export type FinancialMetricAlertConfig = {
   metric: FinancialAlertMetric;
   operator: ComparisonOperator;
   thresholdValue: number;
   periodType?: 'annual' | 'quarterly' | 'ttm' | undefined;
+};
+
+export type IndexMovementAlertConfig = {
+  indexSymbol: SupportedIndex;
+  condition: 'rises_above' | 'falls_below' | 'percent_change';
+  threshold: number;
+};
+
+export type WatchlistEventAlertConfig = {
+  eventType: WatchlistEventType;
+  thresholdPercent?: number | undefined;
 };
 
 export type AnnouncementAlertConfig = {
@@ -890,8 +1001,18 @@ export type AlertRuleConfig =
   | ({ type: 'price' } & PriceAlertConfig)
   | ({ type: 'percentage_change' } & PercentageChangeAlertConfig)
   | ({ type: 'volume' } & VolumeAlertConfig)
-  | ({ type: 'financial_metric' } & FinancialMetricAlertConfig)
+  | ({ type: 'unusual_volume' } & UnusualVolumeAlertConfig)
+  | ({ type: 'rsi' } & RsiAlertConfig)
+  | ({ type: 'macd' } & MacdAlertConfig)
+  | ({ type: 'moving_average' } & MovingAverageAlertConfig)
+  | ({ type: '52w_high_low' } & HighLowAlertConfig)
+  | ({ type: 'circuit' } & CircuitAlertConfig)
   | ({ type: 'announcement' } & AnnouncementAlertConfig)
+  | ({ type: 'corporate_action' } & CorporateActionAlertConfig)
+  | ({ type: 'financial_results' } & FinancialResultsAlertConfig)
+  | ({ type: 'financial_metric' } & FinancialMetricAlertConfig)
+  | ({ type: 'index_movement' } & IndexMovementAlertConfig)
+  | ({ type: 'watchlist_event' } & WatchlistEventAlertConfig)
   | ({ type: 'news' } & NewsAlertConfig);
 
 export type AlertRule = {
@@ -903,6 +1024,10 @@ export type AlertRule = {
   exchange: SupportedExchange | null;
   ruleConfig: AlertRuleConfig;
   enabled: boolean;
+  status?: AlertStatus | undefined;
+  triggerType?: AlertTriggerType | undefined;
+  expiresAt?: string | null | undefined;
+  deliveryChannels?: Array<'in_app' | 'email' | 'push'> | undefined;
   cooldownMinutes: number;
   lastEvaluatedAt: string | null;
   lastObservationAt: string | null;
@@ -933,10 +1058,15 @@ export const NOTIFICATION_CATEGORIES = [
   'price_alert',
   'percentage_alert',
   'volume_alert',
+  'technical_alert',
   'financial_alert',
   'announcement_alert',
-  'news_alert',
+  'corporate_action_alert',
+  'market_event',
+  'research_report',
+  'screener_result',
   'system',
+  'news_alert',
 ] as const;
 export type NotificationCategory = (typeof NOTIFICATION_CATEGORIES)[number];
 
@@ -949,6 +1079,8 @@ export type AppNotification = {
   message: string;
   read: boolean;
   readAt?: string | null;
+  archived?: boolean | undefined;
+  link?: string | null | undefined;
   symbol?: string | null;
   exchange?: SupportedExchange | null;
   sourceUrl?: string | null;
@@ -956,19 +1088,39 @@ export type AppNotification = {
   createdAt: string;
 };
 
+export type DeliveryChannel = 'in_app' | 'email' | 'push';
+
 export type UserAlertPreferences = {
   userId: string;
   inAppEnabled: boolean;
   emailEnabled: boolean;
   emailAddress?: string | null;
+  pushEnabled?: boolean | undefined;
   priceAlerts: boolean;
   percentageAlerts: boolean;
   volumeAlerts: boolean;
+  technicalAlerts?: boolean | undefined;
   financialAlerts: boolean;
   announcementAlerts: boolean;
   newsAlerts: boolean;
-  digestFrequency: 'realtime' | 'daily' | 'off';
+  marketSummaries?: boolean | undefined;
+  researchUpdates?: boolean | undefined;
+  systemAlerts?: boolean | undefined;
+  digestFrequency: 'realtime' | 'daily' | 'weekly' | 'off';
+  digestMode?: 'immediate' | 'daily' | 'weekly' | 'off' | undefined;
+  quietHoursEnabled?: boolean | undefined;
+  quietHoursStart?: string | null | undefined;
+  quietHoursEnd?: string | null | undefined;
+  timeZone?: string | undefined;
   updatedAt: string;
+};
+
+export type AlertDashboardStats = {
+  total: number;
+  active: number;
+  paused: number;
+  triggeredToday: number;
+  expired: number;
 };
 
 // ─── Phase 10: Portfolio Tracking & Investment Performance Analytics ─────────
