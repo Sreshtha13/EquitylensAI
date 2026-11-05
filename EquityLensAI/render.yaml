@@ -1,0 +1,99 @@
+# ==============================================================================
+# EquityLensAI — Render Blueprint Specification for Production Deployment
+# ==============================================================================
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # ============================================================================
+  # 1. EquityLensAI Backend Web Service (Node.js Express + Alert Daemon)
+  # ============================================================================
+  - type: web
+    name: equitylensai-backend
+    runtime: node
+    plan: starter
+    region: oregon
+    rootDir: .
+    buildCommand: npm ci && npm run build -w @equitylensai/shared && npm run build -w @equitylensai/backend
+    startCommand: npm run start -w @equitylensai/backend
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: ALERT_SCHEDULER_ENABLED
+        value: "true"
+      - key: ALERT_EVALUATION_INTERVAL_MS
+        value: "60000"
+      - key: LOG_LEVEL
+        value: info
+
+      # Frontend CORS & Origin
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: equitylensai-frontend
+          property: host
+
+      # Supabase Database & Auth (Fill in during Blueprint setup)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+
+      # Resend Transactional Email Provider
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        value: EquityLensAI Alerts <alerts@equitylensai.com>
+
+      # AI Intelligence & Screening (Optional)
+      - key: AI_RESEARCH_ENABLED
+        value: "false"
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash
+
+      # Angel One SmartAPI Market Data (Optional)
+      - key: ANGEL_API_KEY
+        sync: false
+      - key: ANGEL_CLIENT_ID
+        sync: false
+      - key: ANGEL_PASSWORD
+        sync: false
+      - key: ANGEL_TOTP_SECRET
+        sync: false
+
+  # ============================================================================
+  # 2. EquityLensAI Frontend Application (Next.js 15 App Router)
+  # ============================================================================
+  - type: web
+    name: equitylensai-frontend
+    runtime: node
+    plan: starter
+    region: oregon
+    rootDir: .
+    buildCommand: npm ci && npm run build -w @equitylensai/shared && npm run build -w @equitylensai/frontend
+    startCommand: npm run start -w @equitylensai/frontend
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Automatically populated from backend service hostname
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: equitylensai-backend
+          property: host
+
+      # Browser Supabase client (Matches backend credentials)
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false

@@ -62,8 +62,15 @@ export function createApp() {
     cors({
       origin: (origin, callback) => {
         if (!origin) return callback(null, true);
-        const allowed = env.FRONTEND_URL.split(',').map((u) => u.trim());
-        if (allowed.includes(origin) || allowed.includes('*')) {
+        const frontendUrls = env.FRONTEND_URL ? env.FRONTEND_URL.split(',') : [];
+        const corsOrigins = env.CORS_ORIGIN ? env.CORS_ORIGIN.split(',') : [];
+        const allowed = [...frontendUrls, ...corsOrigins].map((u) => u.trim());
+        if (
+          allowed.includes(origin) ||
+          allowed.includes('*') ||
+          origin.endsWith('.onrender.com') ||
+          origin.endsWith('.vercel.app')
+        ) {
           return callback(null, true);
         }
         return callback(null, false);

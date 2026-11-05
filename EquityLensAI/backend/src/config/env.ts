@@ -46,7 +46,8 @@ const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     PORT: z.coerce.number().int().positive().default(4000),
-    FRONTEND_URL: z.string().url().default('http://localhost:3000'),
+    FRONTEND_URL: z.string().default('http://localhost:3000'),
+    CORS_ORIGIN: z.preprocess(emptyToUndefined, z.string().optional()),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
     SUPABASE_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
     SUPABASE_SERVICE_ROLE_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
@@ -61,6 +62,8 @@ const envSchema = z
     ANGEL_CLIENT_ID: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
     ANGEL_PASSWORD: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
     ANGEL_TOTP_SECRET: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    RESEND_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    RESEND_FROM_EMAIL: z.string().default('EquityLensAI Alerts <alerts@equitylensai.com>'),
   })
   .superRefine((env, context) => {
     if (env.AI_RESEARCH_ENABLED && !env.GEMINI_API_KEY) {
