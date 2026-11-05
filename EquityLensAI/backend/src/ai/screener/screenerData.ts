@@ -101,7 +101,7 @@ export function buildScreenerRows(
     const valuationPeriodMatches =
       (analysis.ttm !== null ? periodType === 'ttm' : periodType === 'annual') &&
       analysis.valuation.peRatio.periodEndDate === value.periodEndDate;
-    const values: Record<ScreenerMetric, ReturnType<typeof metric>> = {
+    const values: Partial<Record<ScreenerMetric, ReturnType<typeof metric>>> = {
       roe: metric(profitability.returnOnEquity),
       roa: metric(profitability.returnOnAssets),
       roce: metric(profitability.returnOnCapitalEmployed),

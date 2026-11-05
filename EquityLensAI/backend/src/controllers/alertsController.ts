@@ -9,11 +9,22 @@ import {
 } from '../validation/alertSchemas.js';
 import {
   ALERT_TYPES,
+  ALERT_STATUSES,
+  ALERT_TRIGGER_TYPES,
   PRICE_CONDITIONS,
   PERCENTAGE_CHANGE_PERIODS,
   PERCENTAGE_DIRECTIONS,
+  RSI_CONDITIONS,
+  MACD_CONDITIONS,
+  MA_CONDITIONS,
+  HIGH_LOW_CONDITIONS,
+  CIRCUIT_CONDITIONS,
+  CORPORATE_ACTION_TYPES,
+  SUPPORTED_INDICES,
+  WATCHLIST_EVENT_TYPES,
   FINANCIAL_ALERT_METRICS,
   COMPARISON_OPERATORS,
+  NOTIFICATION_CATEGORIES,
   ANNOUNCEMENT_CATEGORIES,
 } from '@equitylensai/shared';
 
@@ -23,6 +34,12 @@ export const alertsController = {
     const query = listAlertsQuerySchema.parse(req.query);
     const result = await alertRuleService.listRules(userId, query);
     sendSuccess(res, result);
+  },
+
+  async getStats(req: Request, res: Response): Promise<void> {
+    const userId = req.user!.id;
+    const stats = await alertRuleService.getStats(userId);
+    sendSuccess(res, stats);
   },
 
   async createAlert(req: Request, res: Response): Promise<void> {
@@ -85,11 +102,22 @@ export const alertsController = {
   getSupportedTypes(_req: Request, res: Response): void {
     sendSuccess(res, {
       alertTypes: ALERT_TYPES,
+      alertStatuses: ALERT_STATUSES,
+      triggerTypes: ALERT_TRIGGER_TYPES,
       priceConditions: PRICE_CONDITIONS,
       percentagePeriods: PERCENTAGE_CHANGE_PERIODS,
       percentageDirections: PERCENTAGE_DIRECTIONS,
+      rsiConditions: RSI_CONDITIONS,
+      macdConditions: MACD_CONDITIONS,
+      maConditions: MA_CONDITIONS,
+      highLowConditions: HIGH_LOW_CONDITIONS,
+      circuitConditions: CIRCUIT_CONDITIONS,
+      corporateActionTypes: CORPORATE_ACTION_TYPES,
+      supportedIndices: SUPPORTED_INDICES,
+      watchlistEventTypes: WATCHLIST_EVENT_TYPES,
       financialMetrics: FINANCIAL_ALERT_METRICS,
       comparisonOperators: COMPARISON_OPERATORS,
+      notificationCategories: NOTIFICATION_CATEGORIES,
       announcementCategories: ANNOUNCEMENT_CATEGORIES,
     });
   },

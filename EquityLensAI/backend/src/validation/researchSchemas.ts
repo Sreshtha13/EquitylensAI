@@ -50,7 +50,7 @@ export const reportSectionSchema = z
     evidenceIds: z.array(z.string()).default([]),
     updatedAt: z.string().datetime().optional(),
   })
-  .strict();
+  .passthrough();
 
 export const createReportSchema = z
   .object({
@@ -80,10 +80,16 @@ export const generateSectionSchema = z
   .object({
     sectionId: z.string().optional(),
     sectionType: z.enum(REPORT_SECTION_TYPES),
+    sectionTitle: z.string().trim().max(200).optional(),
+    action: z
+      .enum(['generate', 'regenerate', 'expand', 'shorten', 'deepen', 'update'])
+      .optional()
+      .default('generate'),
+    instructions: z.string().trim().max(1000).optional(),
     researchQuestion: z.string().trim().max(800).optional(),
     preserveUserNotes: z.boolean().optional().default(true),
   })
-  .strict();
+  .passthrough();
 
 export const createNoteSchema = z
   .object({

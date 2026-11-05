@@ -18,6 +18,7 @@ alertsRouter.get(
   asyncHandler(requireAuth),
   alertsController.getSchedulerStatus,
 );
+alertsRouter.get('/stats', asyncHandler(requireAuth), asyncHandler(alertsController.getStats));
 
 alertsRouter.get('/:alertId', asyncHandler(requireAuth), asyncHandler(alertsController.getAlert));
 alertsRouter.patch('/:alertId', asyncHandler(requireAuth), asyncHandler(alertsController.updateAlert));

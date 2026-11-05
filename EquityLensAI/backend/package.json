@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "ingest:instruments": "tsx scripts/ingest-instruments.ts",
+    "reconcile:report": "tsx scripts/generate-reconciliation-report.ts",
     "ingest:screener": "tsx scripts/ingest-screener-financials.ts",
     "ai:smoke": "tsx scripts/gemini-smoke-test.ts",
     "format": "prettier --write .",
@@ -32,6 +33,7 @@
     "otpauth": "^9.5.2",
     "pdfkit": "^0.20.2",
     "pino": "^9.9.0",
+    "resend": "^6.37.0",
     "yahoo-finance2": "^4.0.3",
     "zod": "^3.25.76"
   },

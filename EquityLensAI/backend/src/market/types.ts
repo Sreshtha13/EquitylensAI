@@ -11,6 +11,16 @@ import type {
   PriceCandle,
   CompanyProfile,
   StockPerformanceResponse,
+  SecurityClassification,
+  ListingStatus,
+  MarketBreadth,
+  StockMoverItem,
+  VolumeShockerItem,
+  MostWatchedStockItem,
+  TrendingStockItem,
+  SectorPerformanceItem,
+  CircuitStockItem,
+  NewListingItem,
 } from '@equitylensai/shared';
 
 export type {
@@ -26,6 +36,16 @@ export type {
   PriceCandle,
   CompanyProfile,
   StockPerformanceResponse,
+  SecurityClassification,
+  ListingStatus,
+  MarketBreadth,
+  StockMoverItem,
+  VolumeShockerItem,
+  MostWatchedStockItem,
+  TrendingStockItem,
+  SectorPerformanceItem,
+  CircuitStockItem,
+  NewListingItem,
 };
 
 export type InstrumentRecord = {
@@ -39,12 +59,26 @@ export type InstrumentRecord = {
   isin?: string | undefined;
   tickSize?: number | undefined;
   lotSize?: number | undefined;
+  classification?: SecurityClassification | undefined;
+  listingStatus?: ListingStatus | undefined;
+  scripCode?: string | undefined;
+  series?: string | undefined;
+  firstDiscoveredAt?: string | undefined;
+  lastDiscoveredAt?: string | undefined;
+  lastVerifiedAt?: string | undefined;
+  dataCompleteness?: 'COMPLETE' | 'PARTIAL' | 'BASIC' | undefined;
+  historicalSymbols?: string[] | undefined;
+  source?: string | undefined;
+  metadata?: Record<string, unknown> | undefined;
 };
 
 export type SearchInstrumentsQuery = {
   query: string;
   market?: Market | undefined;
+  exchange?: string | undefined;
   assetType?: AssetType | undefined;
+  classification?: SecurityClassification | undefined;
+  listingStatus?: ListingStatus | undefined;
   limit?: number | undefined;
 };
 

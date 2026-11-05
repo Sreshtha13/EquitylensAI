@@ -61,7 +61,10 @@ export class MarketService {
   searchInstruments(query: SearchInstrumentsQuery): InstrumentSummary[] {
     return instrumentRepository.search(query.query, {
       market: query.market,
+      exchange: query.exchange,
       assetType: query.assetType,
+      classification: query.classification,
+      listingStatus: query.listingStatus,
       limit: query.limit ?? 20,
     });
   }

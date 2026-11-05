@@ -1,15 +1,34 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { InstrumentRecord, InstrumentSummary, Market, AssetType } from '../types.js';
+import type {
+  InstrumentRecord,
+  InstrumentSummary,
+  Market,
+  AssetType,
+  SecurityClassification,
+  ListingStatus,
+} from '../types.js';
 import { SEED_INSTRUMENTS } from './seedData.js';
 import { logger } from '../../utils/logger.js';
 
+interface NormalizedEntry {
+  record: InstrumentRecord;
+  symUpper: string;
+  nameUpper: string;
+  isinUpper: string;
+  scripCodeUpper: string;
+  historicalUpper: string[];
+}
+
 export class InstrumentRepository {
   private instruments: InstrumentRecord[] = [];
-  private normalizedIndex: { record: InstrumentRecord; symUpper: string; nameUpper: string }[] = [];
+  private normalizedIndex: NormalizedEntry[] = [];
   private symbolIndex = new Map<string, InstrumentRecord>();
   private tokenIndex = new Map<string, InstrumentRecord>();
   private exchangeSymbolIndex = new Map<string, InstrumentRecord>();
+  private scripCodeIndex = new Map<string, InstrumentRecord>();
+  private isinIndex = new Map<string, InstrumentRecord[]>();
+  private historicalSymbolIndex = new Map<string, InstrumentRecord>();
   private positionMap = new Map<string, number>();
   private searchCache = new Map<string, { result: InstrumentSummary[]; expiresAt: number }>();
   private readonly MAX_SEARCH_CACHE = 1000;
@@ -19,11 +38,77 @@ export class InstrumentRepository {
     this.load(SEED_INSTRUMENTS);
   }
 
+  /**
+   * Atomically loads records into memory, completely rebuilding the search indices.
+   */
   load(records: InstrumentRecord[]): void {
-    // Preserve existing records by key, overlaying new ones
+    const newInstruments: InstrumentRecord[] = [];
+    const newNormalizedIndex: NormalizedEntry[] = [];
+    const newSymbolIndex = new Map<string, InstrumentRecord>();
+    const newTokenIndex = new Map<string, InstrumentRecord>();
+    const newExchangeSymbolIndex = new Map<string, InstrumentRecord>();
+    const newScripCodeIndex = new Map<string, InstrumentRecord>();
+    const newIsinIndex = new Map<string, InstrumentRecord[]>();
+    const newHistoricalSymbolIndex = new Map<string, InstrumentRecord>();
+    const newPositionMap = new Map<string, number>();
+
     for (const record of records) {
-      this.upsert(record);
+      const symKey = record.symbol.toUpperCase();
+      const exchSymKey = `${record.exchange.toUpperCase()}:${symKey}`;
+
+      newSymbolIndex.set(symKey, record);
+      newExchangeSymbolIndex.set(exchSymKey, record);
+
+      if (record.providerToken) {
+        newTokenIndex.set(record.providerToken, record);
+      }
+      if (record.scripCode) {
+        newScripCodeIndex.set(record.scripCode, record);
+      }
+      if (record.isin) {
+        const isinKey = record.isin.toUpperCase();
+        const existing = newIsinIndex.get(isinKey) ?? [];
+        existing.push(record);
+        newIsinIndex.set(isinKey, existing);
+      }
+      if (record.historicalSymbols) {
+        for (const oldSym of record.historicalSymbols) {
+          newHistoricalSymbolIndex.set(oldSym.toUpperCase(), record);
+        }
+      }
+
+      const historicalUpper = (record.historicalSymbols ?? []).map((s) => s.toUpperCase());
+      const normalizedEntry: NormalizedEntry = {
+        record,
+        symUpper: symKey,
+        nameUpper: record.name.toUpperCase(),
+        isinUpper: record.isin ? record.isin.toUpperCase() : '',
+        scripCodeUpper: record.scripCode ? record.scripCode.toUpperCase() : '',
+        historicalUpper,
+      };
+
+      const existingIndex = newPositionMap.get(exchSymKey);
+      if (existingIndex !== undefined && existingIndex < newInstruments.length) {
+        newInstruments[existingIndex] = record;
+        newNormalizedIndex[existingIndex] = normalizedEntry;
+      } else {
+        const newIndex = newInstruments.length;
+        newInstruments.push(record);
+        newNormalizedIndex.push(normalizedEntry);
+        newPositionMap.set(exchSymKey, newIndex);
+      }
     }
+
+    // Atomic assignment
+    this.instruments = newInstruments;
+    this.normalizedIndex = newNormalizedIndex;
+    this.symbolIndex = newSymbolIndex;
+    this.tokenIndex = newTokenIndex;
+    this.exchangeSymbolIndex = newExchangeSymbolIndex;
+    this.scripCodeIndex = newScripCodeIndex;
+    this.isinIndex = newIsinIndex;
+    this.historicalSymbolIndex = newHistoricalSymbolIndex;
+    this.positionMap = newPositionMap;
     this.isLoaded = true;
     this.searchCache.clear();
   }
@@ -38,24 +123,42 @@ export class InstrumentRepository {
     if (record.providerToken) {
       this.tokenIndex.set(record.providerToken, record);
     }
+    if (record.scripCode) {
+      this.scripCodeIndex.set(record.scripCode, record);
+    }
+    if (record.isin) {
+      const isinKey = record.isin.toUpperCase();
+      const existing = this.isinIndex.get(isinKey) ?? [];
+      const filtered = existing.filter(
+        (e) => `${e.exchange}:${e.symbol}` !== `${record.exchange}:${record.symbol}`,
+      );
+      filtered.push(record);
+      this.isinIndex.set(isinKey, filtered);
+    }
+    if (record.historicalSymbols) {
+      for (const oldSym of record.historicalSymbols) {
+        this.historicalSymbolIndex.set(oldSym.toUpperCase(), record);
+      }
+    }
+
+    const historicalUpper = (record.historicalSymbols ?? []).map((s) => s.toUpperCase());
+    const normalizedEntry: NormalizedEntry = {
+      record,
+      symUpper: symKey,
+      nameUpper: record.name.toUpperCase(),
+      isinUpper: record.isin ? record.isin.toUpperCase() : '',
+      scripCodeUpper: record.scripCode ? record.scripCode.toUpperCase() : '',
+      historicalUpper,
+    };
 
     const existingIndex = this.positionMap.get(exchSymKey);
-
     if (existingIndex !== undefined && existingIndex < this.instruments.length) {
       this.instruments[existingIndex] = record;
-      this.normalizedIndex[existingIndex] = {
-        record,
-        symUpper: symKey,
-        nameUpper: record.name.toUpperCase(),
-      };
+      this.normalizedIndex[existingIndex] = normalizedEntry;
     } else {
       const newIndex = this.instruments.length;
       this.instruments.push(record);
-      this.normalizedIndex.push({
-        record,
-        symUpper: symKey,
-        nameUpper: record.name.toUpperCase(),
-      });
+      this.normalizedIndex.push(normalizedEntry);
       this.positionMap.set(exchSymKey, newIndex);
     }
 
@@ -70,9 +173,25 @@ export class InstrumentRepository {
       if (match) return match;
     }
 
-    // Direct match
+    // Direct symbol match
     const direct = this.symbolIndex.get(clean);
     if (direct) return direct;
+
+    // Check by BSE Scrip Code (e.g. '500325')
+    const byScripCode = this.scripCodeIndex.get(clean);
+    if (byScripCode) return byScripCode;
+
+    // Check by ISIN (e.g. 'INE002A01018')
+    const byIsinList = this.isinIndex.get(clean);
+    if (byIsinList && byIsinList.length > 0) {
+      if (exchange) {
+        const exchMatch = byIsinList.find(
+          (r) => r.exchange.toUpperCase() === exchange.toUpperCase(),
+        );
+        if (exchMatch) return exchMatch;
+      }
+      return byIsinList[0];
+    }
 
     // Handle symbols ending with .NS or .BO
     if (clean.endsWith('.NS')) {
@@ -90,18 +209,37 @@ export class InstrumentRepository {
       return this.getBySymbol(bare, exchange);
     }
 
+    // Check historical symbol alias
+    const historicalMatch = this.historicalSymbolIndex.get(clean);
+    if (historicalMatch) return historicalMatch;
+
     return undefined;
+  }
+
+  findBySymbol(symbol: string, exchange?: string): InstrumentRecord | undefined {
+    return this.getBySymbol(symbol, exchange);
   }
 
   getByToken(token: string): InstrumentRecord | undefined {
     return this.tokenIndex.get(token);
   }
 
+  getByIsin(isin: string, exchange?: string): InstrumentRecord[] {
+    const list = this.isinIndex.get(isin.trim().toUpperCase()) ?? [];
+    if (exchange) {
+      return list.filter((r) => r.exchange.toUpperCase() === exchange.toUpperCase());
+    }
+    return list;
+  }
+
   search(
     query: string,
     options?: {
       market?: Market | undefined;
+      exchange?: string | undefined;
       assetType?: AssetType | undefined;
+      classification?: SecurityClassification | undefined;
+      listingStatus?: ListingStatus | undefined;
       limit?: number | undefined;
     },
   ): InstrumentSummary[] {
@@ -109,7 +247,7 @@ export class InstrumentRepository {
     if (!q) return [];
 
     const limit = options?.limit ?? 20;
-    const cacheKey = `${q}:${options?.market || 'all'}:${options?.assetType || 'all'}:${limit}`;
+    const cacheKey = `${q}:${options?.market || 'all'}:${options?.exchange || 'all'}:${options?.assetType || 'all'}:${options?.classification || 'all'}:${options?.listingStatus || 'all'}:${limit}`;
 
     const now = Date.now();
     const cached = this.searchCache.get(cacheKey);
@@ -124,23 +262,38 @@ export class InstrumentRepository {
       const item = entry.record;
 
       if (options?.market && item.market !== options.market) continue;
+      if (options?.exchange && item.exchange.toUpperCase() !== options.exchange.toUpperCase()) {
+        continue;
+      }
       if (options?.assetType && item.assetType !== options.assetType) continue;
+      if (options?.classification && item.classification !== options.classification) continue;
+      if (options?.listingStatus && item.listingStatus !== options.listingStatus) continue;
 
       const sym = entry.symUpper;
       const name = entry.nameUpper;
+      const isin = entry.isinUpper;
+      const scripCode = entry.scripCodeUpper;
 
       let score = 0;
 
       if (sym === q) {
         score = 100;
+      } else if (isin === q) {
+        score = 95;
+      } else if (scripCode === q) {
+        score = 90;
       } else if (sym.startsWith(q)) {
         score = 80;
+      } else if (entry.historicalUpper.includes(q)) {
+        score = 75;
       } else if (sym.includes(q)) {
         score = 60;
       } else if (name.startsWith(q)) {
         score = 40;
       } else if (name.includes(q)) {
         score = 20;
+      } else if (entry.historicalUpper.some((h) => h.startsWith(q))) {
+        score = 15;
       }
 
       if (score > 0) {
@@ -162,9 +315,12 @@ export class InstrumentRepository {
       currency: s.item.currency,
       providerToken: s.item.providerToken,
       isin: s.item.isin,
+      classification: s.item.classification,
+      listingStatus: s.item.listingStatus,
+      scripCode: s.item.scripCode,
+      series: s.item.series,
     }));
 
-    // Maintain search cache bounded size
     if (this.searchCache.size >= this.MAX_SEARCH_CACHE) {
       const oldestKey = this.searchCache.keys().next().value;
       if (oldestKey) this.searchCache.delete(oldestKey);
@@ -182,25 +338,40 @@ export class InstrumentRepository {
     market?: Market;
     assetType?: AssetType;
     exchange?: string;
+    classification?: SecurityClassification;
+    listingStatus?: ListingStatus;
   }): InstrumentRecord[] {
     return this.instruments.filter(
       (item) =>
         (!options?.market || item.market === options.market) &&
         (!options?.assetType || item.assetType === options.assetType) &&
-        (!options?.exchange || item.exchange.toUpperCase() === options.exchange.toUpperCase()),
+        (!options?.exchange || item.exchange.toUpperCase() === options.exchange.toUpperCase()) &&
+        (!options?.classification || item.classification === options.classification) &&
+        (!options?.listingStatus || item.listingStatus === options.listingStatus),
     );
   }
 
+  /**
+   * Atomically saves instruments cache to disk by writing to a temporary file
+   * first and then replacing the destination file.
+   */
   async saveToDisk(cacheFilePath: string): Promise<void> {
+    const tempPath = `${cacheFilePath}.tmp.${Date.now()}`;
     try {
       await fs.mkdir(path.dirname(cacheFilePath), { recursive: true });
-      await fs.writeFile(cacheFilePath, JSON.stringify(this.instruments, null, 2), 'utf-8');
+      await fs.writeFile(tempPath, JSON.stringify(this.instruments, null, 2), 'utf-8');
+      await fs.rename(tempPath, cacheFilePath);
       logger.info(
         { count: this.instruments.length, path: cacheFilePath },
-        'Saved instruments cache to disk',
+        'Atomically saved instruments cache to disk',
       );
     } catch (err) {
       logger.error({ err, path: cacheFilePath }, 'Failed to save instruments cache to disk');
+      try {
+        await fs.unlink(tempPath).catch(() => {});
+      } catch {
+        // ignore cleanup error
+      }
     }
   }
 
@@ -238,13 +409,23 @@ export class InstrumentRepository {
       symbol: inst.symbol.toUpperCase(),
       name: inst.name,
       isin: inst.isin ?? null,
+      classification: inst.classification ?? 'MAINBOARD_EQUITY',
+      scrip_code: inst.scripCode ?? null,
+      series: inst.series ?? null,
+      listing_status: inst.listingStatus ?? 'ACTIVE',
       asset_type: inst.assetType || 'equity',
       currency: inst.currency || 'INR',
       provider_token: inst.providerToken ?? null,
       tick_size: inst.tickSize ?? 0.05,
       lot_size: inst.lotSize ?? 1,
-      is_active: true,
-      source: 'angel_scrip_master',
+      is_active: inst.listingStatus !== 'DELISTED',
+      data_completeness: inst.dataCompleteness ?? (inst.isin ? 'COMPLETE' : 'PARTIAL'),
+      historical_symbols: inst.historicalSymbols ?? [],
+      metadata: inst.metadata ?? {},
+      source: inst.source || 'canonical_reconciliation',
+      first_discovered_at: inst.firstDiscoveredAt || new Date().toISOString(),
+      last_discovered_at: inst.lastDiscoveredAt || new Date().toISOString(),
+      last_verified_at: inst.lastVerifiedAt || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }));
 
@@ -288,14 +469,14 @@ export class InstrumentRepository {
     }
 
     try {
-      const url = `${env.SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/market_instruments?is_active=eq.true&order=symbol.asc&limit=5000`;
+      const url = `${env.SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/market_instruments?is_active=eq.true&order=symbol.asc&limit=15000`;
       const res = await fetch(url, {
         headers: {
           apikey: env.SUPABASE_SERVICE_ROLE_KEY,
           Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
           'Content-Type': 'application/json',
         },
-        signal: AbortSignal.timeout(15_000),
+        signal: AbortSignal.timeout(20_000),
       });
 
       if (!res.ok) return false;
@@ -307,8 +488,19 @@ export class InstrumentRepository {
         currency: string;
         provider_token?: string | null;
         isin?: string | null;
-        tick_size?: number;
-        lot_size?: number;
+        classification?: SecurityClassification | null;
+        listing_status?: ListingStatus | null;
+        scrip_code?: string | null;
+        series?: string | null;
+        tick_size?: number | null;
+        lot_size?: number | null;
+        first_discovered_at?: string | null;
+        last_discovered_at?: string | null;
+        last_verified_at?: string | null;
+        data_completeness?: 'COMPLETE' | 'PARTIAL' | 'BASIC' | null;
+        historical_symbols?: string[] | null;
+        metadata?: Record<string, unknown> | null;
+        source?: string | null;
       }>;
 
       if (Array.isArray(data) && data.length > 0) {
@@ -321,8 +513,19 @@ export class InstrumentRepository {
           currency: d.currency,
           providerToken: d.provider_token ?? undefined,
           isin: d.isin ?? undefined,
-          tickSize: d.tick_size !== undefined ? Number(d.tick_size) : undefined,
-          lotSize: d.lot_size !== undefined ? Number(d.lot_size) : undefined,
+          classification: d.classification ?? 'MAINBOARD_EQUITY',
+          listingStatus: d.listing_status ?? 'ACTIVE',
+          scripCode: d.scrip_code ?? undefined,
+          series: d.series ?? undefined,
+          tickSize: d.tick_size !== null && d.tick_size !== undefined ? Number(d.tick_size) : undefined,
+          lotSize: d.lot_size !== null && d.lot_size !== undefined ? Number(d.lot_size) : undefined,
+          firstDiscoveredAt: d.first_discovered_at ?? undefined,
+          lastDiscoveredAt: d.last_discovered_at ?? undefined,
+          lastVerifiedAt: d.last_verified_at ?? undefined,
+          dataCompleteness: d.data_completeness ?? undefined,
+          historicalSymbols: d.historical_symbols ?? undefined,
+          metadata: d.metadata ?? undefined,
+          source: d.source ?? undefined,
         }));
 
         this.load(records);

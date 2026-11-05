@@ -240,47 +240,84 @@ export class ResearchService {
     userId: string,
     projectId: string,
     reportId: string,
-    input: { sectionId?: string; sectionType: ReportSectionType; researchQuestion?: string },
+    input: {
+      sectionId?: string;
+      sectionType: ReportSectionType | string;
+      sectionTitle?: string;
+      action?: 'generate' | 'regenerate' | 'expand' | 'shorten' | 'deepen' | 'update';
+      instructions?: string;
+      researchQuestion?: string;
+      preserveUserNotes?: boolean;
+    },
   ): Promise<ResearchReport> {
     const project = await this.getProject(userId, projectId);
-    const report = await this.getReport(userId, projectId, reportId);
+      const report = await this.getReport(userId, projectId, reportId);
 
-    // Find target section
-    const targetSection = report.sections.find((s) => s.id === input.sectionId || s.sectionType === input.sectionType);
-    const sectionTitle = targetSection?.title || input.sectionType.replace(/_/g, ' ');
-
-    const newSection = await reportAiService.generateReportSection({
-      symbol: project.symbol,
-      companyName: project.companyName,
-      sectionType: input.sectionType,
-      sectionTitle,
-      evidence: report.evidence,
-      ...(input.researchQuestion ? { researchQuestion: input.researchQuestion } : {}),
-    });
-
-    let updatedSections: typeof report.sections;
-    if (targetSection) {
-      updatedSections = report.sections.map((s) =>
-        s.id === targetSection.id
-          ? {
-              ...s,
-              content: newSection.content,
-              evidenceIds: newSection.evidenceIds,
-              generatedBy: 'ai' as const,
-              status: 'draft' as const,
-              updatedAt: new Date().toISOString(),
-            }
-          : s,
+      // Find target section
+      const targetSection = report.sections.find(
+        (s) => s.id === input.sectionId || s.sectionType === input.sectionType,
       );
-    } else {
-      updatedSections = [
-        ...report.sections,
-        {
-          ...newSection,
-          position: report.sections.length,
-        },
-      ];
-    }
+      const sectionTitle =
+        input.sectionTitle ||
+        targetSection?.title ||
+        input.sectionType.replace(/_/g, ' ');
+
+      const instrument = await instrumentRepository.findBySymbol(project.symbol);
+      const instRecord = instrument as Record<string, unknown> | undefined;
+      const instMeta = instRecord?.['metadata'] as Record<string, unknown> | undefined;
+      const sector = (instRecord?.['sector'] as string) || (instMeta?.['sector'] as string) || project.companyName;
+      const industry = (instRecord?.['industry'] as string) || (instMeta?.['industry'] as string) || sector;
+
+      const outline = report.sections.map((s) => s.title);
+      const previousSections = report.sections
+        .filter((s) => (targetSection ? s.id !== targetSection.id : true))
+        .map((s) => ({ title: s.title, content: s.content }));
+
+      const userNotes = (report.notes || []).map((n) => n.content);
+
+      const newSection = await reportAiService.generateReportSection({
+        symbol: project.symbol,
+        companyName: project.companyName,
+        sector,
+        industry,
+        sectionType: input.sectionType,
+        sectionTitle,
+        outline,
+        previousSections,
+        evidence: report.evidence,
+        ...(input.preserveUserNotes !== false && userNotes.length > 0 ? { userNotes } : {}),
+        ...(input.action ? { action: input.action } : {}),
+        ...(input.instructions ? { customInstructions: input.instructions } : {}),
+        ...(targetSection?.id ? { existingSectionId: targetSection.id } : {}),
+        ...(targetSection?.position !== undefined ? { existingPosition: targetSection.position } : {}),
+        ...(input.researchQuestion ? { researchQuestion: input.researchQuestion } : {}),
+      });
+
+      let updatedSections: typeof report.sections;
+      if (targetSection) {
+        updatedSections = report.sections.map((s) =>
+          s.id === targetSection.id
+            ? {
+                ...s,
+                title: newSection.title || s.title,
+                content: newSection.content,
+                structuredData: newSection.structuredData || s.structuredData,
+                evidenceIds: newSection.evidenceIds,
+                generatedBy: 'ai' as const,
+                status: 'draft' as const,
+                updatedAt: new Date().toISOString(),
+              }
+            : s,
+        );
+      } else {
+        updatedSections = [
+          ...report.sections,
+          {
+            ...newSection,
+            position: report.sections.length,
+          },
+        ];
+      }
 
     const updated = await researchReportRepository.update(reportId, userId, {
       sections: updatedSections,

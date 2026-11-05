@@ -5,6 +5,8 @@ import {
   getUnreadNotificationsCount,
   markNotificationRead,
   markAllNotificationsRead,
+  archiveNotification,
+  unarchiveNotification,
   deleteNotification,
   getAlertPreferences,
   updateAlertPreferences,
@@ -46,6 +48,28 @@ export function useMarkAllNotificationsRead() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => markAllNotificationsRead(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['unreadNotificationsCount'] });
+    },
+  });
+}
+
+export function useArchiveNotification() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (notificationId: string) => archiveNotification(notificationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['unreadNotificationsCount'] });
+    },
+  });
+}
+
+export function useUnarchiveNotification() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (notificationId: string) => unarchiveNotification(notificationId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['unreadNotificationsCount'] });

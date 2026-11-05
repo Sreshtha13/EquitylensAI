@@ -64,7 +64,11 @@ export class AlertRuleService {
       symbol: cleanSymbol,
       exchange: cleanExchange,
       ruleConfig: input.ruleConfig as AlertRuleConfig,
-      enabled: true,
+      enabled: input.status ? input.status === 'ACTIVE' : true,
+      status: input.status ?? 'ACTIVE',
+      triggerType: input.triggerType ?? 'recurring',
+      expiresAt: input.expiresAt ?? null,
+      deliveryChannels: input.deliveryChannels ?? ['in_app'],
       cooldownMinutes: input.cooldownMinutes ?? 60,
       lastEvaluatedAt: null,
       lastObservationAt: null,
@@ -106,6 +110,10 @@ export class AlertRuleService {
     };
   }
 
+  async getStats(userId: string) {
+    return alertRepository.getStats(userId);
+  }
+
   async updateRule(
     ruleId: string,
     userId: string,
@@ -116,6 +124,13 @@ export class AlertRuleService {
     const updates: Partial<AlertRule> = {};
     if (input.name !== undefined) updates.name = input.name;
     if (input.enabled !== undefined) updates.enabled = input.enabled;
+    if (input.status !== undefined) {
+      updates.status = input.status;
+      updates.enabled = input.status === 'ACTIVE';
+    }
+    if (input.triggerType !== undefined) updates.triggerType = input.triggerType;
+    if (input.expiresAt !== undefined) updates.expiresAt = input.expiresAt;
+    if (input.deliveryChannels !== undefined) updates.deliveryChannels = input.deliveryChannels;
     if (input.cooldownMinutes !== undefined) updates.cooldownMinutes = input.cooldownMinutes;
 
     if (input.ruleConfig !== undefined) {
@@ -144,12 +159,14 @@ export class AlertRuleService {
     // Reset state on re-enabling so initial crossing is not falsely triggered
     return this.updateRule(ruleId, userId, {
       enabled: true,
+      status: 'ACTIVE',
     });
   }
 
   async disableRule(ruleId: string, userId: string): Promise<AlertRule> {
     return this.updateRule(ruleId, userId, {
       enabled: false,
+      status: 'PAUSED',
     });
   }
 

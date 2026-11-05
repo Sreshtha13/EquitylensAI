@@ -24,6 +24,24 @@ export type Pagination = {
 
 // ─── Phase 2: Shared market data contracts ───────────────────────────────────
 
+/** Security classification categories for canonical reconciliation */
+export const SECURITY_CLASSIFICATIONS = [
+  'MAINBOARD_EQUITY',
+  'SME_EQUITY',
+  'ETF',
+  'PREFERENCE_SHARE',
+  'REIT',
+  'INVIT',
+  'OTHER',
+] as const;
+
+export type SecurityClassification = (typeof SECURITY_CLASSIFICATIONS)[number];
+
+/** Official exchange listing status */
+export const LISTING_STATUSES = ['ACTIVE', 'SUSPENDED', 'DELISTED'] as const;
+
+export type ListingStatus = (typeof LISTING_STATUSES)[number];
+
 /** Freshness level of a market data observation */
 export type DataFreshness = 'live' | 'delayed' | 'eod' | 'historical' | 'stale' | 'unavailable';
 
@@ -39,6 +57,10 @@ export type InstrumentSummary = {
   providerToken?: string | undefined;
   /** ISIN if available */
   isin?: string | undefined;
+  classification?: SecurityClassification | undefined;
+  listingStatus?: ListingStatus | undefined;
+  scripCode?: string | undefined;
+  series?: string | undefined;
 };
 
 /** Normalized quote with explicit provenance */
@@ -121,25 +143,136 @@ export type IndexSnapshot = {
   name: string;
   symbol: string;
   value: number;
+  currentValue?: number;
   change: number;
   changePercent: number;
   source: string;
   observedAt: string;
+  exchange?: string;
+  marketStatus?: 'OPEN' | 'CLOSED' | 'PRE_MARKET' | 'POST_MARKET';
 };
 
 /** Market overview — only verified data, unsupported fields omitted */
 export type MarketOverview = {
   market: Market;
   indices: IndexSnapshot[];
-  /**
-   * Gainers/losers are NOT included in Phase 2.
-   * Angel One does not provide a reliable universe-wide feed.
-   * Included fields represent what the provider actually supports.
-   */
   retrievedAt: string;
   source: string;
   freshness: DataFreshness;
   isStale: boolean;
+};
+
+/** Market breadth analytics and session state */
+export type MarketBreadth = {
+  advances: number;
+  declines: number;
+  unchanged: number;
+  highs52w: number;
+  lows52w: number;
+  new52WeekHighs?: number;
+  new52WeekLows?: number;
+  upperCircuits: number;
+  lowerCircuits: number;
+  marketStatus: 'OPEN' | 'CLOSED' | 'PRE_MARKET' | 'POST_MARKET';
+  coverage: {
+    trackedCount: number;
+    totalUniverseCount: number;
+    coveragePercent: number;
+    status: 'representative_sample' | 'full';
+  };
+  coverageDisclaimed?: boolean;
+  coveragePercent?: number;
+  coverageSummary?: string;
+  observedAt: string;
+};
+
+/** Standard stock mover entry (gainers, losers, active) */
+export type StockMoverItem = {
+  symbol: string;
+  name: string;
+  exchange: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  percentChange?: number;
+  volume: number;
+  turnover?: number;
+  classification?: SecurityClassification;
+  high52w?: number | null;
+  low52w?: number | null;
+  observedAt: string;
+  source: string;
+};
+
+/** Volume shocker entry with historical comparison ratio */
+export type VolumeShockerItem = StockMoverItem & {
+  currentVolume?: number;
+  historicalAvgVolume: number;
+  volumeRatio: number;
+  comparisonDays: 5 | 10 | 20;
+};
+
+/** Platform-level popularity item derived from real user watchlists */
+export type MostWatchedStockItem = {
+  symbol: string;
+  name: string;
+  exchange: string;
+  price: number | null;
+  changePercent: number | null;
+  watchlistCount: number;
+  uniqueUsersCount: number;
+  uniqueWatchersCount?: number;
+  windowDays: number;
+  rank: number;
+};
+
+/** Algorithmic trending item with transparent reasoning */
+export type TrendingStockItem = {
+  symbol: string;
+  name: string;
+  exchange: string;
+  price: number;
+  changePercent: number;
+  volume: number;
+  trendingScore: number;
+  reasons: string[];
+  window: string;
+};
+
+/** Sector performance aggregation */
+export type SectorPerformanceItem = {
+  sector: string;
+  performancePercent: number;
+  averageChangePercent?: number;
+  advances: number;
+  declines: number;
+  totalConstituents: number;
+  topGainer: {
+    symbol: string;
+    changePercent: number;
+  } | null;
+  topLoser: {
+    symbol: string;
+    changePercent: number;
+  } | null;
+};
+
+/** Circuit limit breaker stock */
+export type CircuitStockItem = StockMoverItem & {
+  circuitType: 'UPPER' | 'LOWER';
+  limitPercent: number;
+};
+
+/** Newly listed stock discovery item */
+export type NewListingItem = {
+  symbol: string;
+  name: string;
+  exchange: string;
+  listingDate?: string;
+  firstDiscoveredAt: string;
+  classification: SecurityClassification;
+  price: number | null;
+  changePercent: number | null;
 };
 
 // ─── Phase 3: Financial Data & Deterministic Financial Intelligence ──────────
@@ -679,15 +812,35 @@ export type NewsIngestionStatus = {
 // Phase 9: Alerts & Notifications System
 // ==========================================
 
+// ==========================================
+// Phase 9: Alerts & Notifications System
+// ==========================================
+
 export const ALERT_TYPES = [
   'price',
   'percentage_change',
   'volume',
-  'financial_metric',
+  'unusual_volume',
+  'rsi',
+  'macd',
+  'moving_average',
+  '52w_high_low',
+  'circuit',
   'announcement',
+  'corporate_action',
+  'financial_results',
+  'financial_metric',
+  'index_movement',
+  'watchlist_event',
   'news',
 ] as const;
 export type AlertType = (typeof ALERT_TYPES)[number];
+
+export const ALERT_STATUSES = ['ACTIVE', 'PAUSED', 'TRIGGERED', 'EXPIRED', 'RESOLVED'] as const;
+export type AlertStatus = (typeof ALERT_STATUSES)[number];
+
+export const ALERT_TRIGGER_TYPES = ['one_time', 'recurring'] as const;
+export type AlertTriggerType = (typeof ALERT_TRIGGER_TYPES)[number];
 
 export const PRICE_CONDITIONS = [
   'rises_above',
@@ -702,6 +855,46 @@ export type PercentageChangePeriod = (typeof PERCENTAGE_CHANGE_PERIODS)[number];
 
 export const PERCENTAGE_DIRECTIONS = ['up', 'down', 'any'] as const;
 export type PercentageDirection = (typeof PERCENTAGE_DIRECTIONS)[number];
+
+export const RSI_CONDITIONS = ['overbought', 'oversold', 'crosses_above', 'crosses_below'] as const;
+export type RsiCondition = (typeof RSI_CONDITIONS)[number];
+
+export const MACD_CONDITIONS = ['bullish_crossover', 'bearish_crossover'] as const;
+export type MacdCondition = (typeof MACD_CONDITIONS)[number];
+
+export const MA_CONDITIONS = [
+  'price_crosses_above',
+  'price_crosses_below',
+  'golden_cross',
+  'death_cross',
+] as const;
+export type MaCondition = (typeof MA_CONDITIONS)[number];
+
+export const HIGH_LOW_CONDITIONS = [
+  'new_52w_high',
+  'new_52w_low',
+  'within_percent_of_high',
+  'within_percent_of_low',
+] as const;
+export type HighLowCondition = (typeof HIGH_LOW_CONDITIONS)[number];
+
+export const CIRCUIT_CONDITIONS = ['upper_circuit', 'lower_circuit'] as const;
+export type CircuitCondition = (typeof CIRCUIT_CONDITIONS)[number];
+
+export const CORPORATE_ACTION_TYPES = [
+  'dividend',
+  'bonus_issue',
+  'stock_split',
+  'rights_issue',
+  'any',
+] as const;
+export type CorporateActionType = (typeof CORPORATE_ACTION_TYPES)[number];
+
+export const SUPPORTED_INDICES = ['NIFTY 50', 'SENSEX', 'BANKNIFTY'] as const;
+export type SupportedIndex = (typeof SUPPORTED_INDICES)[number];
+
+export const WATCHLIST_EVENT_TYPES = ['price_movement', 'announcement', 'news'] as const;
+export type WatchlistEventType = (typeof WATCHLIST_EVENT_TYPES)[number];
 
 export const FINANCIAL_ALERT_METRICS = [
   'roe',
@@ -736,11 +929,62 @@ export type VolumeAlertConfig = {
   targetVolume: number;
 };
 
+export type UnusualVolumeAlertConfig = {
+  multiplier: number;
+  baselineDays: 5 | 10 | 20;
+};
+
+export type RsiAlertConfig = {
+  condition: RsiCondition;
+  threshold: number;
+  period?: number | undefined;
+};
+
+export type MacdAlertConfig = {
+  condition: MacdCondition;
+  fastPeriod?: number | undefined;
+  slowPeriod?: number | undefined;
+  signalPeriod?: number | undefined;
+};
+
+export type MovingAverageAlertConfig = {
+  condition: MaCondition;
+  period?: 20 | 50 | 200 | undefined;
+};
+
+export type HighLowAlertConfig = {
+  condition: HighLowCondition;
+  tolerancePercent?: number | undefined;
+};
+
+export type CircuitAlertConfig = {
+  condition: CircuitCondition;
+};
+
+export type CorporateActionAlertConfig = {
+  actionType: CorporateActionType;
+};
+
+export type FinancialResultsAlertConfig = {
+  scope: 'stock' | 'watchlist';
+};
+
 export type FinancialMetricAlertConfig = {
   metric: FinancialAlertMetric;
   operator: ComparisonOperator;
   thresholdValue: number;
   periodType?: 'annual' | 'quarterly' | 'ttm' | undefined;
+};
+
+export type IndexMovementAlertConfig = {
+  indexSymbol: SupportedIndex;
+  condition: 'rises_above' | 'falls_below' | 'percent_change';
+  threshold: number;
+};
+
+export type WatchlistEventAlertConfig = {
+  eventType: WatchlistEventType;
+  thresholdPercent?: number | undefined;
 };
 
 export type AnnouncementAlertConfig = {
@@ -757,8 +1001,18 @@ export type AlertRuleConfig =
   | ({ type: 'price' } & PriceAlertConfig)
   | ({ type: 'percentage_change' } & PercentageChangeAlertConfig)
   | ({ type: 'volume' } & VolumeAlertConfig)
-  | ({ type: 'financial_metric' } & FinancialMetricAlertConfig)
+  | ({ type: 'unusual_volume' } & UnusualVolumeAlertConfig)
+  | ({ type: 'rsi' } & RsiAlertConfig)
+  | ({ type: 'macd' } & MacdAlertConfig)
+  | ({ type: 'moving_average' } & MovingAverageAlertConfig)
+  | ({ type: '52w_high_low' } & HighLowAlertConfig)
+  | ({ type: 'circuit' } & CircuitAlertConfig)
   | ({ type: 'announcement' } & AnnouncementAlertConfig)
+  | ({ type: 'corporate_action' } & CorporateActionAlertConfig)
+  | ({ type: 'financial_results' } & FinancialResultsAlertConfig)
+  | ({ type: 'financial_metric' } & FinancialMetricAlertConfig)
+  | ({ type: 'index_movement' } & IndexMovementAlertConfig)
+  | ({ type: 'watchlist_event' } & WatchlistEventAlertConfig)
   | ({ type: 'news' } & NewsAlertConfig);
 
 export type AlertRule = {
@@ -770,6 +1024,10 @@ export type AlertRule = {
   exchange: SupportedExchange | null;
   ruleConfig: AlertRuleConfig;
   enabled: boolean;
+  status?: AlertStatus | undefined;
+  triggerType?: AlertTriggerType | undefined;
+  expiresAt?: string | null | undefined;
+  deliveryChannels?: Array<'in_app' | 'email' | 'push'> | undefined;
   cooldownMinutes: number;
   lastEvaluatedAt: string | null;
   lastObservationAt: string | null;
@@ -800,10 +1058,15 @@ export const NOTIFICATION_CATEGORIES = [
   'price_alert',
   'percentage_alert',
   'volume_alert',
+  'technical_alert',
   'financial_alert',
   'announcement_alert',
-  'news_alert',
+  'corporate_action_alert',
+  'market_event',
+  'research_report',
+  'screener_result',
   'system',
+  'news_alert',
 ] as const;
 export type NotificationCategory = (typeof NOTIFICATION_CATEGORIES)[number];
 
@@ -816,6 +1079,8 @@ export type AppNotification = {
   message: string;
   read: boolean;
   readAt?: string | null;
+  archived?: boolean | undefined;
+  link?: string | null | undefined;
   symbol?: string | null;
   exchange?: SupportedExchange | null;
   sourceUrl?: string | null;
@@ -823,19 +1088,39 @@ export type AppNotification = {
   createdAt: string;
 };
 
+export type DeliveryChannel = 'in_app' | 'email' | 'push';
+
 export type UserAlertPreferences = {
   userId: string;
   inAppEnabled: boolean;
   emailEnabled: boolean;
   emailAddress?: string | null;
+  pushEnabled?: boolean | undefined;
   priceAlerts: boolean;
   percentageAlerts: boolean;
   volumeAlerts: boolean;
+  technicalAlerts?: boolean | undefined;
   financialAlerts: boolean;
   announcementAlerts: boolean;
   newsAlerts: boolean;
-  digestFrequency: 'realtime' | 'daily' | 'off';
+  marketSummaries?: boolean | undefined;
+  researchUpdates?: boolean | undefined;
+  systemAlerts?: boolean | undefined;
+  digestFrequency: 'realtime' | 'daily' | 'weekly' | 'off';
+  digestMode?: 'immediate' | 'daily' | 'weekly' | 'off' | undefined;
+  quietHoursEnabled?: boolean | undefined;
+  quietHoursStart?: string | null | undefined;
+  quietHoursEnd?: string | null | undefined;
+  timeZone?: string | undefined;
   updatedAt: string;
+};
+
+export type AlertDashboardStats = {
+  total: number;
+  active: number;
+  paused: number;
+  triggeredToday: number;
+  expired: number;
 };
 
 // ─── Phase 10: Portfolio Tracking & Investment Performance Analytics ─────────
@@ -1023,10 +1308,25 @@ export const SCREENER_SUPPORTED_METRICS = [
   'interest_coverage',
   'revenue_growth',
   'net_income_growth',
+  'profit_growth',
   'eps_growth',
   'free_cash_flow_margin',
   'pe_ratio',
   'price_to_book',
+  'eps',
+  'dividend_yield',
+  'market_cap',
+  'stock_price',
+  'price',
+  'price_change_pct',
+  'change_percent',
+  'volume',
+  'turnover',
+  'fifty_two_week_high',
+  'fifty_two_week_low',
+  'classification',
+  'sector',
+  'industry',
   'financial_health_score',
 ] as const;
 export type ScreenerMetric = (typeof SCREENER_SUPPORTED_METRICS)[number];
@@ -1039,15 +1339,17 @@ export const SCREENER_OPERATORS = [
   'lt',
   'lte',
   'between',
+  'in',
+  'contains',
 ] as const;
 export type ScreenerOperator = (typeof SCREENER_OPERATORS)[number];
 export type ScreenerPeriod = SupportedPeriod;
 
 export type ScreenerCondition = {
   id?: string | undefined;
-  field: ScreenerMetric;
+  field: string;
   operator: ScreenerOperator;
-  value: number;
+  value: number | string;
   upperValue?: number | null | undefined;
 };
 
@@ -1271,12 +1573,54 @@ export type AiComparisonSection = {
   evidenceIds: string[];
 };
 
+export type AiComparisonCategoryComparison = {
+  analysis: string;
+  company_a_metrics: Record<string, unknown>;
+  company_b_metrics: Record<string, unknown>;
+  comparative_conclusion: string;
+  evidence: string[];
+  reporting_period: string;
+  data_availability: 'complete' | 'partial' | 'unavailable';
+};
+
 export type AiComparisonAnalysis = {
   summary: string;
   sections: AiComparisonSection[];
   disclaimer: string;
   model: string;
   generatedAt: string;
+  comparison_summary?: string | undefined;
+  companies?: Array<{
+    symbol: string;
+    exchange: string;
+    name: string;
+    sector: string | null;
+    industry: string | null;
+    marketCap: number | null;
+    price: number | null;
+  }> | undefined;
+  business_comparison?: AiComparisonCategoryComparison | undefined;
+  growth_comparison?: AiComparisonCategoryComparison | undefined;
+  profitability_comparison?: AiComparisonCategoryComparison | undefined;
+  financial_health?: AiComparisonCategoryComparison | undefined;
+  valuation_comparison?: AiComparisonCategoryComparison | undefined;
+  stock_performance?: AiComparisonCategoryComparison | undefined;
+  dividend_comparison?: AiComparisonCategoryComparison | undefined;
+  risk_comparison?: AiComparisonCategoryComparison | undefined;
+  category_winners?: Record<string, { winner: string | null; rationale: string }> | undefined;
+  final_assessment?: {
+    overall_takeaway: string;
+    key_advantages: Record<string, string[]>;
+    key_disadvantages: Record<string, string[]>;
+    trade_offs: string[];
+    inconclusive_areas: string[];
+  } | undefined;
+  data_sources?: Array<{
+    name: string;
+    type: string;
+    retrievedAt: string;
+  }> | undefined;
+  data_limitations?: string[] | undefined;
 };
 
 export type SavedComparison = {
@@ -1329,13 +1673,37 @@ export const REPORT_SECTION_TYPES = [
   'cover_metadata',
   'executive_summary',
   'company_profile',
-  'market_overview',
-  'financial_analysis',
+  'company_overview',
+  'business_model',
+  'industry_overview',
+  'market_position',
+  'competitive_analysis',
   'comparative_analysis',
-  'news_and_developments',
+  'products_and_services',
+  'revenue_analysis',
+  'financial_performance',
+  'financial_analysis',
+  'profitability_analysis',
+  'balance_sheet_analysis',
+  'cash_flow_analysis',
+  'fundamental_analysis',
+  'valuation_analysis',
+  'valuation_multiples',
+  'historical_stock_performance',
+  'management_analysis',
+  'shareholding_analysis',
+  'corporate_governance',
+  'risk_assessment',
   'risks_and_uncertainties',
-  'research_notes',
+  'growth_opportunities',
+  'investment_thesis',
+  'bear_case',
+  'bull_case',
+  'conclusion',
   'conclusion_open_questions',
+  'market_overview',
+  'news_and_developments',
+  'research_notes',
   'sources_and_methodology',
   'custom',
 ] as const;

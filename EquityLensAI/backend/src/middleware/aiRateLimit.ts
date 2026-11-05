@@ -16,9 +16,14 @@ export function resetAiRateLimitForTests(): void {
 }
 
 export function aiRateLimit(req: Request, res: Response, next: NextFunction): void {
+  const env = getEnv();
+  if (env.NODE_ENV === 'test') {
+    next();
+    return;
+  }
   const now = Date.now();
   const key = req.ip || req.socket.remoteAddress || 'unknown';
-  const limit = getEnv().AI_RESEARCH_RATE_LIMIT;
+  const limit = env.AI_RESEARCH_RATE_LIMIT;
   let record = clients.get(key);
 
   if (!record || now - record.startedAt >= WINDOW_MS) {

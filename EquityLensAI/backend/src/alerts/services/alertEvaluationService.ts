@@ -6,13 +6,19 @@ import type {
   FinancialAnalysis,
   CorporateAnnouncement,
   NewsItem,
+  IndexSnapshot,
+  VolumeShockerItem,
+  CircuitStockItem,
+  StockMoverItem,
+  PriceCandle,
   NotificationCategory,
 } from '@equitylensai/shared';
 import { alertRepository } from '../repositories/alertRepository.js';
-import { notificationRepository } from '../../notifications/repositories/notificationRepository.js';
+import { notificationService } from '../../notifications/services/notificationService.js';
 import { marketService } from '../../market/marketService.js';
 import { financialService } from '../../financial/financialService.js';
 import { newsRepository } from '../../news/repositories/newsRepository.js';
+import { marketIntelligenceService } from '../../market/intelligence/marketIntelligenceService.js';
 import { userRepository } from '../../db/userRepository.js';
 import { alertConditionEvaluator } from '../evaluators/alertConditionEvaluator.js';
 import { logger } from '../../utils/logger.js';
@@ -21,15 +27,27 @@ import type { EvaluationJobSummary } from '../types.js';
 function mapAlertTypeToNotificationCategory(alertType: string): NotificationCategory {
   switch (alertType) {
     case 'price':
+    case '52w_high_low':
       return 'price_alert';
     case 'percentage_change':
       return 'percentage_alert';
     case 'volume':
+    case 'unusual_volume':
       return 'volume_alert';
+    case 'rsi':
+    case 'macd':
+    case 'moving_average':
+      return 'technical_alert';
     case 'financial_metric':
+    case 'financial_results':
       return 'financial_alert';
     case 'announcement':
       return 'announcement_alert';
+    case 'corporate_action':
+      return 'corporate_action_alert';
+    case 'circuit':
+    case 'index_movement':
+      return 'market_event';
     case 'news':
       return 'news_alert';
     default:
@@ -63,6 +81,15 @@ export class AlertEvaluationService {
     let errorsCount = 0;
 
     try {
+      // 0. Auto-expire past rules
+      const expiredRules = await alertRepository.getExpiredRules();
+      for (const exp of expiredRules) {
+        await alertRepository.updateRule(exp.id, exp.userId, {
+          enabled: false,
+          status: 'EXPIRED',
+        });
+      }
+
       const enabledRules = await alertRepository.getAllEnabledRules();
       if (enabledRules.length === 0) {
         return {
@@ -76,15 +103,43 @@ export class AlertEvaluationService {
         };
       }
 
-      // 1. Group rules to batch observations
-      const quoteRules = enabledRules.filter(
-        (r) => r.alertType === 'price' || r.alertType === 'percentage_change' || r.alertType === 'volume',
-      );
-      const financialRules = enabledRules.filter((r) => r.alertType === 'financial_metric');
-      const announcementRules = enabledRules.filter((r) => r.alertType === 'announcement');
-      const newsRules = enabledRules.filter((r) => r.alertType === 'news');
+      // 1. Group rules by observation requirements
+      const quoteTypes = [
+        'price',
+        'percentage_change',
+        'volume',
+        'unusual_volume',
+        '52w_high_low',
+        'circuit',
+        'moving_average',
+        'rsi',
+      ];
+      const candleTypes = ['rsi', 'macd', 'moving_average', 'unusual_volume'];
 
-      // 2. Batch fetch quotes for market rules
+      const quoteRules = enabledRules.filter((r) => quoteTypes.includes(r.alertType));
+      const candleRules = enabledRules.filter((r) => candleTypes.includes(r.alertType));
+      const financialRules = enabledRules.filter((r) => r.alertType === 'financial_metric');
+      const announcementRules = enabledRules.filter(
+        (r) =>
+          r.alertType === 'announcement' ||
+          r.alertType === 'corporate_action' ||
+          r.alertType === 'financial_results' ||
+          (r.alertType === 'watchlist_event' &&
+            r.ruleConfig.type === 'watchlist_event' &&
+            r.ruleConfig.eventType === 'announcement'),
+      );
+      const newsRules = enabledRules.filter(
+        (r) =>
+          r.alertType === 'news' ||
+          (r.alertType === 'watchlist_event' &&
+            r.ruleConfig.type === 'watchlist_event' &&
+            r.ruleConfig.eventType === 'news'),
+      );
+      const indexRules = enabledRules.filter((r) => r.alertType === 'index_movement');
+      const circuitRules = enabledRules.filter((r) => r.alertType === 'circuit');
+      const moverRules = enabledRules.filter((r) => r.alertType === '52w_high_low' || r.alertType === 'unusual_volume');
+
+      // 2. Batch fetch quotes
       const quotesMap = new Map<string, NormalizedQuote>();
       const quoteKeys = Array.from(
         new Set(
@@ -105,7 +160,38 @@ export class AlertEvaluationService {
         }
       }
 
-      // 3. Batch fetch financials for financial rules
+      // 3. Batch fetch daily candles for technical indicators
+      const candlesMap = new Map<string, PriceCandle[]>();
+      const candleKeys = Array.from(
+        new Set(
+          candleRules
+            .filter((r) => Boolean(r.symbol))
+            .map((r) => `${(r.exchange || 'NSE').toUpperCase()}:${r.symbol!.toUpperCase()}`),
+        ),
+      );
+
+      for (const key of candleKeys) {
+        const [exchange, symbol] = key.split(':');
+        if (!symbol || !exchange) continue;
+        try {
+          const to = new Date().toISOString();
+          const from = new Date(Date.now() - 365 * 86400000).toISOString();
+          const history = await marketService.getHistoricalPrices({
+            symbol,
+            exchange,
+            interval: 'ONE_DAY',
+            from,
+            to,
+          });
+          if (history && history.candles) {
+            candlesMap.set(key, history.candles);
+          }
+        } catch (err) {
+          logger.debug({ err, symbol, exchange }, 'Failed to fetch candles for technical evaluation');
+        }
+      }
+
+      // 4. Batch fetch financials
       const financialsMap = new Map<string, FinancialAnalysis>();
       const financialKeys = Array.from(
         new Set(
@@ -119,14 +205,18 @@ export class AlertEvaluationService {
         const [exchange, symbol] = key.split(':');
         if (!symbol || !exchange) continue;
         try {
-          const analysis = await financialService.getFinancialAnalysis({ symbol, exchange, annualPeriods: 4 });
+          const analysis = await financialService.getFinancialAnalysis({
+            symbol,
+            exchange,
+            annualPeriods: 4,
+          });
           financialsMap.set(key, analysis);
         } catch (err) {
           logger.debug({ err, symbol, exchange }, 'Failed to fetch financials during evaluation');
         }
       }
 
-      // 4. Announcements & News feeds
+      // 5. Announcements feed
       let latestAnnouncements: CorporateAnnouncement[] = [];
       if (announcementRules.length > 0) {
         try {
@@ -137,6 +227,7 @@ export class AlertEvaluationService {
         }
       }
 
+      // 6. News feed
       let latestNews: NewsItem[] = [];
       if (newsRules.length > 0) {
         try {
@@ -147,18 +238,56 @@ export class AlertEvaluationService {
         }
       }
 
-      // 5. User watchlists cache for watchlist-scoped rules
-      const userWatchlistsMap = new Map<string, string[]>();
+      // 7. Market Indices
+      let marketIndices: IndexSnapshot[] = [];
+      if (indexRules.length > 0) {
+        try {
+          marketIndices = await marketIntelligenceService.getMarketIndices();
+        } catch (err) {
+          logger.debug({ err }, 'Failed to fetch market indices during evaluation');
+        }
+      }
 
-      // 6. Evaluate each rule safely
+      // 8. Circuit stocks & movers pool
+      let circuitStocks: CircuitStockItem[] = [];
+      let moversPool: StockMoverItem[] = [];
+      let volumeShockersPool: VolumeShockerItem[] = [];
+
+      if (circuitRules.length > 0) {
+        try {
+          circuitStocks = await marketIntelligenceService.getCircuitStocks();
+        } catch (err) {
+          logger.debug({ err }, 'Failed to fetch circuit stocks during evaluation');
+        }
+      }
+
+      if (moverRules.length > 0) {
+        try {
+          moversPool = await marketIntelligenceService.getTrackedMoverPool();
+          volumeShockersPool = await marketIntelligenceService.getVolumeShockers({ days: 20 });
+        } catch (err) {
+          logger.debug({ err }, 'Failed to fetch movers/volume shockers during evaluation');
+        }
+      }
+
+      // 9. User watchlists cache
+      const userWatchlistsMap = new Map<string, string[]>();
+      const userWatchlistQuotesMap = new Map<string, Map<string, NormalizedQuote>>();
+
+      // 10. Evaluate each rule safely
       for (const rule of enabledRules) {
         evaluatedCount++;
         try {
           let contextWatchlistSymbols: string[] | undefined;
-          if (
+          let contextWatchlistQuotes: Map<string, NormalizedQuote> | undefined;
+
+          const isWatchlistScoped =
+            rule.alertType === 'watchlist_event' ||
             (rule.ruleConfig.type === 'announcement' && rule.ruleConfig.scope === 'watchlist') ||
-            (rule.ruleConfig.type === 'news' && rule.ruleConfig.scope === 'watchlist')
-          ) {
+            (rule.ruleConfig.type === 'financial_results' && rule.ruleConfig.scope === 'watchlist') ||
+            (rule.ruleConfig.type === 'news' && rule.ruleConfig.scope === 'watchlist');
+
+          if (isWatchlistScoped) {
             if (!userWatchlistsMap.has(rule.userId)) {
               const watchlists = await userRepository.listWatchlists(rule.userId);
               const symbols = new Set<string>();
@@ -168,9 +297,22 @@ export class AlertEvaluationService {
                   symbols.add(item.symbol.toUpperCase());
                 }
               }
-              userWatchlistsMap.set(rule.userId, Array.from(symbols));
+              const symArray = Array.from(symbols);
+              userWatchlistsMap.set(rule.userId, symArray);
+
+              // Pre-fetch quotes for watchlist symbols if rule is price_movement
+              const wlQuotes = new Map<string, NormalizedQuote>();
+              for (const sym of symArray) {
+                const key = `NSE:${sym}`;
+                const q = quotesMap.get(key);
+                if (q) {
+                  wlQuotes.set(sym, q);
+                }
+              }
+              userWatchlistQuotesMap.set(rule.userId, wlQuotes);
             }
             contextWatchlistSymbols = userWatchlistsMap.get(rule.userId);
+            contextWatchlistQuotes = userWatchlistQuotesMap.get(rule.userId);
           }
 
           const stockKey = rule.symbol
@@ -178,20 +320,29 @@ export class AlertEvaluationService {
             : undefined;
 
           const quote = stockKey ? quotesMap.get(stockKey) : undefined;
+          const candles = stockKey ? candlesMap.get(stockKey) : undefined;
           const financials = stockKey ? financialsMap.get(stockKey) : undefined;
 
           const outcome = alertConditionEvaluator.evaluate(rule, {
             quote,
+            candles,
             financials,
             announcements: latestAnnouncements,
             news: latestNews,
+            indices: marketIndices,
+            circuits: circuitStocks,
+            movers: moversPool,
+            volumeShockers: volumeShockersPool,
             watchlistSymbols: contextWatchlistSymbols,
+            watchlistQuotes: contextWatchlistQuotes,
           });
 
           if (outcome.skipped) {
             skippedCount++;
             await alertRepository.updateRule(rule.id, rule.userId, {
               lastEvaluatedAt: new Date().toISOString(),
+              status: outcome.newStatus ?? rule.status,
+              enabled: outcome.newStatus === 'EXPIRED' ? false : rule.enabled,
             });
             continue;
           }
@@ -241,29 +392,30 @@ export class AlertEvaluationService {
 
           triggeredCount++;
 
-          // Check user preferences before creating in-app notification
-          const preferences = await notificationRepository.getPreferences(rule.userId);
-          if (preferences.inAppEnabled) {
-            const notification: AppNotification = {
-              id: crypto.randomUUID(),
-              userId: rule.userId,
-              alertEventId: event.id,
-              category: mapAlertTypeToNotificationCategory(rule.alertType),
-              title: outcome.title ?? `Alert Triggered: ${rule.name}`,
-              message: outcome.message ?? `Condition for '${rule.name}' was met.`,
-              read: false,
-              readAt: null,
-              symbol: rule.symbol,
-              exchange: rule.exchange,
-              sourceUrl: outcome.sourceUrl ?? null,
-              metadata: outcome.metadata ?? {},
-              createdAt: nowStr,
-            };
+          // Build notification
+          const notification: AppNotification = {
+            id: crypto.randomUUID(),
+            userId: rule.userId,
+            alertEventId: event.id,
+            category: mapAlertTypeToNotificationCategory(rule.alertType),
+            title: outcome.title ?? `Alert Triggered: ${rule.name}`,
+            message: outcome.message ?? `Condition for '${rule.name}' was met.`,
+            read: false,
+            readAt: null,
+            archived: false,
+            link: outcome.link ?? (rule.symbol ? `/stocks/${rule.symbol}` : '/alerts'),
+            symbol: rule.symbol,
+            exchange: rule.exchange,
+            sourceUrl: outcome.sourceUrl ?? null,
+            metadata: outcome.metadata ?? {},
+            createdAt: nowStr,
+          };
 
-            await notificationRepository.createNotification(notification);
-          }
+          // Dispatch across enabled channels (in-app, email, push)
+          await notificationService.dispatchNotification(notification, rule.deliveryChannels ?? ['in_app']);
 
-          // Update rule state and lastTriggeredAt
+          // Update rule state, lastTriggeredAt, and status
+          const isOneTime = rule.triggerType === 'one_time';
           await alertRepository.updateRule(rule.id, rule.userId, {
             lastTriggeredAt: nowStr,
             lastEvaluatedAt: nowStr,
@@ -274,6 +426,8 @@ export class AlertEvaluationService {
               outcome.observationTimestamp !== undefined
                 ? outcome.observationTimestamp
                 : rule.lastObservationAt,
+            status: isOneTime ? 'TRIGGERED' : 'ACTIVE',
+            enabled: !isOneTime,
           });
         } catch (ruleErr) {
           errorsCount++;

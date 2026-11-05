@@ -6,6 +6,7 @@ import { registerShutdownTask, runShutdownTasks } from './utils/lifecycle.js';
 
 import { initializeInstruments } from './market/instruments/ingestion.js';
 import { alertScheduler } from './alerts/services/alertScheduler.js';
+import { securityUniverseScheduler } from './market/instruments/scheduler.js';
 
 const env = loadEnv();
 const app = createApp();
@@ -17,6 +18,7 @@ async function startServer(): Promise<void> {
 
   if (env.NODE_ENV !== 'test') {
     alertScheduler.start(60_000);
+    securityUniverseScheduler.start();
   }
 
   const listeningServer = app.listen(env.PORT, () => {
@@ -44,6 +46,10 @@ async function startServer(): Promise<void> {
   });
 
   registerShutdownTask('database', () => dbClient.disconnect());
+  registerShutdownTask('security-universe-scheduler', () => {
+    securityUniverseScheduler.stop();
+    return Promise.resolve();
+  });
 }
 
 async function shutdown(signal: string): Promise<void> {

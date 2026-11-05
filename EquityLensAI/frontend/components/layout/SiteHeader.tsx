@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUnreadNotificationsCount } from '@/hooks/useNotifications';
+import { NotificationBellDropdown } from '@/components/notifications/NotificationBellDropdown';
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -24,7 +25,7 @@ export function SiteHeader() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const navLinks = [
+  const navLinks: { href: string; label: string; badge?: number }[] = [
     { href: '/stocks', label: 'Stocks' },
     { href: '/market', label: 'Markets' },
     { href: '/news', label: 'News' },
@@ -38,7 +39,6 @@ export function SiteHeader() {
           { href: '/watchlists', label: 'Watchlists' },
           { href: '/favorites', label: 'Favorites' },
           { href: '/alerts', label: 'Alerts' },
-          { href: '/notifications', label: 'Notifications', badge: unreadCount > 0 ? unreadCount : undefined },
         ]
       : []),
   ];
@@ -90,22 +90,8 @@ export function SiteHeader() {
             <div className="h-8 w-20 animate-pulse rounded-md bg-white/5" />
           ) : isAuthenticated ? (
             <>
-              {/* Notification Bell Icon */}
-              <Link
-                href="/notifications"
-                className="relative rounded-full border border-white/10 bg-white/5 p-2 text-slate-300 hover:border-white/25 hover:bg-white/10 hover:text-white transition"
-                title="Notifications"
-                aria-label="Notifications"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-extrabold text-white ring-2 ring-slate-950">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
-              </Link>
+              {/* Notification Bell Dropdown */}
+              <NotificationBellDropdown />
 
               <div className="relative" ref={dropdownRef}>
                 <button

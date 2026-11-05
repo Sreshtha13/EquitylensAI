@@ -3,16 +3,19 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { useAlerts, useTriggerAlertEvaluation } from '@/hooks/useAlerts';
+import { useAlerts, useAlertStats, useTriggerAlertEvaluation } from '@/hooks/useAlerts';
 import { AlertRuleCard } from '@/components/alerts/AlertRuleCard';
 import { CreateAlertModal } from '@/components/alerts/CreateAlertModal';
-import type { AlertType } from '@equitylensai/shared';
+import type { AlertType, AlertStatus } from '@equitylensai/shared';
 
 export default function AlertsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [selectedType, setSelectedType] = useState<AlertType | 'all'>('all');
+  const [selectedStatus, setSelectedStatus] = useState<AlertStatus | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
+  const { data: statsData } = useAlertStats();
   const { data, isLoading, refetch } = useAlerts(
     selectedType === 'all' ? {} : { alertType: selectedType },
   );
@@ -23,9 +26,9 @@ export default function AlertsPage() {
     return (
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="h-8 w-48 animate-pulse rounded bg-white/10" />
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-40 rounded-2xl bg-white/5 animate-pulse" />
+        <div className="mt-8 grid grid-cols-2 sm:grid-cols-5 gap-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-24 rounded-2xl bg-white/5 animate-pulse" />
           ))}
         </div>
       </div>
@@ -55,9 +58,32 @@ export default function AlertsPage() {
   }
 
   const rules = data?.rules ?? [];
-  const totalCount = data?.total ?? rules.length;
-  const activeCount = rules.filter((r) => r.enabled).length;
-  const disabledCount = rules.filter((r) => !r.enabled).length;
+
+  // Client-side filtering by status and search query
+  const filteredRules = rules.filter((r) => {
+    // Status check
+    const rStatus = r.status || (r.expiresAt && new Date(r.expiresAt) < new Date() ? 'EXPIRED' : r.enabled ? 'ACTIVE' : 'PAUSED');
+    if (selectedStatus !== 'all' && rStatus !== selectedStatus) {
+      return false;
+    }
+    // Search query check
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchName = r.name.toLowerCase().includes(q);
+      const matchSymbol = r.symbol?.toLowerCase().includes(q);
+      const matchType = r.alertType.toLowerCase().includes(q);
+      if (!matchName && !matchSymbol && !matchType) return false;
+    }
+    return true;
+  });
+
+  const stats = statsData || {
+    total: rules.length,
+    active: rules.filter((r) => r.enabled && (!r.expiresAt || new Date(r.expiresAt) >= new Date())).length,
+    paused: rules.filter((r) => !r.enabled && (!r.expiresAt || new Date(r.expiresAt) >= new Date())).length,
+    triggeredToday: 0,
+    expired: rules.filter((r) => r.expiresAt && new Date(r.expiresAt) < new Date()).length,
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
@@ -67,11 +93,11 @@ export default function AlertsPage() {
           <div className="flex items-center gap-2.5">
             <h1 className="text-3xl font-black tracking-tight text-white">Alerts &amp; Monitors</h1>
             <span className="rounded-full bg-sky-500/10 px-2.5 py-0.5 text-xs font-bold text-sky-400 border border-sky-500/20">
-              Live Evaluation
+              Live Engine
             </span>
           </div>
           <p className="mt-1 text-sm text-slate-400">
-            Automated threshold evaluation on live quotes, financial metrics, and corporate filings.
+            Real-time threshold evaluation across verified quotes, technical crossovers, disclosures & fundamental ratios.
           </p>
         </div>
 
@@ -105,39 +131,99 @@ export default function AlertsPage() {
         </div>
       </div>
 
-      {/* Summary KPI Cards */}
-      <div className="mt-8 grid grid-cols-3 gap-4">
+      {/* Part 1 Dashboard Overview: 5 KPI Cards */}
+      <div className="mt-8 grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-sm backdrop-blur-md">
-          <p className="text-xs font-medium text-slate-400">Total Alert Rules</p>
-          <p className="mt-1 text-2xl font-black text-white">{totalCount}</p>
+          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Alerts</p>
+          <p className="mt-1 text-2xl font-black text-white">{stats.total}</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-sm backdrop-blur-md">
-          <p className="text-xs font-medium text-slate-400">Active / Monitoring</p>
-          <p className="mt-1 text-2xl font-black text-emerald-400">{activeCount}</p>
+          <p className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">Active</p>
+          <p className="mt-1 text-2xl font-black text-emerald-400">{stats.active}</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-sm backdrop-blur-md">
-          <p className="text-xs font-medium text-slate-400">Paused / Disabled</p>
-          <p className="mt-1 text-2xl font-black text-slate-400">{disabledCount}</p>
+          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Paused</p>
+          <p className="mt-1 text-2xl font-black text-slate-400">{stats.paused}</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-sm backdrop-blur-md">
+          <p className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider">Triggered Today</p>
+          <p className="mt-1 text-2xl font-black text-amber-400">{stats.triggeredToday}</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-sm backdrop-blur-md">
+          <p className="text-[11px] font-semibold text-rose-400 uppercase tracking-wider">Expired</p>
+          <p className="mt-1 text-2xl font-black text-rose-400">{stats.expired}</p>
+        </div>
+      </div>
+
+      {/* Search and Filters Bar */}
+      <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Search Input */}
+        <div className="relative flex-1 max-w-md">
+          <input
+            type="text"
+            placeholder="Search alerts by symbol or title..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-slate-900/80 pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
+          />
+          <svg className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        {/* Status Filter */}
+        <div className="flex items-center gap-1.5 self-start sm:self-auto">
+          {(
+            [
+              { key: 'all', label: 'All' },
+              { key: 'ACTIVE', label: 'Active' },
+              { key: 'PAUSED', label: 'Paused' },
+              { key: 'TRIGGERED', label: 'Triggered' },
+              { key: 'EXPIRED', label: 'Expired' },
+            ] as const
+          ).map((s) => (
+            <button
+              key={s.key}
+              onClick={() => setSelectedStatus(s.key)}
+              className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+                selectedStatus === s.key
+                  ? 'bg-white/15 text-white'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Category Filter Tabs */}
-      <div className="mt-8 flex flex-wrap items-center gap-2 border-b border-white/10 pb-4">
+      <div className="mt-4 flex flex-wrap items-center gap-1.5 border-b border-white/10 pb-4 overflow-x-auto">
         {[
-          { key: 'all', label: 'All Rules' },
-          { key: 'price', label: 'Price Thresholds' },
+          { key: 'all', label: 'All Categories' },
+          { key: 'price', label: 'Price' },
           { key: 'percentage_change', label: '% Movement' },
           { key: 'volume', label: 'Volume' },
-          { key: 'financial_metric', label: 'Financial Ratios' },
-          { key: 'announcement', label: 'Exchange Filings' },
-          { key: 'news', label: 'News Alerts' },
+          { key: 'unusual_volume', label: 'Unusual Vol' },
+          { key: 'rsi', label: 'RSI' },
+          { key: 'macd', label: 'MACD' },
+          { key: 'moving_average', label: 'Moving Avg' },
+          { key: '52w_high_low', label: '52W High/Low' },
+          { key: 'circuit', label: 'Circuits' },
+          { key: 'announcement', label: 'Disclosures' },
+          { key: 'corporate_action', label: 'Dividends/Splits' },
+          { key: 'financial_results', label: 'Quarterly Results' },
+          { key: 'financial_metric', label: 'Fundamentals' },
+          { key: 'index_movement', label: 'Indices' },
+          { key: 'watchlist_event', label: 'Watchlist' },
+          { key: 'news', label: 'News' },
         ].map((tab) => (
           <button
             key={tab.key}
             onClick={() => setSelectedType(tab.key as AlertType | 'all')}
-            className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition ${
+            className={`rounded-xl px-3 py-1 text-xs font-medium transition whitespace-nowrap ${
               selectedType === tab.key
-                ? 'bg-sky-500 text-white shadow-md shadow-sky-500/20'
+                ? 'bg-sky-500 text-white shadow-md shadow-sky-500/20 font-semibold'
                 : 'text-slate-400 hover:bg-white/5 hover:text-white'
             }`}
           >
@@ -154,16 +240,18 @@ export default function AlertsPage() {
               <div key={i} className="h-44 rounded-2xl bg-white/5 animate-pulse" />
             ))}
           </div>
-        ) : rules.length === 0 ? (
+        ) : filteredRules.length === 0 ? (
           <div className="rounded-3xl border border-white/10 bg-slate-900/40 p-12 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 text-slate-400 mb-3">
               <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
-            <h3 className="text-base font-bold text-white">No Alert Rules Configured</h3>
+            <h3 className="text-base font-bold text-white">No Matching Alert Rules</h3>
             <p className="mt-1 text-xs text-slate-400 max-w-md mx-auto">
-              You do not have any active alert rules in this category. Create one to receive deterministic notifications on threshold events.
+              {searchQuery || selectedStatus !== 'all' || selectedType !== 'all'
+                ? 'No alerts match the chosen filters or search query.'
+                : 'You do not have any active alert rules. Create one to receive deterministic notifications on threshold events.'}
             </p>
             <button
               onClick={() => setIsCreateOpen(true)}
@@ -174,7 +262,7 @@ export default function AlertsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {rules.map((rule) => (
+            {filteredRules.map((rule) => (
               <AlertRuleCard key={rule.id} rule={rule} />
             ))}
           </div>
